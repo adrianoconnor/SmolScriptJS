@@ -10,6 +10,7 @@ import { AssignmentExpression } from "./Expressions/AssignmentExpression";
 import { ExpressionStatement } from "./Statements/ExpressionStatement";
 import { Statement } from "./Statements/Statement";
 import { AstDebugPrinter } from "./AstDebugPrinter";
+import { PrintStatement } from "./Statements/PrintStatement";
 
 export class Parser {
 
@@ -96,10 +97,8 @@ export class Parser {
 
         this.consume(TokenType.EQUAL, "Expected =");
 
-        //if (this.match([TokenType.EQUAL]))
-        //{
-            var initializer = this.expression();
-        //}
+        // Slight difference here versus c# version, tbc
+        var initializer = this.expression();
 
         this.consume(TokenType.SEMICOLON, "Expected ;");
         return new VarStatement(name, initializer);
@@ -110,7 +109,15 @@ export class Parser {
     }
 
     statement() {
+        if (this.match(TokenType.PRINT)) return this.printStatement();
+
         return this.expressionStatement();
+    }
+
+    printStatement() : PrintStatement{
+        var expr:Expression = this.expression();
+        this.consume(TokenType.SEMICOLON, "Expected ;");
+        return new PrintStatement(expr);
     }
 
     expressionStatement() : Statement {
@@ -198,7 +205,7 @@ export class Parser {
             return new GroupingExpression(expr);
         }
 
-        throw new Error(`Parser did not expect to see '${this.peek().lexeme}' on line {peek().line}, sorry :(`);
+        throw new Error(`Parser did not expect to see token "${this.peek().lexeme}" on line ${this.peek().line}, sorry :(`);
 
         //throw error(peek(), $"Parser did not expect to see '{peek().lexeme}' on line {peek().line}, sorry :(");
 

@@ -3,7 +3,7 @@ import { TokenType } from "./TokenType";
 import { Scanner } from "./Scanner";
 import { Parser } from "./Parser";
 
-let s = new Scanner("var a = (1 + 2 * 3); a = a * 5 / 2 + 1;");
+let s = new Scanner("var a = (1 + 2 * 3); a = a * 5 / 2 + 1; print a;");
 
 s.scanTokens();
 
