@@ -16,6 +16,7 @@ export class Parser {
 
     _tokens:Token[];
     _currentTokenIndex:number = 0;
+    _statements:Statement[] = new Array();
 
     constructor(tokens:Token[]) {
         this._tokens = tokens;
@@ -27,10 +28,11 @@ export class Parser {
 
         while(!this.endOfTokenStream()) {
 
-            //console.log(this._currentTokenIndex);
-            //console.log(this.declaration());
+            var stmt:Statement = this.declaration();
 
-            p.print(this.declaration());
+            //p.print(stmt);
+            
+            this._statements.push(stmt);
         }
     }
 
@@ -83,7 +85,7 @@ export class Parser {
         //throw error(peek(), errorIfNotFound);
     }
 
-    declaration() {
+    declaration() : Statement {
 
         if (this.match(TokenType.VAR)) return this.varDeclaration(); 
         //if (this.match([TokenType.FUNC])) return this.functionDeclaration(); 
@@ -91,7 +93,7 @@ export class Parser {
         return this.statement();
     }
 
-    varDeclaration() {
+    varDeclaration() : Statement {
 
         var name = this.consume(TokenType.IDENTIFIER, "Expected variable name");
 
@@ -108,7 +110,7 @@ export class Parser {
 
     }
 
-    statement() {
+    statement() : Statement {
         if (this.match(TokenType.PRINT)) return this.printStatement();
 
         return this.expressionStatement();
@@ -188,7 +190,12 @@ export class Parser {
         if (this.match(TokenType.TRUE)) return new LiteralExpression(true);
         if (this.match(TokenType.NIL)) return new LiteralExpression(null);
 
-        if(this.match(TokenType.NUMBER, TokenType.STRING))
+        if(this.match(TokenType.NUMBER))
+        {
+            return new LiteralExpression(Number(this.previous().literal!));
+        }
+
+        if(this.match(TokenType.STRING))
         {
             return new LiteralExpression(this.previous().literal!);
         }
@@ -205,7 +212,7 @@ export class Parser {
             return new GroupingExpression(expr);
         }
 
-        throw new Error(`Parser did not expect to see token "${this.peek().lexeme}" on line ${this.peek().line}, sorry :(`);
+        throw new Error(`Parser did not expect to see token "${TokenType[this.peek().type]}" on line ${this.peek().line}, sorry :(`);
 
         //throw error(peek(), $"Parser did not expect to see '{peek().lexeme}' on line {peek().line}, sorry :(");
 
