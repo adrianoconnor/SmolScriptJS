@@ -9,6 +9,7 @@ import { BinaryExpression } from "./Expressions/BinaryExpression";
 import { AssignmentExpression } from "./Expressions/AssignmentExpression";
 import { ExpressionStatement } from "./Statements/ExpressionStatement";
 import { Statement } from "./Statements/Statement";
+import { AstDebugPrinter } from "./AstDebugPrinter";
 
 export class Parser {
 
@@ -21,10 +22,14 @@ export class Parser {
 
     parse() : void {
 
+        var p = new AstDebugPrinter();
+
         while(!this.endOfTokenStream()) {
 
-            console.log(this._currentTokenIndex);
-            console.log(this.declaration());
+            //console.log(this._currentTokenIndex);
+            //console.log(this.declaration());
+
+            p.print(this.declaration());
         }
     }
 
@@ -79,8 +84,6 @@ export class Parser {
 
     declaration() {
 
-        console.log("Next token (peek) = " + TokenType[this.peek().type]);
-
         if (this.match(TokenType.VAR)) return this.varDeclaration(); 
         //if (this.match([TokenType.FUNC])) return this.functionDeclaration(); 
 
@@ -89,10 +92,8 @@ export class Parser {
 
     varDeclaration() {
 
-        console.log('varDecl');
         var name = this.consume(TokenType.IDENTIFIER, "Expected variable name");
 
-        console.log(name);
         this.consume(TokenType.EQUAL, "Expected =");
 
         //if (this.match([TokenType.EQUAL]))

@@ -11,4 +11,8 @@ export class VarStatement implements Statement {
         this._name = name;
         this._expression = expression;
     }
+
+    accept(visitor:any) {
+        return visitor.visitVarStatement(this);
+    }
 }

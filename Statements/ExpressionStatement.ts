@@ -9,4 +9,8 @@ export class ExpressionStatement implements Statement {
     constructor(expression:Expression) {
         this._expression = expression;
     }
+
+    accept(visitor:any) {
+        return visitor.visitExpressionStatement(this);
+    }
 }
