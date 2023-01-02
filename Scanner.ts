@@ -11,11 +11,32 @@ export class Scanner {
 
     _tokens: Token[] = new Array();
 
+    _keywords: { [keyword:string] : TokenType };
+
     constructor(source:string) {
         this._source = source;
+
+        this._keywords = {};
+        this._keywords["and"] = TokenType.AND;
+        this._keywords["break"] = TokenType.BREAK;
+        this._keywords["class"] = TokenType.CLASS;
+        this._keywords["else"] = TokenType.ELSE;
+        this._keywords["false"] = TokenType.FALSE;
+        this._keywords["for"] = TokenType.FOR;
+        this._keywords["function"] = TokenType.FUNC;
+        this._keywords["if"] = TokenType.IF;
+        this._keywords["nil"] = TokenType.NIL;
+        this._keywords["or"] = TokenType.OR;
+        this._keywords["print"] = TokenType.PRINT;
+        this._keywords["return"] = TokenType.RETURN;
+        this._keywords["super"] = TokenType.SUPER;
+        this._keywords["this"] = TokenType.THIS;
+        this._keywords["true"] = TokenType.TRUE;
+        this._keywords["var"] = TokenType.VAR;
+        this._keywords["while"] = TokenType.WHILE;
     }
 
-    scanTokens() : void{
+    scanTokens() : void {
 
         while(!this.endOfFile()) {
             this._startOfToken = this._currentPos;
@@ -226,7 +247,12 @@ export class Scanner {
 
         var identifierAsString = this._source.substring(this._startOfToken, this._currentPos);
         
-        this.addTokenWithLiteral(TokenType.IDENTIFIER, identifierAsString);
+        if (this._keywords[identifierAsString] != null) {
+            this.addTokenWithLiteral(this._keywords[identifierAsString], identifierAsString);
+        }
+        else {
+            this.addTokenWithLiteral(TokenType.IDENTIFIER, identifierAsString);
+        }
     }
 
     addToken(tokenType:TokenType) : void {
