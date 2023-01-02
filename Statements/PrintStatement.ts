@@ -3,6 +3,10 @@ import { Statement } from "./Statement";
 
 export class PrintStatement implements Statement {
 
+    getStatementType() : string {
+        return "Print";
+    }   
+
     _expression:Expression;
 
     constructor(expression:Expression) {

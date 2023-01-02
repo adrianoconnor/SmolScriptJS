@@ -53,7 +53,7 @@ export class AstDebugPrinter {
     }
 
     visitReturnStatement(stmt:ReturnStatement) {
-        return (`(return ${stmt._expression.accept(this)})`);
+        return (`(return ...)`);
     }
 
     visitVarStatement(stmt:VarStatement) {

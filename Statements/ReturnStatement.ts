@@ -3,9 +3,13 @@ import { Statement } from "./Statement";
 
 export class ReturnStatement implements Statement {
 
-    _expression:Expression;
+    getStatementType() : string {
+        return "Return";
+    }   
 
-    constructor(expression:Expression) {
+    _expression?:Expression;
+
+    constructor(expression?:Expression) {
         this._expression = expression;
     }
 

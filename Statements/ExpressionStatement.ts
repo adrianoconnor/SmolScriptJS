@@ -4,6 +4,10 @@ import { Statement } from "./Statement";
 
 export class ExpressionStatement implements Statement {
 
+    getStatementType() : string {
+        return "Expression";
+    }   
+
     _expression:Expression;
 
     constructor(expression:Expression) {

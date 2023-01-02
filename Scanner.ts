@@ -149,7 +149,10 @@ export class Scanner {
                 break;
 
             case '"':
-                this.processString();
+                this.processString('"');
+                break;
+            case '\'':
+                this.processString('\'');
                 break;
 
 
@@ -225,9 +228,9 @@ export class Scanner {
         this.addTokenWithLiteral(TokenType.NUMBER, numberAsString);
     }
 
-    processString() : void {
+    processString(quoteChar:string) : void {
 
-        while(this.peek() != '"' && !this.endOfFile()) this.nextChar();
+        while(this.peek() != quoteChar && !this.endOfFile()) this.nextChar();
 
         if (this.endOfFile()) {
             console.log("Unterminated string -- add error handling");

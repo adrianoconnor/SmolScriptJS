@@ -3,6 +3,10 @@ import { Statement } from "./Statement";
 
 export class WhileStatement implements Statement {
 
+    getStatementType() : string {
+        return "While";
+    }   
+
     _expression:Expression;
     _statement:Statement;
 

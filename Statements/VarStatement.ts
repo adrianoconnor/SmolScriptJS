@@ -4,6 +4,10 @@ import { Statement } from "./Statement";
 
 export class VarStatement implements Statement {
 
+    getStatementType() : string {
+        return "Var";
+    }   
+
     _name:Token;
     _expression:Expression;
 

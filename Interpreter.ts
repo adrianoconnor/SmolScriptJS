@@ -19,8 +19,14 @@ import { IfStatement } from "./Statements/IfStatement";
 import { WhileStatement } from "./Statements/WhileStatement";
 import { Expression } from "./Expressions/Expression";
 import { TokenType } from "./TokenType";
+import { Enviornment } from "./Environment";
+import { ICallable, ReturnFromFunction, UserDefinedFunction } from "./UserDefinedFunction";
+
+export class SignalBreakFromLoop extends Error {}
 
 export class Interpreter {
+
+    _env:Enviornment = new Enviornment();
 
     run(statements:Statement[]) {
         for(var i = 0; i < statements.length; i++) {
@@ -30,6 +36,19 @@ export class Interpreter {
 
     execute(stmt:Statement) {
         var result = stmt.accept(this);
+    }
+
+    executeBlock(stmts:Statement[], env:Enviornment) {
+        let originalEnv = this._env;
+        this._env = env;
+        try {        
+            for (var i = 0; i < stmts.length; i++) {
+                stmts[i].accept(this);
+            }
+        }
+        finally {
+            this._env = originalEnv;
+        }
     }
 
     evaluate(expr:Expression)
@@ -60,11 +79,11 @@ export class Interpreter {
     }
 
     visitBlockStatement(stmt:BlockStatement) {
-        //
+        this.executeBlock(stmt._statements, new Enviornment(this._env));
     }
 
     visitBreakStatement(stmt:BreakStatement) {
-        //
+        throw new SignalBreakFromLoop();
     }
 
     visitExpressionStatement(stmt:ExpressionStatement) {
@@ -72,7 +91,14 @@ export class Interpreter {
     }
 
     visitFunctionStatement(stmt:FunctionStatement) {
-        //
+        
+        if (stmt._name as Token != null) {
+            this._env.define((stmt._name as Token).lexeme, new UserDefinedFunction(stmt, this._env));
+        }
+        else {
+            throw new Error("Anonymouse functions not allowed here");
+        }
+
     }
 
     visitIfStatement(stmt:IfStatement) {
@@ -89,21 +115,33 @@ export class Interpreter {
     }
 
     visitReturnStatement(stmt:ReturnStatement) {
-        // 
+        if (stmt._expression != undefined) {
+            throw new ReturnFromFunction(this.evaluate(stmt._expression));
+        }
+        else {
+            throw new ReturnFromFunction();
+        }
     }
 
     visitVarStatement(stmt:VarStatement) {
-        //
+        this._env.define(stmt._name.lexeme, this.evaluate(stmt._expression));
     }
 
     visitWhileStatement(stmt:WhileStatement) {
-        while(this.evaluate(stmt._expression)) {
-            this.execute(stmt._statement);
+        try {
+            while(this.isTruthy(this.evaluate(stmt._expression))) {
+                this.execute(stmt._statement);
+            }
+        }
+        catch(b) {
+            if ((b as SignalBreakFromLoop) == null) {
+                throw b;
+            }
         }
     }
 
     visitAssignmentExpression(expr:AssignmentExpression) {
-        //
+        this._env.assign(expr._name.lexeme, this.evaluate(expr._value));
     }
 
     visitBinaryExpression(expr:BinaryExpression) {
@@ -127,7 +165,7 @@ export class Interpreter {
             case TokenType.PLUS:
                 return left + right;
             case TokenType.POW:
-                return null;
+                return left ** right;
             case TokenType.GREATER:
                 return left > right;
             case TokenType.GREATER_EQUAL:
@@ -146,7 +184,31 @@ export class Interpreter {
     }
 
     visitCallExpression(expr:CallExpression) {
-        //
+
+        console.log(expr._callee);
+
+        var callee = this.evaluate(expr._callee) as ICallable;
+
+        console.log(callee);
+
+        var args:any[] = new Array();
+
+        for(var i = 0; i < expr._args.length; i++) {
+
+            var arg = expr._args[i] as Statement;
+
+            if (arg.getStatementType() == 'Function') {
+                args.push(arg);
+            }
+            else {
+                args.push(this.evaluate(arg));
+            }            
+        }
+
+        console.log('ARGS');
+        console.log(args);
+
+        return callee.call(this, args);
     }
 
     visitGroupingExpression(expr:GroupingExpression) {
@@ -158,13 +220,43 @@ export class Interpreter {
     }
 
     visitLogicalExpression(expr:LogicalExpression) {
-        //
+        var left = this.evaluate(expr._left);
+
+        // Short circuit means we only evaluate the left side if that's enough
+
+        if (!this.isTruthy(left) && expr._operand.type == TokenType.AND) return false;
+        if (this.isTruthy(left) && expr._operand.type == TokenType.OR) return true;
+
+        // It wasn't enough
+
+        var right = this.evaluate(expr._right);
+
+        switch(expr._operand.type)
+        {
+            case TokenType.AND:
+                return this.isTruthy(left) && this.isTruthy(right);
+            case TokenType.OR:
+                return this.isTruthy(left) || this.isTruthy(right);
+        }
+
+        return null;
     }
 
     visitUnaryExpression(expr:UnaryExpression) {
-        //
+        var right = this.evaluate(expr._right);
+
+        switch(expr._operand.type)
+        {
+            case TokenType.MINUS:
+                return 0-right;
+            case TokenType.BANG:
+                return !this.isTruthy(right);
+        }   
+
+        return null;
     }
 
     visitVariableExpression(expr:VariableExpression) {
+        return this._env.get(expr._name.lexeme);
     }
 }

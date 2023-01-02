@@ -1,6 +1,10 @@
 export class Statement {
 
+    getStatementType() : string {
+        throw new Error("Should not be called on base");
+    }    
+
     accept(visitor:any) {
-        return visitor.visit(this);
+        throw new Error("Should not be called on base");
     }
 }

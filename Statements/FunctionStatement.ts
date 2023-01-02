@@ -4,14 +4,18 @@ import { Statement } from "./Statement";
 
 export class FunctionStatement implements Statement {
 
+    getStatementType() : string {
+        return "Function";
+    }   
+
     _name?:Token;
     _parameters:Token[];
-    _statements:BlockStatement;
+    _block:BlockStatement;
 
-    constructor(name:Token, parameters:Token[], statements:BlockStatement) {
+    constructor(name:any, parameters:Token[], block:BlockStatement) {
         this._name = name;
         this._parameters = parameters;
-        this._statements = statements;
+        this._block = block;
     }
 
     accept(visitor:any) {
