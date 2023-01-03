@@ -1,18 +1,18 @@
 export class Enviornment {
 
-    _enclosing?:Enviornment;
-    _variables: { [name:string] : any };
+    private _enclosing?:Enviornment;
+    private _variables: { [name:string] : any };
 
     constructor(enclosing?:Enviornment) {
         this._variables = {};
         this._enclosing = enclosing;
     }
 
-    define(name:string, value:any) {
+    public define(name:string, value:any) {
         this._variables[name] = value;
     }
 
-    assign(name:string, value:any) {
+    public assign(name:string, value:any) {
         if (this._variables[name] != undefined) {
             this._variables[name] = value;
         }
@@ -24,7 +24,7 @@ export class Enviornment {
         }
     }
 
-    get(name:string) : any {
+    public get(name:string) : any {
         if (this._variables[name] != undefined) {
             return this._variables[name];
         }

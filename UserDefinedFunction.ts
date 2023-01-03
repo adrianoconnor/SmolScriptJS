@@ -8,18 +8,18 @@ export interface ICallable {
 
 export class ReturnFromFunction extends Error {
 
-    _returnValue?:any;
+    returnValue?:any;
 
     constructor(returnValue?:any) {
         super();
-        this._returnValue = returnValue;
+        this.returnValue = returnValue;
     }
 }
 
 export class UserDefinedFunction implements ICallable {
 
-    _declaration:FunctionStatement;
-    _enclosingEnv:Enviornment;
+    private _declaration:FunctionStatement;
+    private _enclosingEnv:Enviornment;
 
     constructor(declaration:FunctionStatement, enclosingEnv:Enviornment) {
         this._declaration = declaration;
@@ -55,7 +55,7 @@ export class UserDefinedFunction implements ICallable {
         }
         catch(r) {
             if ((r as ReturnFromFunction) != null) {
-                return (r as ReturnFromFunction)._returnValue;
+                return (r as ReturnFromFunction).returnValue;
             }
 
             throw r;

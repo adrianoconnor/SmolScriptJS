@@ -2,10 +2,10 @@ import { TokenType } from "./TokenType";
 
 export class Token
 {
-    type: TokenType;
-    lexeme: string;
-    literal: any;
-    line: number;
+    public type: TokenType;
+    public lexeme: string;
+    public literal: any;
+    public line: number;
 
     constructor(type:TokenType, lexeme:string, literal:any, line:number)
     {
