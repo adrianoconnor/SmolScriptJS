@@ -4,7 +4,6 @@ import { GroupingExpression } from "./Expressions/GroupingExpression";
 import { LiteralExpression } from "./Expressions/LiteralExpression";
 import { VariableExpression } from "./Expressions/VariableExpression";
 import { ExpressionStatement } from "./Statements/ExpressionStatement";
-import { Statement } from "./Statements/Statement";
 import { VarStatement } from "./Statements/VarStatement";
 import { PrintStatement } from "./Statements/PrintStatement";
 import { CallExpression } from "./Expressions/CallExpression";
@@ -17,83 +16,98 @@ import { Token } from "./Token";
 import { ReturnStatement } from "./Statements/ReturnStatement";
 import { IfStatement } from "./Statements/IfStatement";
 import { WhileStatement } from "./Statements/WhileStatement";
+import { SmolEngine } from "./SmolEngine";
+import { Statement } from "./Statements/Statement";
 
 export class AstDebugPrinter {
 
-    print(s:Statement) {
-        console.log(s.accept(this));   
+    static parse(source:string) {
+        let engine = new SmolEngine();
+        let prog = engine.compile(source);
+        let astPrinter = new AstDebugPrinter();
+
+        for(var i = 0; i < prog.length; i++) {
+            astPrinter.processStmt(prog[i]);    
+        }
     }
 
-    visitBlockStatement(stmt:BlockStatement) {
+    private constructor() {
+
+    }
+
+    private processStmt(stmt:Statement) {
+        console.log(stmt.accept(this));   
+    }
+
+    private visitBlockStatement(stmt:BlockStatement) {
         var _this = this;
         return (`(block ${stmt._statements.forEach(function(x) { x.accept(_this); })})`);
     }
 
-    visitBreakStatement(stmt:BreakStatement) {
+    private visitBreakStatement(stmt:BreakStatement) {
         return (`(break)`);
     }
 
-    visitExpressionStatement(stmt:ExpressionStatement) {
+    private visitExpressionStatement(stmt:ExpressionStatement) {
         return (`(exprStmt ${stmt._expression.accept(this)})`);
     }
 
-    visitFunctionStatement(stmt:FunctionStatement) {
+    visitFunctionStatement(stmt:FunctionStatement) : string {
 
-        var name = stmt._name as Token || "anonymouse";
+        var name = stmt._name as Token || "anonymous";
 
-        return (`(dedclare function ${name} ...)`);
+        return (`(declare function ${name.lexeme} with ${stmt._parameters.length} params [${stmt._parameters.map(function(p) { return p.lexeme; }).join(', ')}])`);
     }
 
-    visitIfStatement(stmt:IfStatement) {
+    private visitIfStatement(stmt:IfStatement) {
         return (`(if ${stmt._expression.accept(this)} then ... else ...)`);
     }
 
-    visitPrintStatement(stmt:PrintStatement) {
+    private visitPrintStatement(stmt:PrintStatement) {
         return (`(print ${stmt._expression.accept(this)})`);
     }
 
-    visitReturnStatement(stmt:ReturnStatement) {
+    private visitReturnStatement(stmt:ReturnStatement) {
         return (`(return ...)`);
     }
 
-    visitVarStatement(stmt:VarStatement) {
+    private visitVarStatement(stmt:VarStatement) {
         return (`(declare var ${stmt._name.lexeme} = ${stmt._expression.accept(this)})`);
     }
 
-    visitWhileStatement(stmt:WhileStatement) {
+    private visitWhileStatement(stmt:WhileStatement) {
         return (`(while ${stmt._expression.accept(this)} ...)`);
     }
 
-    visitAssignmentExpression(expr:AssignmentExpression) {
+    private visitAssignmentExpression(expr:AssignmentExpression) {
         return (`(assign var ${expr._name.lexeme} = ${expr._value.accept(this)})`);
     }
 
-    visitBinaryExpression(expr:BinaryExpression) {
+    private visitBinaryExpression(expr:BinaryExpression) {
         return (`(${expr._operand.lexeme} ${expr._left.accept(this)} ${expr._right.accept(this)})`);
     }
 
-    visitCallExpression(expr:CallExpression) {
-        return (`(call ${expr._callee.accept(this)} with ${expr._args.length} arg(s))`);
+    private visitCallExpression(expr:CallExpression) {
+        return (`(call ${expr._callee.accept(this)} with ${expr._args.length} args)`);
     }
 
-    visitGroupingExpression(expr:GroupingExpression) {
-
+    private visitGroupingExpression(expr:GroupingExpression) {
         return (`(group ${expr._expr.accept(this)})`);
     }
 
-    visitLiteralExpression(expr:LiteralExpression) {
+    private visitLiteralExpression(expr:LiteralExpression) {
         return (`${expr._value == null ? "nil" : expr._value.toString()}`);
     }
 
-    visitLogicalExpression(expr:LogicalExpression) {
+    private visitLogicalExpression(expr:LogicalExpression) {
         return (`(${expr._operand.lexeme} ${expr._left.accept(this)} ${expr._right.accept(this)})`);
     }
 
-    visitUnaryExpression(expr:UnaryExpression) {
+    private visitUnaryExpression(expr:UnaryExpression) {
         return (`(${expr._operand.lexeme} ${expr._right.accept(this)})`);
     }
 
-    visitVariableExpression(expr:VariableExpression) {
+    private visitVariableExpression(expr:VariableExpression) {
         return (`(var ${expr._name.lexeme})`);
     }
 }

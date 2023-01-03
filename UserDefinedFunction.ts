@@ -1,9 +1,9 @@
 import { Enviornment } from "./Environment";
-import { Interpreter } from "./Interpreter";
+import { SmolEngine } from "./SmolEngine";
 import { FunctionStatement } from "./Statements/FunctionStatement";
 
 export interface ICallable {
-    call(interpreter:Interpreter, args:any[]) : any;
+    call(interpreter:SmolEngine, args:any[]) : any;
 }
 
 export class ReturnFromFunction extends Error {
@@ -26,7 +26,7 @@ export class UserDefinedFunction implements ICallable {
         this._enclosingEnv = enclosingEnv;
     }
 
-    call(interpreter:Interpreter, args:any[]) : any {
+    call(interpreter:SmolEngine, args:any[]) : any {
 
         var newEnv = new Enviornment(this._enclosingEnv);
 

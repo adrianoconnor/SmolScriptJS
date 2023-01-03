@@ -21,24 +21,34 @@ import { Expression } from "./Expressions/Expression";
 import { TokenType } from "./TokenType";
 import { Enviornment } from "./Environment";
 import { ICallable, ReturnFromFunction, UserDefinedFunction } from "./UserDefinedFunction";
+import { Scanner } from "./Scanner";
+import { Parser } from "./Parser";
 
 export class SignalBreakFromLoop extends Error {}
 
-export class Interpreter {
+export class SmolEngine {
 
-    _env:Enviornment = new Enviornment();
+    private _env:Enviornment = new Enviornment();
 
-    run(statements:Statement[]) {
+    public compile(programme:string) : Statement[] {
+        return Parser.parse(Scanner.tokenize(programme));
+    }
+
+    public execute(programme:Statement[]) {
+        this.executeStatements(programme);
+    }
+
+    private executeStatements(statements:Statement[]) {
         for(var i = 0; i < statements.length; i++) {
-            this.execute(statements[i]);
+            this.executeStatement(statements[i]);
         }
     }
 
-    execute(stmt:Statement) {
+    public executeStatement(stmt:Statement) {
         var result = stmt.accept(this);
     }
 
-    executeBlock(stmts:Statement[], env:Enviornment) {
+    public executeBlock(stmts:Statement[], env:Enviornment) {
         let originalEnv = this._env;
         this._env = env;
         try {        
@@ -51,25 +61,25 @@ export class Interpreter {
         }
     }
 
-    evaluate(expr:Expression)
+    private evaluate(expr:Expression)
     {
         return expr.accept(this);
     }
 
-    isTruthy(value:any) {
+    private isTruthy(value:any) {
         if (value == null || value == undefined) return false;
         if (value as Boolean != null) return value as Boolean;
         return true;
     }
 
-    areEqual(a:any, b:any) {
+    private areEqual(a:any, b:any) {
         if ((a == null || a == undefined) && (b == null || b == undefined)) return true;
         if ((a == null || a == undefined) || (b == null || b == undefined)) return false;
         //return a == b; // JS danger!
         return a.equals(b);
     }
 
-    stringify(value:any) {
+    private stringify(value:any) {
         
         if (value == null || value == undefined) return "nil";
 
@@ -78,19 +88,19 @@ export class Interpreter {
         return value;
     }
 
-    visitBlockStatement(stmt:BlockStatement) {
+    private visitBlockStatement(stmt:BlockStatement) {
         this.executeBlock(stmt._statements, new Enviornment(this._env));
     }
 
-    visitBreakStatement(stmt:BreakStatement) {
+    private visitBreakStatement(stmt:BreakStatement) {
         throw new SignalBreakFromLoop();
     }
 
-    visitExpressionStatement(stmt:ExpressionStatement) {
+    private visitExpressionStatement(stmt:ExpressionStatement) {
         return this.evaluate(stmt._expression);
     }
 
-    visitFunctionStatement(stmt:FunctionStatement) {
+    private visitFunctionStatement(stmt:FunctionStatement) {
         
         if (stmt._name as Token != null) {
             this._env.define((stmt._name as Token).lexeme, new UserDefinedFunction(stmt, this._env));
@@ -98,23 +108,22 @@ export class Interpreter {
         else {
             throw new Error("Anonymouse functions not allowed here");
         }
-
     }
 
-    visitIfStatement(stmt:IfStatement) {
+    private visitIfStatement(stmt:IfStatement) {
         if (this.isTruthy(this.evaluate(stmt._expression))) {
-            this.execute(stmt._statement);
+            this.executeStatement(stmt._statement);
         }
         else if (stmt._then != undefined) {
-            this.execute(stmt._then);
+            this.executeStatement(stmt._then);
         }
     }
 
-    visitPrintStatement(stmt:PrintStatement) {
+    private visitPrintStatement(stmt:PrintStatement) {
         console.log(this.stringify(this.evaluate(stmt._expression)));
     }
 
-    visitReturnStatement(stmt:ReturnStatement) {
+    private visitReturnStatement(stmt:ReturnStatement) {
         if (stmt._expression != undefined) {
             throw new ReturnFromFunction(this.evaluate(stmt._expression));
         }
@@ -123,14 +132,14 @@ export class Interpreter {
         }
     }
 
-    visitVarStatement(stmt:VarStatement) {
+    private visitVarStatement(stmt:VarStatement) {
         this._env.define(stmt._name.lexeme, this.evaluate(stmt._expression));
     }
 
-    visitWhileStatement(stmt:WhileStatement) {
+    private visitWhileStatement(stmt:WhileStatement) {
         try {
             while(this.isTruthy(this.evaluate(stmt._expression))) {
-                this.execute(stmt._statement);
+                this.executeStatement(stmt._statement);
             }
         }
         catch(b) {
@@ -140,11 +149,11 @@ export class Interpreter {
         }
     }
 
-    visitAssignmentExpression(expr:AssignmentExpression) {
+    private visitAssignmentExpression(expr:AssignmentExpression) {
         this._env.assign(expr._name.lexeme, this.evaluate(expr._value));
     }
 
-    visitBinaryExpression(expr:BinaryExpression) {
+    private visitBinaryExpression(expr:BinaryExpression) {
         
         var left = this.evaluate(expr._left);
         var right = this.evaluate(expr._right);
@@ -185,11 +194,7 @@ export class Interpreter {
 
     visitCallExpression(expr:CallExpression) {
 
-        console.log(expr._callee);
-
         var callee = this.evaluate(expr._callee) as ICallable;
-
-        console.log(callee);
 
         var args:any[] = new Array();
 
@@ -205,21 +210,18 @@ export class Interpreter {
             }            
         }
 
-        console.log('ARGS');
-        console.log(args);
-
         return callee.call(this, args);
     }
 
-    visitGroupingExpression(expr:GroupingExpression) {
+    private visitGroupingExpression(expr:GroupingExpression) {
         return this.evaluate(expr._expr);
     }
 
-    visitLiteralExpression(expr:LiteralExpression) {
+    private visitLiteralExpression(expr:LiteralExpression) {
         return expr._value;
     }
 
-    visitLogicalExpression(expr:LogicalExpression) {
+    private visitLogicalExpression(expr:LogicalExpression) {
         var left = this.evaluate(expr._left);
 
         // Short circuit means we only evaluate the left side if that's enough
@@ -242,7 +244,7 @@ export class Interpreter {
         return null;
     }
 
-    visitUnaryExpression(expr:UnaryExpression) {
+    private visitUnaryExpression(expr:UnaryExpression) {
         var right = this.evaluate(expr._right);
 
         switch(expr._operand.type)
@@ -256,7 +258,7 @@ export class Interpreter {
         return null;
     }
 
-    visitVariableExpression(expr:VariableExpression) {
+    private visitVariableExpression(expr:VariableExpression) {
         return this._env.get(expr._name.lexeme);
     }
 }

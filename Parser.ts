@@ -9,7 +9,6 @@ import { BinaryExpression } from "./Expressions/BinaryExpression";
 import { AssignmentExpression } from "./Expressions/AssignmentExpression";
 import { ExpressionStatement } from "./Statements/ExpressionStatement";
 import { Statement } from "./Statements/Statement";
-import { AstDebugPrinter } from "./AstDebugPrinter";
 import { PrintStatement } from "./Statements/PrintStatement";
 import { IfStatement } from "./Statements/IfStatement";
 import { LogicalExpression } from "./Expressions/LogicalExpression";
@@ -23,33 +22,34 @@ import { ReturnStatement } from "./Statements/ReturnStatement";
 
 export class Parser {
 
-    _tokens:Token[];
-    _currentTokenIndex:number = 0;
-    _statements:Statement[] = new Array();
+    private _tokens?:Token[];
+    private _currentTokenIndex:number;
 
-    constructor(tokens:Token[]) {
+    private constructor(tokens:Token[]) {
         this._tokens = tokens;
+        this._currentTokenIndex = 0;
     }
 
-    parse() : void {
+    static parse(tokens:Token[]) : Statement[] {
 
-        var p = new AstDebugPrinter();
+        return new Parser(tokens)._doParse();
+    }
+
+    private _doParse() : Statement[] {
+        var statements:Statement[] = new Array();
 
         while(!this.endOfTokenStream()) {
-
-            var stmt:Statement = this.declaration();
-
-            //p.print(stmt);
-            
-            this._statements.push(stmt);
+            statements.push(this.declaration());
         }
+
+        return statements;
     }
 
-    endOfTokenStream() : boolean {
+    private endOfTokenStream() : boolean {
         return this.peek().type == TokenType.EOF;
     }
 
-    match(...tokenTypes:TokenType[]) : boolean {
+    private match(...tokenTypes:TokenType[]) : boolean {
         var _this = this;
 
         for(var i = 0; i < tokenTypes.length; i++) {
@@ -62,29 +62,29 @@ export class Parser {
         return false;
     }
 
-    check(tokenType:TokenType) : boolean
+    private check(tokenType:TokenType) : boolean
     {
         if (this.endOfTokenStream()) return false;
 
         return (this.peek().type == tokenType);
     }
 
-    peek() : Token {
-        return this._tokens[this._currentTokenIndex];
+    private peek() : Token {
+        return (this._tokens as Token[])[this._currentTokenIndex];
     }
 
-    advance() : Token {
+    private advance() : Token {
         if (!this.endOfTokenStream()) this._currentTokenIndex++;
 
         return this.previous();
     }
 
-    previous() : Token
+    private previous() : Token
     {
-        return this._tokens[this._currentTokenIndex - 1];
+        return (this._tokens as Token[])[this._currentTokenIndex - 1];
     }
 
-    consume(tokenType:TokenType, errorIfNotFound:string ) : Token
+    private consume(tokenType:TokenType, errorIfNotFound:string ) : Token
     {
         if (this.check(tokenType)) return this.advance();
 
@@ -94,7 +94,7 @@ export class Parser {
         //throw error(peek(), errorIfNotFound);
     }
 
-    declaration() : Statement {
+    private declaration() : Statement {
 
         if (this.match(TokenType.VAR)) return this.varDeclaration(); 
         if (this.match(TokenType.FUNC)) return this.functionDeclaration();
@@ -102,7 +102,7 @@ export class Parser {
         return this.statement();
     }
 
-    varDeclaration() : Statement {
+    private varDeclaration() : Statement {
 
         var name = this.consume(TokenType.IDENTIFIER, "Expected variable name");
 
@@ -115,7 +115,7 @@ export class Parser {
         return new VarStatement(name, initializer);
     }
 
-    functionDeclaration() {
+    private functionDeclaration() {
 
         var functionName = undefined;
 
@@ -147,7 +147,7 @@ export class Parser {
         return new FunctionStatement(functionName, functionParams, functionBody);
     }
 
-    statement() : Statement {
+    private statement() : Statement {
         if (this.match(TokenType.PRINT)) return this.printStatement();
         if (this.match(TokenType.IF)) return this.ifStatement();
         if (this.match(TokenType.WHILE)) return this.whileStatement();
@@ -158,13 +158,13 @@ export class Parser {
         return this.expressionStatement();
     }
 
-    printStatement() : PrintStatement{
+    private printStatement() : PrintStatement{
         var expr:Expression = this.expression();
         this.consume(TokenType.SEMICOLON, "Expected ;");
         return new PrintStatement(expr);
     }
 
-    ifStatement() : Statement {
+    private ifStatement() : Statement {
 
         this.consume(TokenType.LEFT_PAREN, "Expected (");
 
@@ -185,7 +185,7 @@ export class Parser {
         }
     }
 
-    whileStatement() : Statement {
+    private whileStatement() : Statement {
 
         this.consume(TokenType.LEFT_PAREN, "Expected (");
 
@@ -228,17 +228,17 @@ export class Parser {
         }
     }
 
-    expressionStatement() : Statement {
+    private expressionStatement() : Statement {
         var expr:Expression = this.expression();
         this.consume(TokenType.SEMICOLON, "Expected ;");
         return new ExpressionStatement(expr);
     }
 
-    expression() : Expression {
+    private expression() : Expression {
         return this.assignment();
     }
 
-    assignment() : Expression {
+    private assignment() : Expression {
         
         var expr = this.logicalOr();
 

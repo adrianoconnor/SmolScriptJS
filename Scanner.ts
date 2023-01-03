@@ -13,7 +13,7 @@ export class Scanner {
 
     _keywords: { [keyword:string] : TokenType };
 
-    constructor(source:string) {
+    private constructor(source:string) {
         this._source = source;
 
         this._keywords = {};
@@ -36,7 +36,12 @@ export class Scanner {
         this._keywords["while"] = TokenType.WHILE;
     }
 
-    scanTokens() : void {
+    static tokenize(source:string) : Token[] {
+        var scanner = new Scanner(source);
+        return scanner.scanTokens();
+    }
+
+    private scanTokens() : Token[] {
 
         while(!this.endOfFile()) {
             this._startOfToken = this._currentPos;
@@ -44,14 +49,16 @@ export class Scanner {
         }
 
         this._tokens.push(new Token(TokenType.EOF, "", null, this._currentLine));
+
+        return this._tokens;
     }
 
-    endOfFile() : boolean {
+    private endOfFile() : boolean {
 
         return this._currentPos >= this._source.length;
     }
 
-    scanToken() : void {
+    private scanToken() : void {
 
         var c = this.nextChar();
 
@@ -169,21 +176,21 @@ export class Scanner {
         }
     }
 
-    nextChar() : string {
+    private nextChar() : string {
         return this._source.charAt(this._currentPos++);
     }
 
-    peek() : string {
+    private peek() : string {
         if (this.endOfFile()) return '\0';
         return this._source.charAt(this._currentPos); 
     }
 
-    peekAhead(offset:number) : string {
+    private peekAhead(offset:number) : string {
         if (this.endOfFile()) return '\0';
         return this._source.charAt(this._currentPos + offset); 
     }
 
-    matchNext(charToMatch:string) : boolean {
+    private matchNext(charToMatch:string) : boolean {
 
         if (this.peek() == charToMatch) {
 
@@ -196,22 +203,22 @@ export class Scanner {
 
     }
 
-    _charIsDigitRegex:RegExp = new RegExp("[0-9]");
-    _charIsAlphaRegex:RegExp = new RegExp("[A-Za-z_]");
+    private _charIsDigitRegex:RegExp = new RegExp("[0-9]");
+    private _charIsAlphaRegex:RegExp = new RegExp("[A-Za-z_]");
 
-    charIsDigit(char:string) : boolean {
+    private charIsDigit(char:string) : boolean {
         return char.length == 1 && this._charIsDigitRegex.test(char);        
     }
 
-    charIsAlpha(char:string) : boolean {
+    private charIsAlpha(char:string) : boolean {
         return char.length == 1 && this._charIsAlphaRegex.test(char);        
     }
 
-    charIsAlphaNumeric(char:string) : boolean {
+    private charIsAlphaNumeric(char:string) : boolean {
         return this.charIsAlpha(char) || this.charIsDigit(char);
     }
 
-    processNumber() : void {
+    private processNumber() : void {
         
         while(this.charIsDigit(this.peek())) this.nextChar(); 
 
@@ -228,7 +235,7 @@ export class Scanner {
         this.addTokenWithLiteral(TokenType.NUMBER, numberAsString);
     }
 
-    processString(quoteChar:string) : void {
+    private processString(quoteChar:string) : void {
 
         while(this.peek() != quoteChar && !this.endOfFile()) this.nextChar();
 
@@ -244,7 +251,7 @@ export class Scanner {
         this.addTokenWithLiteral(TokenType.STRING, extractedString);
     }
 
-    processIdentifier() : void {
+    private processIdentifier() : void {
         
         while(this.charIsAlphaNumeric(this.peek())) this.nextChar(); 
 
@@ -258,11 +265,11 @@ export class Scanner {
         }
     }
 
-    addToken(tokenType:TokenType) : void {
+    private addToken(tokenType:TokenType) : void {
         this.addTokenWithLiteral(tokenType, null);
     }
 
-    addTokenWithLiteral(tokenType:TokenType, literal:any) : void {
+    private addTokenWithLiteral(tokenType:TokenType, literal:any) : void {
         var lexeme = this._source.substring(this._startOfToken, this._currentPos);
 
         this._tokens.push(new Token(tokenType, lexeme, literal, this._currentLine));
