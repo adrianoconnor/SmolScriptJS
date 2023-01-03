@@ -112,10 +112,10 @@ export class SmolEngine {
 
     private visitIfStatement(stmt:IfStatement) {
         if (this.isTruthy(this.evaluate(stmt._expression))) {
-            this.executeStatement(stmt._statement);
+            this.executeStatement(stmt._thenStatement);
         }
-        else if (stmt._then != undefined) {
-            this.executeStatement(stmt._then);
+        else if (stmt._elseStatement != undefined) {
+            this.executeStatement(stmt._elseStatement);
         }
     }
 

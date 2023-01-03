@@ -52,7 +52,7 @@ export class AstDebugPrinter {
         return (`(exprStmt ${stmt._expression.accept(this)})`);
     }
 
-    visitFunctionStatement(stmt:FunctionStatement) : string {
+    private visitFunctionStatement(stmt:FunctionStatement) : string {
 
         var name = stmt._name as Token || "anonymous";
 
@@ -60,54 +60,68 @@ export class AstDebugPrinter {
     }
 
     private visitIfStatement(stmt:IfStatement) {
-        return (`(if ${stmt._expression.accept(this)} then ... else ...)`);
+        var output : string[] = [];
+        output.push(`[if ${stmt._expression.accept(this)}]`);
+        output.push(stmt._thenStatement.accept(this));
+        if (stmt._elseStatement != undefined) {
+            output.push('[else]')
+            output.push(stmt._elseStatement.accept(this));     
+        }
+
+        output.push('[end if]')
+        return output.join('\n');
     }
 
-    private visitPrintStatement(stmt:PrintStatement) {
+    private visitPrintStatement(stmt:PrintStatement) : string {
         return (`(print ${stmt._expression.accept(this)})`);
     }
 
-    private visitReturnStatement(stmt:ReturnStatement) {
-        return (`(return ...)`);
+    private visitReturnStatement(stmt:ReturnStatement) : string {
+        if (stmt._expression == undefined) {
+            return (`(return)`);
+        }
+        else {
+            return (`(return ${stmt._expression.accept(this)})`);
+        }
     }
 
-    private visitVarStatement(stmt:VarStatement) {
+    private visitVarStatement(stmt:VarStatement) : string {
         return (`(declare var ${stmt._name.lexeme} = ${stmt._expression.accept(this)})`);
     }
 
-    private visitWhileStatement(stmt:WhileStatement) {
+    private visitWhileStatement(stmt:WhileStatement) : string {
         return (`(while ${stmt._expression.accept(this)} ...)`);
     }
 
-    private visitAssignmentExpression(expr:AssignmentExpression) {
+    private visitAssignmentExpression(expr:AssignmentExpression) : string {
         return (`(assign var ${expr._name.lexeme} = ${expr._value.accept(this)})`);
     }
 
-    private visitBinaryExpression(expr:BinaryExpression) {
+    private visitBinaryExpression(expr:BinaryExpression) : string {
         return (`(${expr._operand.lexeme} ${expr._left.accept(this)} ${expr._right.accept(this)})`);
     }
 
-    private visitCallExpression(expr:CallExpression) {
+    private visitCallExpression(expr:CallExpression) : string {
         return (`(call ${expr._callee.accept(this)} with ${expr._args.length} args)`);
     }
 
-    private visitGroupingExpression(expr:GroupingExpression) {
+    private visitGroupingExpression(expr:GroupingExpression) : string {
         return (`(group ${expr._expr.accept(this)})`);
     }
 
-    private visitLiteralExpression(expr:LiteralExpression) {
+    private visitLiteralExpression(expr:LiteralExpression) : string {
         return (`${expr._value == null ? "nil" : expr._value.toString()}`);
     }
 
-    private visitLogicalExpression(expr:LogicalExpression) {
+    private visitLogicalExpression(expr:LogicalExpression) : string {
         return (`(${expr._operand.lexeme} ${expr._left.accept(this)} ${expr._right.accept(this)})`);
     }
 
-    private visitUnaryExpression(expr:UnaryExpression) {
+    private visitUnaryExpression(expr:UnaryExpression) : string {
         return (`(${expr._operand.lexeme} ${expr._right.accept(this)})`);
     }
 
-    private visitVariableExpression(expr:VariableExpression) {
+    private visitVariableExpression(expr:VariableExpression) : string {
         return (`(var ${expr._name.lexeme})`);
     }
 }

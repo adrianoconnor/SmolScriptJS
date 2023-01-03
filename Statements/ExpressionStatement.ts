@@ -6,7 +6,7 @@ export class ExpressionStatement implements Statement {
 
     getStatementType() : string {
         return "Expression";
-    }   
+    }
 
     _expression:Expression;
 

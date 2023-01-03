@@ -4,7 +4,7 @@ export class Statement {
         throw new Error("Should not be called on base");
     }    
 
-    accept(visitor:any) {
+    accept(visitor:any) : any {
         throw new Error("Should not be called on base");
     }
 }
