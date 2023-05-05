@@ -12,7 +12,8 @@ var code = "function go_moo(p) { p(); } go_moo(function(x) { print 'zzzz'; });"
 AstDebugPrinter.parse(source);
 
 let smol = new SmolEngine();
+smol.import("ticks");
 
-let prog = smol.compile(source);
+let prog = smol.compile("var a = ticks(); print(a);");
 
 smol.execute(prog);

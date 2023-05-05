@@ -30,6 +30,14 @@ export class SmolEngine {
 
     private _env:Enviornment = new Enviornment();
 
+    public import(library:string) : void {
+        this._env.define("ticks", { 
+            call(interpreter:SmolEngine, args:any[]) { 
+                return 1; 
+            }
+        });
+    }
+
     public compile(programme:string) : Statement[] {
         return Parser.parse(Scanner.tokenize(programme));
     }
