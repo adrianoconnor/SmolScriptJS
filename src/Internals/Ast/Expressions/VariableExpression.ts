@@ -1,4 +1,4 @@
-import { Token } from "../Token";
+import { Token } from "../../Token";
 import { Expression } from "./Expression";
 
 export class VariableExpression extends Expression {

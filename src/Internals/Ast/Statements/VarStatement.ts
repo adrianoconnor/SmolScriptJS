@@ -1,4 +1,4 @@
-import { Token } from "../Token";
+import { Token } from "../../Token";
 import { Expression } from "../Expressions/Expression";
 import { Statement } from "./Statement";
 

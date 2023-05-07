@@ -1,4 +1,4 @@
-import { Token } from "../Token";
+import { Token } from "../../Token";
 import { BlockStatement } from "./BlockStatement";
 import { Statement } from "./Statement";
 

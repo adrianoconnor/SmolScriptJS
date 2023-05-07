@@ -1,5 +1,4 @@
-import { AstDebugPrinter } from "./AstDebugPrinter";
-import { SmolEngine } from "./SmolEngine";
+import { AstDebugPrinter } from "./Internals/Ast/AstDebugPrinter";
 
 //let s = new Scanner("var a = (1 + 2 * 3); a = a * 5 / 2 + 1; print a;");
 //let s = new Scanner("print \"test: \" + (1 + 2 * 3);");
@@ -11,9 +10,9 @@ var code = "function go_moo(p) { p(); } go_moo(function(x) { print 'zzzz'; });"
 
 AstDebugPrinter.parse(source);
 
-let smol = new SmolEngine();
-smol.import("ticks");
+//let smol = new SmolEngine();
+//smol.import("ticks");
 
-let prog = smol.compile("var a = ticks(); print(a);");
+//let prog = smol.compile("var a = ticks(); print(a);");
 
-smol.execute(prog);
+//smol.execute(prog);

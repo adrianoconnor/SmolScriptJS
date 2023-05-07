@@ -1,24 +1,24 @@
 import { TokenType } from "./TokenType";
 import { Token } from "./Token";
-import { VarStatement } from "./Statements/VarStatement";
-import { Expression } from "./Expressions/Expression";
-import { LiteralExpression } from "./Expressions/LiteralExpression";
-import { GroupingExpression } from "./Expressions/GroupingExpression";
-import { VariableExpression } from "./Expressions/VariableExpression";
-import { BinaryExpression } from "./Expressions/BinaryExpression";
-import { AssignmentExpression } from "./Expressions/AssignmentExpression";
-import { ExpressionStatement } from "./Statements/ExpressionStatement";
-import { Statement } from "./Statements/Statement";
-import { PrintStatement } from "./Statements/PrintStatement";
-import { IfStatement } from "./Statements/IfStatement";
-import { LogicalExpression } from "./Expressions/LogicalExpression";
-import { CallExpression } from "./Expressions/CallExpression";
-import { UnaryExpression } from "./Expressions/UnaryExpression";
-import { WhileStatement } from "./Statements/WhileStatement";
-import { FunctionStatement } from "./Statements/FunctionStatement";
-import { BlockStatement } from "./Statements/BlockStatement";
-import { BreakStatement } from "./Statements/BreakStatement";
-import { ReturnStatement } from "./Statements/ReturnStatement";
+import { VarStatement } from "./Ast/Statements/VarStatement";
+import { Expression } from "./Ast/Expressions/Expression";
+import { LiteralExpression } from "./Ast/Expressions/LiteralExpression";
+import { GroupingExpression } from "./Ast/Expressions/GroupingExpression";
+import { VariableExpression } from "./Ast/Expressions/VariableExpression";
+import { BinaryExpression } from "./Ast/Expressions/BinaryExpression";
+import { AssignmentExpression } from "./Ast/Expressions/AssignmentExpression";
+import { ExpressionStatement } from "./Ast/Statements/ExpressionStatement";
+import { Statement } from "./Ast/Statements/Statement";
+import { PrintStatement } from "./Ast/Statements/PrintStatement";
+import { IfStatement } from "./Ast/Statements/IfStatement";
+import { LogicalExpression } from "./Ast/Expressions/LogicalExpression";
+import { CallExpression } from "./Ast/Expressions/CallExpression";
+import { UnaryExpression } from "./Ast/Expressions/UnaryExpression";
+import { WhileStatement } from "./Ast/Statements/WhileStatement";
+import { FunctionStatement } from "./Ast/Statements/FunctionStatement";
+import { BlockStatement } from "./Ast/Statements/BlockStatement";
+import { BreakStatement } from "./Ast/Statements/BreakStatement";
+import { ReturnStatement } from "./Ast/Statements/ReturnStatement";
 
 export class Parser {
 
@@ -28,6 +28,8 @@ export class Parser {
     private constructor(tokens:Token[]) {
         this._tokens = tokens;
         this._currentTokenIndex = 0;
+
+        
     }
 
     static parse(tokens:Token[]) : Statement[] {
@@ -119,16 +121,16 @@ export class Parser {
 
         var functionName = undefined;
 
-        if (!this.check(TokenType.LEFT_PAREN))
+        if (!this.check(TokenType.LEFT_BRACKET))
         {
             functionName = this.consume(TokenType.IDENTIFIER, "Expected function name");
         }
 
         var functionParams:Token[] = new Array();
 
-        this.consume(TokenType.LEFT_PAREN, "Expected (");
+        this.consume(TokenType.LEFT_BRACKET, "Expected (");
         
-        if (!this.check(TokenType.RIGHT_PAREN)) {
+        if (!this.check(TokenType.RIGHT_BRACKET)) {
             do {
                 if (functionParams.length >= 127) {
                     //error(peek(), "Can't define a function with more than 127 parameters.");
@@ -139,7 +141,7 @@ export class Parser {
             } while (this.match(TokenType.COMMA));
         }
         
-        this.consume(TokenType.RIGHT_PAREN, "Expected )");
+        this.consume(TokenType.RIGHT_BRACKET, "Expected )");
         this.consume(TokenType.LEFT_BRACE, "Expected {");
         
         var functionBody = this.block();
@@ -166,11 +168,11 @@ export class Parser {
 
     private ifStatement() : Statement {
 
-        this.consume(TokenType.LEFT_PAREN, "Expected (");
+        this.consume(TokenType.LEFT_BRACKET, "Expected (");
 
         var expr = this.expression();
 
-        this.consume(TokenType.RIGHT_PAREN, "Expected )");
+        this.consume(TokenType.RIGHT_BRACKET, "Expected )");
 
         var stmt = this.statement();
 
@@ -187,11 +189,11 @@ export class Parser {
 
     private whileStatement() : Statement {
 
-        this.consume(TokenType.LEFT_PAREN, "Expected (");
+        this.consume(TokenType.LEFT_BRACKET, "Expected (");
 
         var expr = this.expression();
 
-        this.consume(TokenType.RIGHT_PAREN, "Expected )");
+        this.consume(TokenType.RIGHT_BRACKET, "Expected )");
 
         var stmt = this.statement();
 
@@ -248,8 +250,7 @@ export class Parser {
             var value:Expression = this.assignment();
 
             var variableExpr:VariableExpression = expr as VariableExpression;
-
-            //if (expr.GetType() == typeof(Expression.Variable))
+            
             if (variableExpr != null)
             {
                 var name:Token = variableExpr._name;
@@ -257,7 +258,6 @@ export class Parser {
             }
 
             throw new Error("Invalid assignment target");
-            //throw error(equals, "Invalid assignment target."); 
         }
 
         return expr;
@@ -267,7 +267,7 @@ export class Parser {
     {
         var expr = this.logicalAnd();
 
-        while(this.match(TokenType.OR))
+        while(this.match(TokenType.LOGICAL_OR))
         {
             var op = this.previous();
             var right = this.logicalAnd();
@@ -281,7 +281,7 @@ export class Parser {
     {
         var expr = this.equality();
 
-        while(this.match(TokenType.AND))
+        while(this.match(TokenType.LOGICAL_AND))
         {
             var op = this.previous();
             var right = this.equality();
@@ -295,7 +295,7 @@ export class Parser {
         
         var expr = this.comparison();
 
-        while(this.match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL))
+        while(this.match(TokenType.NOT_EQUAL, TokenType.EQUAL_EQUAL))
         {
             var op = this.previous();
             var right = this.comparison();
@@ -336,7 +336,7 @@ export class Parser {
     private factor() : Expression {
         var expr:Expression = this.pow();
 
-        while(this.match(TokenType.STAR, TokenType.SLASH))
+        while(this.match(TokenType.MULTIPLY, TokenType.DIVIDE))
         {
             var op:Token = this.previous();
             var right:Expression = this.pow();
@@ -362,7 +362,7 @@ export class Parser {
 
     private unary() : Expression
     {
-        if(this.match(TokenType.BANG, TokenType.MINUS))
+        if(this.match(TokenType.NOT, TokenType.MINUS))
         {
             var op = this.previous();
             var right = this.unary();
@@ -378,7 +378,7 @@ export class Parser {
 
         while(true)
         {
-            if (this.match(TokenType.LEFT_PAREN))
+            if (this.match(TokenType.LEFT_BRACKET))
             {
                 expr = this.finishCall(expr);
             }
@@ -395,7 +395,7 @@ export class Parser {
     {
         var args:any[] = new Array();
 
-        if (!this.check(TokenType.RIGHT_PAREN))
+        if (!this.check(TokenType.RIGHT_BRACKET))
         {
             do 
             {
@@ -413,7 +413,7 @@ export class Parser {
             } while (this.match(TokenType.COMMA));
         }
 
-        var closingParen = this.consume(TokenType.RIGHT_PAREN, "Expected )");
+        var closingParen = this.consume(TokenType.RIGHT_BRACKET, "Expected )");
 
         return new CallExpression(callee, closingParen, args);
     }
@@ -422,7 +422,7 @@ export class Parser {
 
         if (this.match(TokenType.FALSE)) return new LiteralExpression(false);
         if (this.match(TokenType.TRUE)) return new LiteralExpression(true);
-        if (this.match(TokenType.NIL)) return new LiteralExpression(null);
+        if (this.match(TokenType.NULL)) return new LiteralExpression(null);
 
         if(this.match(TokenType.NUMBER))
         {
@@ -439,10 +439,10 @@ export class Parser {
             return new VariableExpression(this.previous());
         }
 
-        if (this.match(TokenType.LEFT_PAREN)) 
+        if (this.match(TokenType.LEFT_BRACKET)) 
         {
             var expr:Expression = this.expression();
-            this.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
+            this.consume(TokenType.RIGHT_BRACKET, "Expect ')' after expression.");
             return new GroupingExpression(expr);
         }
 

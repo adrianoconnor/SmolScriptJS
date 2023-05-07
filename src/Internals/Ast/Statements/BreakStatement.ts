@@ -1,4 +1,3 @@
-import { Expression } from "../Expressions/Expression";
 import { Statement } from "./Statement";
 
 export class BreakStatement implements Statement {

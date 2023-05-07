@@ -1,28 +1,29 @@
-import { AssignmentExpression } from "./Expressions/AssignmentExpression";
-import { BinaryExpression } from "./Expressions/BinaryExpression";
-import { GroupingExpression } from "./Expressions/GroupingExpression";
-import { LiteralExpression } from "./Expressions/LiteralExpression";
-import { VariableExpression } from "./Expressions/VariableExpression";
-import { ExpressionStatement } from "./Statements/ExpressionStatement";
-import { Statement } from "./Statements/Statement";
-import { VarStatement } from "./Statements/VarStatement";
-import { PrintStatement } from "./Statements/PrintStatement";
-import { CallExpression } from "./Expressions/CallExpression";
-import { LogicalExpression } from "./Expressions/LogicalExpression";
-import { UnaryExpression } from "./Expressions/UnaryExpression";
-import { BlockStatement } from "./Statements/BlockStatement";
-import { BreakStatement } from "./Statements/BreakStatement";
-import { FunctionStatement } from "./Statements/FunctionStatement";
-import { Token } from "./Token";
-import { ReturnStatement } from "./Statements/ReturnStatement";
-import { IfStatement } from "./Statements/IfStatement";
-import { WhileStatement } from "./Statements/WhileStatement";
-import { Expression } from "./Expressions/Expression";
-import { TokenType } from "./TokenType";
-import { Enviornment } from "./Environment";
+/*
+import { AssignmentExpression } from "./Internals/Ast/Expressions/AssignmentExpression";
+import { BinaryExpression } from "./Internals/Ast/Expressions/BinaryExpression";
+import { GroupingExpression } from "./Internals/Ast/Expressions/GroupingExpression";
+import { LiteralExpression } from "./Internals/Ast/Expressions/LiteralExpression";
+import { VariableExpression } from "./Internals/Ast/Expressions/VariableExpression";
+import { ExpressionStatement } from "./Internals/Ast/Statements/ExpressionStatement";
+import { Statement } from "./Internals/Ast/Statements/Statement";
+import { VarStatement } from "./Internals/Ast/Statements/VarStatement";
+import { PrintStatement } from "./Internals/Ast/Statements/PrintStatement";
+import { CallExpression } from "./Internals/Ast/Expressions/CallExpression";
+import { LogicalExpression } from "./Internals/Ast/Expressions/LogicalExpression";
+import { UnaryExpression } from "./Internals/Ast/Expressions/UnaryExpression";
+import { BlockStatement } from "./Internals/Ast/Statements/BlockStatement";
+import { BreakStatement } from "./Internals/Ast/Statements/BreakStatement";
+import { FunctionStatement } from "./Internals/Ast/Statements/FunctionStatement";
+import { Token } from "./Internals/Token";
+import { ReturnStatement } from "./Internals/Ast/Statements/ReturnStatement";
+import { IfStatement } from "./Internals/Ast/Statements/IfStatement";
+import { WhileStatement } from "./Internals/Ast/Statements/WhileStatement";
+import { Expression } from "./Internals/Ast/Expressions/Expression";
+import { TokenType } from "./Internals/TokenType";
+import { Enviornment } from "./Internals/Environment";
 import { ICallable, ReturnFromFunction, UserDefinedFunction } from "./UserDefinedFunction";
-import { Scanner } from "./Scanner";
-import { Parser } from "./Parser";
+import { Scanner } from "./Internals/Scanner";
+import { Parser } from "./Internals/Parser";
 
 export class SignalBreakFromLoop extends Error {}
 
@@ -191,7 +192,7 @@ export class SmolEngine {
                 return left < right;
             case TokenType.LESS_EQUAL:
                 return left <= right;
-            case TokenType.BANG_EQUAL:
+            case TokenType.NOT_EQUAL:
                 return !this.areEqual(left, right);
             case TokenType.EQUAL_EQUAL:
                 return this.areEqual(left, right);                          
@@ -269,4 +270,4 @@ export class SmolEngine {
     private visitVariableExpression(expr:VariableExpression) {
         return this._env.get(expr._name.lexeme);
     }
-}
+}*/

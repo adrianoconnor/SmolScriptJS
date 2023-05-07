@@ -12,22 +12,32 @@ import { UnaryExpression } from "./Expressions/UnaryExpression";
 import { BlockStatement } from "./Statements/BlockStatement";
 import { BreakStatement } from "./Statements/BreakStatement";
 import { FunctionStatement } from "./Statements/FunctionStatement";
-import { Token } from "./Token";
+import { Token } from "../Token";
 import { ReturnStatement } from "./Statements/ReturnStatement";
 import { IfStatement } from "./Statements/IfStatement";
 import { WhileStatement } from "./Statements/WhileStatement";
-import { SmolEngine } from "./SmolEngine";
 import { Statement } from "./Statements/Statement";
+import { Scanner } from "../Scanner";
+import { Parser } from "../Parser";
 
 export class AstDebugPrinter {
 
     static parse(source:string) {
-        let engine = new SmolEngine();
-        let prog = engine.compile(source);
+        //let engine = new SmolEngine();
+        //let prog = engine.compile(source);
+        //let astPrinter = new AstDebugPrinter();
+
+        //for(var i = 0; i < prog.length; i++) {
+        //    astPrinter.processStmt(prog[i]);    
+        //}
+
+        var t = Scanner.tokenize(source);
+        var p = Parser.parse(t);
+
         let astPrinter = new AstDebugPrinter();
 
-        for(var i = 0; i < prog.length; i++) {
-            astPrinter.processStmt(prog[i]);    
+        for(var i = 0; i < p.length; i++) {
+            astPrinter.processStmt(p[i]);    
         }
     }
 
@@ -52,12 +62,14 @@ export class AstDebugPrinter {
         return (`(exprStmt ${stmt._expression.accept(this)})`);
     }
 
+    /*
     private visitFunctionStatement(stmt:FunctionStatement) : string {
 
         var name = stmt._name as Token || "anonymous";
 
         return (`(declare function ${name.lexeme} with ${stmt._parameters.length} params [${stmt._parameters.map(function(p) { return p.lexeme; }).join(', ')}])`);
     }
+    */
 
     private visitIfStatement(stmt:IfStatement) {
         var output : string[] = [];

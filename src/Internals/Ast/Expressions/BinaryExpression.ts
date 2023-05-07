@@ -1,7 +1,7 @@
-import { Token } from "../Token";
+import { Token } from "../../Token";
 import { Expression } from "./Expression";
 
-export class LogicalExpression extends Expression {
+export class BinaryExpression extends Expression {
 
     _left:Expression;
     _operand:Token;
@@ -16,6 +16,6 @@ export class LogicalExpression extends Expression {
     }
 
     accept(visitor:any) {
-        return visitor.visitLogicalExpression(this);
+        return visitor.visitBinaryExpression(this);
     }
 }

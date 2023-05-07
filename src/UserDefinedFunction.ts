@@ -1,6 +1,6 @@
-import { Enviornment } from "./Environment";
+/*import { Enviornment } from "./Internals/Environment";
 import { SmolEngine } from "./SmolEngine";
-import { FunctionStatement } from "./Statements/FunctionStatement";
+import { FunctionStatement } from "./Internals/Ast/Statements/FunctionStatement";
 
 export interface ICallable {
     call(interpreter:SmolEngine, args:any[]) : any;
@@ -62,4 +62,4 @@ export class UserDefinedFunction implements ICallable {
         }
     }
 
-}
+}*/
