@@ -407,6 +407,10 @@ export class Scanner {
         var extractedString = '';
         var hasProducedAtLeastOneToken = false;
 
+        // Todo: Currently only difference between this and the regular string
+        // parser func is that it allows multi-lines. Need to bring over the rest
+        // of the impl from .net
+
         while(this.peek() != quoteChar && !this.endOfFile())
         { 
             if (this.peek() == '\n')

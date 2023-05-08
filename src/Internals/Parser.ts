@@ -19,6 +19,19 @@ import { FunctionStatement } from "./Ast/Statements/FunctionStatement";
 import { BlockStatement } from "./Ast/Statements/BlockStatement";
 import { BreakStatement } from "./Ast/Statements/BreakStatement";
 import { ReturnStatement } from "./Ast/Statements/ReturnStatement";
+import { ClassStatement } from "./Ast/Statements/ClassStatement";
+import { ThrowStatement } from "./Ast/Statements/ThrowStatement";
+import { ContinueStatement } from "./Ast/Statements/ContinueStatement";
+import { DebuggerStatement } from "./Ast/Statements/DebuggerStatement";
+import { TryStatement } from "./Ast/Statements/TryStatement";
+import { TernaryExpression } from "./Ast/Expressions/TernaryExpression";
+import { SetExpression } from "./Ast/Expressions/SetExpression";
+import { IndexerSetExpression } from "./Ast/Expressions/IndexerSetExpression";
+import { GetExpression } from "./Ast/Expressions/GetExpression";
+import { IndexerGetExpression } from "./Ast/Expressions/IndexerGetExpression";
+import { FunctionExpression } from "./Ast/Expressions/FunctionExpression";
+import { NewInstanceExpression } from "./Ast/Expressions/NewInstanceExpression";
+import { ObjectInitializerExpression } from "./Ast/Expressions/ObjectInitializerExpression";
 
 export class Parser {
 
@@ -64,15 +77,15 @@ export class Parser {
         return false;
     }
 
-    private check(tokenType:TokenType) : boolean
+    private check(tokenType:TokenType, skip:number = 0) : boolean
     {
         if (this.endOfTokenStream()) return false;
 
-        return (this.peek().type == tokenType);
+        return (this.peek(skip).type == tokenType);
     }
 
-    private peek() : Token {
-        return (this._tokens as Token[])[this._currentTokenIndex];
+    private peek(skip:number = 0) : Token {
+        return (this._tokens as Token[])[this._currentTokenIndex + skip];
     }
 
     private advance() : Token {
@@ -100,6 +113,7 @@ export class Parser {
 
         if (this.match(TokenType.VAR)) return this.varDeclaration(); 
         if (this.match(TokenType.FUNC)) return this.functionDeclaration();
+        if (this.match(TokenType.CLASS)) return this.classDeclaration();
 
         return this.statement();
     }
@@ -145,21 +159,112 @@ export class Parser {
         return new FunctionStatement(functionName, functionParams, functionBody);
     }
 
+    private classDeclaration() {
+       
+        var className = this.consume(TokenType.IDENTIFIER, "Expected function name");
+        var superclassName:any = null;
+        var functions:FunctionStatement[] = new Array();
+
+        if (this.match(TokenType.COLON)) {
+            superclassName = this.consume(TokenType.IDENTIFIER, "Expected superclass name");
+        }
+
+        this.consume(TokenType.LEFT_BRACE, "Expected {");
+        
+        while (!this.check(TokenType.RIGHT_BRACE) && !this.endOfTokenStream) {
+          
+            if (this.check(TokenType.IDENTIFIER) && this.check(TokenType.LEFT_BRACKET, 1))
+            {
+                functions.push(this.functionDeclaration());
+            }
+            else
+            {
+                throw new Error(`Didn't expect to find ${this.peek()} in the class body`);
+            }
+        }
+        
+        this.consume(TokenType.RIGHT_BRACE, "Expected }");
+
+        return new ClassStatement(className, superclassName, functions);
+    }
+
     private statement() : Statement {
-        if (this.match(TokenType.PRINT)) return this.printStatement();
         if (this.match(TokenType.IF)) return this.ifStatement();
         if (this.match(TokenType.WHILE)) return this.whileStatement();
         if (this.match(TokenType.LEFT_BRACE)) return this.block();
+        if (this.match(TokenType.PRINT)) return this.printStatement();
         if (this.match(TokenType.BREAK)) return this.breakStatement();
         if (this.match(TokenType.RETURN)) return this.returnStatement();
+
+        if (this.match(TokenType.TRY)) return this.tryStatement();
+        if (this.match(TokenType.THROW)) return this.throwStatement();
+        if (this.match(TokenType.FOR)) return this.forStatement();
+        if (this.match(TokenType.CONTINUE)) return this.continueStatement();
+        if (this.match(TokenType.DEBUGGER)) return this.debuggerStatement();
 
         return this.expressionStatement();
     }
 
-    private printStatement() : PrintStatement{
+    private printStatement() : PrintStatement {
         var expr:Expression = this.expression();
         this.consume(TokenType.SEMICOLON, "Expected ;");
         return new PrintStatement(expr);
+    }
+
+    private throwStatement() : ThrowStatement {
+        var expr:Expression = this.expression();
+        this.consume(TokenType.SEMICOLON, "Expected ;");
+        return new ThrowStatement(expr);
+    }
+
+    private returnStatement() : ReturnStatement {
+        if (this.peek().type == TokenType.SEMICOLON) {
+            this.consume(TokenType.SEMICOLON, "Expected ;");
+            return new ReturnStatement(undefined); // Could be literal undefined.
+        }
+        else {
+            var expr = this.expression();
+            this.consume(TokenType.SEMICOLON, "Expected ;");
+            return new ReturnStatement(expr);
+        }
+    }
+
+    private breakStatement() : BreakStatement {
+
+        // Todo: add checks for while loop
+
+        this.consume(TokenType.SEMICOLON, "Expected ;");
+        return new BreakStatement();
+    }
+
+    private continueStatement() : ContinueStatement {
+
+        // Todo: add checks for while loop
+
+        this.consume(TokenType.SEMICOLON, "Expected ;");
+        return new ContinueStatement();
+    }
+
+    private debuggerStatement() : DebuggerStatement {
+
+        // Todo: add checks for while loop
+
+        this.consume(TokenType.SEMICOLON, "Expected ;");
+        return new DebuggerStatement();
+    }
+
+
+    private block() : BlockStatement
+    {
+        var stmts:Statement[] = new Array();
+
+        while (!this.check(TokenType.RIGHT_BRACE) && !this.endOfTokenStream()) {
+            stmts.push(this.declaration());
+        }
+
+        this.consume(TokenType.RIGHT_BRACE, "Expected '}' after block.");
+
+        return new BlockStatement(stmts);
     }
 
     private ifStatement() : Statement {
@@ -196,67 +301,191 @@ export class Parser {
         return new WhileStatement(expr, stmt);
     }
 
-    private block() : BlockStatement
-    {
-        var stmts:Statement[] = new Array();
+    private tryStatement() : TryStatement {
 
-        while (!this.check(TokenType.RIGHT_BRACE) && !this.endOfTokenStream()) {
-            stmts.push(this.declaration());
+        this.consume(TokenType.LEFT_BRACE, "Expected {");
+        var tryBody:BlockStatement = this.block();
+        var catchBody:any = null; //BlockStatement
+        var finallyBody:any = null; //BlockStatement
+
+        var exceptionVarName:any = null; // Token
+
+        if (this.match(TokenType.CATCH))
+        {
+            if (this.match(TokenType.LEFT_BRACKET))
+            {
+                exceptionVarName = this.consume(TokenType.IDENTIFIER, "Expected a single variable name for exception variable");
+
+                this.consume(TokenType.RIGHT_BRACKET, "Expected )");
+            }
+
+            this.consume(TokenType.LEFT_BRACE, "Expected {");
+            catchBody = this.block();
         }
 
-        this.consume(TokenType.RIGHT_BRACE, "Expected '}' after block.");
+        if (this.match(TokenType.FINALLY))
+        {
+            this.consume(TokenType.LEFT_BRACE, "Expected {");
+            finallyBody = this.block();
+        }
 
-        return new BlockStatement(stmts);
+        if (catchBody == null && finallyBody == null)
+        {
+            this.consume(TokenType.CATCH, "Expected catch or finally");
+        }
+
+        return new TryStatement(tryBody, exceptionVarName, catchBody, finallyBody);
     }
 
-    private breakStatement() : BreakStatement {
+    private forStatement() : Statement {
+
+        this.consume(TokenType.LEFT_BRACKET, "Expected (");
+
+        var initialiser:any = null; //Statement
+
+        if (this.match(TokenType.SEMICOLON))
+        {
+            initialiser = null;
+        }
+        else if (this.match(TokenType.VAR))
+        {
+            initialiser = this.varDeclaration();
+        }
+        else
+        {
+            initialiser = this.expressionStatement();
+        }
+
+        var condition:any = null; // Expression
+
+        if (!this.check(TokenType.SEMICOLON))
+        {
+            condition = this.expression();
+        }
+        else
+        {
+            condition = new LiteralExpression(true);
+        }
+
         this.consume(TokenType.SEMICOLON, "Expected ;");
-        return new BreakStatement();
+
+        var increment:any = null; // Expression
+
+        if (!this.check(TokenType.RIGHT_BRACKET))
+        {
+            increment = this.expression();
+        }
+
+        this.consume(TokenType.RIGHT_BRACKET, "Expected )");
+
+        var body = this.statement();
+
+        if (increment != null)
+        {
+            var innerStmts:Statement[];
+
+            innerStmts = [body, new ExpressionStatement(increment)];
+
+            body = new BlockStatement(innerStmts);
+        }
+
+        body = new WhileStatement(condition, body);
+
+        if (initialiser != null)
+        {               
+            body = new BlockStatement([initialiser, body]);
+        }
+
+        return body;
     }
 
-    private returnStatement() : ReturnStatement {
-        if (this.peek().type == TokenType.SEMICOLON) {
-            this.consume(TokenType.SEMICOLON, "Expected ;");
-            return new ReturnStatement(undefined);
-        }
-        else {
-            var expr = this.expression();
-            this.consume(TokenType.SEMICOLON, "Expected ;");
-            return new ReturnStatement(expr);
-        }
-    }
 
-    private expressionStatement() : Statement {
+    private expressionStatement() : ExpressionStatement {
         var expr:Expression = this.expression();
         this.consume(TokenType.SEMICOLON, "Expected ;");
         return new ExpressionStatement(expr);
     }
 
     private expression() : Expression {
-        return this.assignment();
+        var expr = this.assignment();
+
+        if (this.match(TokenType.QUESTION_MARK))
+        {
+            var thenExpression = this.expression(); // This isn't right, need to work out correct order
+            this.consume(TokenType.COLON, "Expected :");
+            var elseExpression = this.expression();
+
+            return new TernaryExpression(expr, thenExpression, elseExpression);
+        }
+
+        return expr;
     }
 
     private assignment() : Expression {
         
-        var expr = this.logicalOr();
+        var expr = this.functionExpression();
 
         if (this.match(TokenType.EQUAL))
         {
-            var equals:Token = this.previous();
+            //var equals:Token = this.previous();
             var value:Expression = this.assignment();
 
-            var variableExpr:VariableExpression = expr as VariableExpression;
-            
-            if (variableExpr != null)
-            {
-                var name:Token = variableExpr._name;
+            if (expr instanceof VariableExpression) {
+                var name = (expr as VariableExpression)._name;
                 return new AssignExpression(name, value);
+            }
+            else if (expr instanceof GetExpression) {            
+                var getExpr = expr as GetExpression;
+                return new SetExpression(getExpr._obj, getExpr._name, value);
+            }
+            else if (expr instanceof IndexerGetExpression) {
+                var getIndexerExpr = expr as IndexerGetExpression;
+                return new IndexerSetExpression(getIndexerExpr._obj, getIndexerExpr._indexerExpr, value);
             }
 
             throw new Error("Invalid assignment target");
         }
 
+        // Todo: Plus_Equals etc.
+
         return expr;
+    }
+
+    private functionExpression() : Expression {
+
+        if (this.match(TokenType.FUNC))
+        {
+            // _statementCallStack.Push("FUNCTION");
+
+            var functionParams:Token[] = new Array<Token>();
+
+            this.consume(TokenType.LEFT_BRACKET, "Expected (");
+
+            if (!this.check(TokenType.RIGHT_BRACKET))
+            {
+                do
+                {
+                    /*
+                    if (functionParams.length >= 127)
+                    {
+                        this.error(this.peek(), "Can't define a function with more than 127 parameters.");
+                    }*/
+
+                    functionParams.push(this.consume(TokenType.IDENTIFIER, "Expected parameter name"));
+                } while (this.match(TokenType.COMMA));
+            }
+
+            this.consume(TokenType.RIGHT_BRACKET, "Expected )");
+            this.consume(TokenType.LEFT_BRACE, "Expected {");
+
+            var functionBody = this.block();
+
+            //_ = _statementCallStack.Pop();
+
+            return new FunctionExpression(functionParams, functionBody);
+        }
+
+        return this.logicalOr();
     }
 
     private logicalOr() : Expression
@@ -303,9 +532,23 @@ export class Parser {
 
     private comparison() : Expression {
 
-        var expr = this.term();
+        var expr = this.bitwise_op();
 
         while(this.match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL))
+        {
+            var op = this.previous();
+            var right = this.term();
+            expr = new BinaryExpression(expr, op, right);
+        }
+
+        return expr;
+    }
+
+    private bitwise_op() : Expression {
+    
+        var expr = this.term();
+
+        while (this.match(TokenType.BITWISE_AND, TokenType.BITWISE_OR, TokenType.REMAINDER))
         {
             var op = this.previous();
             var right = this.term();
@@ -372,13 +615,26 @@ export class Parser {
     {
         var expr = this.primary();
 
-        while(true)
+        while (true)
         {
             if (this.match(TokenType.LEFT_BRACKET))
             {
-                expr = this.finishCall(expr);
+                expr = this.finishCall(expr, (expr instanceof GetExpression));
             }
-            else 
+            else if (this.match(TokenType.LEFT_SQUARE_BRACKET))
+            {
+                var indexerExpression = this.expression();
+
+                var closingParen = this.consume(TokenType.RIGHT_SQUARE_BRACKET, "Expected ]");
+
+                expr = new IndexerGetExpression(expr, indexerExpression);
+            }
+            else if (this.match(TokenType.DOT))
+            {
+                var name = this.consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
+                expr = new GetExpression(expr, name);
+            }
+            else
             {
                 break;
             }
@@ -387,31 +643,18 @@ export class Parser {
         return expr;
     }
 
-    private finishCall(callee:Expression) : Expression
+    private finishCall(callee:Expression, isFollowingGetter:Boolean = false) : Expression
     {
-        var args:Expression[] = new Array();
+        var args = new Array<Expression>();
 
         if (!this.check(TokenType.RIGHT_BRACKET))
         {
-            do 
-            {
-                if (this.match(TokenType.FUNC))
-                {
-                    var x = this.functionDeclaration(); // Todo: Align with .net version
-                    console.log(x);
-                    // Anonymous function                        
-                    args.push(x);
-                }
-                else
-                {
-                    args.push(this.expression());
-                }
-            } while (this.match(TokenType.COMMA));
+            do { args.push(this.expression()); } while (this.match(TokenType.COMMA));
         }
 
         var closingParen = this.consume(TokenType.RIGHT_BRACKET, "Expected )");
 
-        return new CallExpression(callee, args, false); // TODO: Object ref
+        return new CallExpression(callee, args, isFollowingGetter);
     }
 
     private primary() : Expression {
@@ -419,6 +662,7 @@ export class Parser {
         if (this.match(TokenType.FALSE)) return new LiteralExpression(false);
         if (this.match(TokenType.TRUE)) return new LiteralExpression(true);
         if (this.match(TokenType.NULL)) return new LiteralExpression(null);
+        if (this.match(TokenType.UNDEFINED)) return new LiteralExpression(undefined);
 
         if(this.match(TokenType.NUMBER))
         {
@@ -435,16 +679,73 @@ export class Parser {
             return new VariableExpression(this.previous(), null);
         }
 
+
+        if (this.match(TokenType.NEW))
+        {
+            var className = this.consume(TokenType.IDENTIFIER, "Expected identifier after new");
+
+            this.consume(TokenType.LEFT_BRACKET, "Expect ')' after expression.");
+
+            var args = new Array<Expression>();
+
+            if (!this.check(TokenType.RIGHT_BRACKET))
+            {
+                do { args.push(this.expression()); } while (this.match(TokenType.COMMA));
+            }
+
+            var closingParen = this.consume(TokenType.RIGHT_BRACKET, "Expected )");
+
+            return new NewInstanceExpression(className, args);
+        }
+
+        if (this.match(TokenType.LEFT_SQUARE_BRACKET))
+        {
+            var className = new Token(TokenType.IDENTIFIER, "Array", null, this.peek().line);
+            
+            var args = new Array<Expression>();
+
+            if (!this.check(TokenType.RIGHT_SQUARE_BRACKET))
+            {
+                do { args.push(this.expression()); } while (this.match(TokenType.COMMA));
+            }
+
+            var closingParen = this.consume(TokenType.RIGHT_SQUARE_BRACKET, "Expected ]");
+
+            return new NewInstanceExpression(className, args);
+        }
+
+        if (this.match(TokenType.LEFT_BRACE))
+        {
+            var className = new Token(TokenType.IDENTIFIER, "Object", null, this.peek().line);
+
+            var args = new Array<Expression>();
+
+            if (!this.check(TokenType.RIGHT_BRACE))
+            {
+                do
+                {
+                    var name = this.consume(TokenType.IDENTIFIER, "Expected idetifier");
+                    this.consume(TokenType.COLON, "Exepcted :");
+                    var value = this.expression();
+
+                    args.push(new ObjectInitializerExpression(name, value));
+
+                } while (this.match(TokenType.COMMA));
+            }
+
+            var closingParen = this.consume(TokenType.RIGHT_BRACE, "Expected }");
+
+            return new NewInstanceExpression(className, args);
+        }
+
+
         if (this.match(TokenType.LEFT_BRACKET)) 
         {
-            var expr:Expression = this.expression();
+            var expr = this.expression();
             this.consume(TokenType.RIGHT_BRACKET, "Expect ')' after expression.");
             return new GroupingExpression(expr);
         }
 
         throw new Error(`Parser did not expect to see token "${TokenType[this.peek().type]}" on line ${this.peek().line}, sorry :(`);
-
-        //throw error(peek(), $"Parser did not expect to see '{peek().lexeme}' on line {peek().line}, sorry :(");
-
     }
 } 
