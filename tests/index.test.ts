@@ -7,6 +7,10 @@ describe('Scratch Pad', () => {
   test('AST Debug Print for dev', () => {
 
     let source = `
+    function test() { }
+
+    var a = function(x) { return x+1*2; };
+   
     var a = 10;
     
     if (a > 5) {
@@ -26,11 +30,15 @@ describe('Scratch Pad', () => {
     }
 
     var b = function() {
-      print x;
+      print x == 1 ? 'y' : 'n';
     };
+
+    b(123);
 `;
 
-    AstDebugPrinter.parse(source);
+    var ast = AstDebugPrinter.parse(source);
+
+    console.log(ast);
 
     //var a = source;
 
