@@ -1,18 +1,19 @@
-import { Token } from "../../Token";
 import { Expression } from "./Expression";
 
-export class CallExpression extends Expression {
+export class CallExpression implements Expression {
+
+    getExpressionType() : string {
+        return "Call";
+    }
 
     _callee:Expression;
-    _paren:Token;
-    _args:any[];
+    _args:Expression[];
+    _useObjectRef:Boolean;
 
-    constructor(callee:Expression, paren:Token, args:any[]) {
-        super();
-
+    constructor(callee:Expression, args:Expression[], useObjectRef:Boolean) {
         this._callee = callee;
-        this._paren = paren;
         this._args = args;
+        this._useObjectRef = useObjectRef;
     }
 
     accept(visitor:any) {

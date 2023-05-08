@@ -1,15 +1,17 @@
-import { Token } from "../../Token";
 import { Expression } from "./Expression";
+import { Token } from "../../Token";
 
-export class UnaryExpression extends Expression {
+export class UnaryExpression implements Expression {
 
-    _operand:Token;
+    getExpressionType() : string {
+        return "Unary";
+    }
+
+    _op:Token;
     _right:Expression;
 
-    constructor(operand:Token, right:Expression) {
-        super();
-
-        this._operand = operand;
+    constructor(op:Token, right:Expression) {
+        this._op = op;
         this._right = right;
     }
 

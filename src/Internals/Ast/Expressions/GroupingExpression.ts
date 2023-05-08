@@ -1,12 +1,14 @@
 import { Expression } from "./Expression";
 
-export class GroupingExpression extends Expression {
+export class GroupingExpression implements Expression {
+
+    getExpressionType() : string {
+        return "Grouping";
+    }
 
     _expr:Expression;
 
     constructor(expr:Expression) {
-        super();
-
         this._expr = expr;
     }
 

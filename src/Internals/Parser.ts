@@ -6,7 +6,7 @@ import { LiteralExpression } from "./Ast/Expressions/LiteralExpression";
 import { GroupingExpression } from "./Ast/Expressions/GroupingExpression";
 import { VariableExpression } from "./Ast/Expressions/VariableExpression";
 import { BinaryExpression } from "./Ast/Expressions/BinaryExpression";
-import { AssignmentExpression } from "./Ast/Expressions/AssignmentExpression";
+import { AssignExpression } from "./Ast/Expressions/AssignExpression";
 import { ExpressionStatement } from "./Ast/Statements/ExpressionStatement";
 import { Statement } from "./Ast/Statements/Statement";
 import { PrintStatement } from "./Ast/Statements/PrintStatement";
@@ -250,7 +250,7 @@ export class Parser {
             if (variableExpr != null)
             {
                 var name:Token = variableExpr._name;
-                return new AssignmentExpression(name, value);
+                return new AssignExpression(name, value);
             }
 
             throw new Error("Invalid assignment target");
@@ -389,7 +389,7 @@ export class Parser {
 
     private finishCall(callee:Expression) : Expression
     {
-        var args:any[] = new Array();
+        var args:Expression[] = new Array();
 
         if (!this.check(TokenType.RIGHT_BRACKET))
         {
@@ -397,7 +397,7 @@ export class Parser {
             {
                 if (this.match(TokenType.FUNC))
                 {
-                    var x = this.functionDeclaration();
+                    var x = this.functionDeclaration(); // Todo: Align with .net version
                     console.log(x);
                     // Anonymous function                        
                     args.push(x);
@@ -411,7 +411,7 @@ export class Parser {
 
         var closingParen = this.consume(TokenType.RIGHT_BRACKET, "Expected )");
 
-        return new CallExpression(callee, closingParen, args);
+        return new CallExpression(callee, args, false); // TODO: Object ref
     }
 
     private primary() : Expression {
@@ -432,7 +432,7 @@ export class Parser {
 
         if (this.match(TokenType.IDENTIFIER))
         {
-            return new VariableExpression(this.previous());
+            return new VariableExpression(this.previous(), null);
         }
 
         if (this.match(TokenType.LEFT_BRACKET)) 

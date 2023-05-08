@@ -1,17 +1,19 @@
-import { Token } from "../../Token";
 import { Expression } from "./Expression";
+import { Token } from "../../Token";
 
-export class LogicalExpression extends Expression {
+export class LogicalExpression implements Expression {
+
+    getExpressionType() : string {
+        return "Logical";
+    }
 
     _left:Expression;
-    _operand:Token;
+    _op:Token;
     _right:Expression;
 
-    constructor(left:Expression, operand:Token, right:Expression) {
-        super();
-
+    constructor(left:Expression, op:Token, right:Expression) {
         this._left = left;
-        this._operand = operand;
+        this._op = op;
         this._right = right;
     }
 

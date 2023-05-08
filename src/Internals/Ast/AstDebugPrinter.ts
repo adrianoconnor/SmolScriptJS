@@ -1,4 +1,4 @@
-import { AssignmentExpression } from "./Expressions/AssignmentExpression";
+import { AssignExpression } from "./Expressions/AssignExpression";
 import { BinaryExpression } from "./Expressions/BinaryExpression";
 import { GroupingExpression } from "./Expressions/GroupingExpression";
 import { LiteralExpression } from "./Expressions/LiteralExpression";
@@ -107,12 +107,12 @@ export class AstDebugPrinter {
         return (`(while ${stmt._executeStatement.accept(this)} ...)`);
     }
 
-    private visitAssignmentExpression(expr:AssignmentExpression) : string {
+    private visitAssignExpression(expr:AssignExpression) : string {
         return (`(assign var ${expr._name.lexeme} = ${expr._value.accept(this)})`);
     }
 
     private visitBinaryExpression(expr:BinaryExpression) : string {
-        return (`(${expr._operand.lexeme} ${expr._left.accept(this)} ${expr._right.accept(this)})`);
+        return (`(${expr._op.lexeme} ${expr._left.accept(this)} ${expr._right.accept(this)})`);
     }
 
     private visitCallExpression(expr:CallExpression) : string {
@@ -128,11 +128,11 @@ export class AstDebugPrinter {
     }
 
     private visitLogicalExpression(expr:LogicalExpression) : string {
-        return (`(${expr._operand.lexeme} ${expr._left.accept(this)} ${expr._right.accept(this)})`);
+        return (`(${expr._op.lexeme} ${expr._left.accept(this)} ${expr._right.accept(this)})`);
     }
 
     private visitUnaryExpression(expr:UnaryExpression) : string {
-        return (`(${expr._operand.lexeme} ${expr._right.accept(this)})`);
+        return (`(${expr._op.lexeme} ${expr._right.accept(this)})`);
     }
 
     private visitVariableExpression(expr:VariableExpression) : string {

@@ -103,13 +103,146 @@ var statement_types = [
 
 ];
 
-var expression_types = [];
+var expression_types = [
+    { 
+        name: 'Assign', 
+        fields: [
+            { name:'name', type:'Token' },
+            { name:'value', type:'Expression' }
+        ],
+        imports: ['Token']
+    },
+    { 
+        name: 'Binary', 
+        fields: [
+            { name:'left', type:'Expression' },
+            { name:'op', type:'Token' },
+            { name:'right', type:'Expression' }
+        ],
+        imports: ['Token']
+    },
+    { 
+        name: 'Call', 
+        fields: [
+            { name:'callee', type:'Expression' },
+            { name:'args', type:'Expression[]' },
+            { name:'useObjectRef', type:'Boolean' }
+        ]
+    },
+    { 
+        name: 'Function', 
+        fields: [
+            { name:'parameters', type:'Token[]' },
+            { name:'functionBody', type:'BlockStatement' }
+        ],
+        imports: ['Token', 'BlockStatement']
+    },
+    { 
+        name: 'Get', 
+        fields: [
+            { name:'obj', type:'Expression' },
+            { name:'name', type:'Token' }
+        ],
+        imports: ['Token']
+    },
+    { 
+        name: 'Grouping', 
+        fields: [
+            { name:'expr', type:'Expression' }
+        ]
+    },
+    { 
+        name: 'IndexerGet', 
+        fields: [
+            { name:'obj', type:'Expression' },
+            { name:'indexerExpr', type:'Expression' }
+        ]
+    },
+    { 
+        name: 'IndexerSet', 
+        fields: [
+            { name:'obj', type:'Expression' },
+            { name:'indexerExpr', type:'Expression' },
+            { name:'value', type:'Expression' }            
+        ]
+    },
+    { 
+        name: 'Literal', 
+        fields: [
+            { name:'value', type:'any' }        
+        ]
+    },
+    { 
+        name: 'Logical', 
+        fields: [
+            { name:'left', type:'Expression' },
+            { name:'op', type:'Token' },
+            { name:'right', type:'Expression' }
+        ],
+        imports: ['Token']
+    },
+    { 
+        name: 'NewInstance', 
+        fields: [
+            { name:'className', type:'Token' },
+            { name:'ctorArgs', type:'Expression[]' }
+        ],
+        imports: ['Token']
+    },
+    { 
+        name: 'ObjectInitializer', 
+        fields: [
+            { name:'name', type:'Token' },
+            { name:'value', type:'Expression' }
+        ],
+        imports: ['Token']
+    },
+    { 
+        name: 'Set', 
+        fields: [
+            { name:'obj', type:'Expression' },
+            { name:'name', type:'Token' },
+            { name:'value', type:'Expression' }            
+        ],
+        imports: ['Token']
+    },
+    { 
+        name: 'Ternary', 
+        fields: [
+            { name:'evaluationExpression', type:'Expression' },
+            { name:'expresisonIfTrue', type:'Expression' },
+            { name:'expresisonIfFalse', type:'Expression' }            
+        ]
+    },
+    { 
+        name: 'Unary', 
+        fields: [
+            { name:'op', type:'Token' },
+            { name:'right', type:'Expression' }            
+        ],
+        imports: ['Token']
+    },
+    { 
+        name: 'Variable', 
+        fields: [
+            { name:'name', type:'Token' },
+            { name:'prepostfixOp', type:'TokenType', optional:true }            
+        ],
+        imports: ['Token', 'TokenType']
+    }
+];
 
 // Create statement files
 
 var stmt_import_strings = {
     'Expression':  'import { Expression } from "../Expressions/Expression";\n',
     'Token': 'import { Token } from "../../Token";\n',
+}
+
+var expr_import_strings = {
+    'Statement':  'import { Expression } from "../Expressions/Expression";\n',
+    'Token': 'import { Token } from "../../Token";\n',
+    'TokenType': 'import { TokenType } from "../../TokenType";\n'
 }
 
 statement_types.forEach(function(st) {
@@ -130,7 +263,11 @@ statement_types.forEach(function(st) {
             }
             else if (imp.endsWith('Expression')) {
                 imports += `import {${imp}} from "../Expressions/${imp}";\n`;
-            } 
+            }
+            else {
+                throw new Error(`Can't handle importing ${imp}`);
+            }
+
         });
     }
 
@@ -158,7 +295,60 @@ ${ctorAssigns}
     }
 }`
 
-//if (st.name == 'Function') {
     fs.writeFileSync(`./src/Internals/Ast/Statements/${st.name}Statement.ts`, classDefn);
-//}
+
+});
+
+
+expression_types.forEach(function(ex) {
+    console.log(ex.name);
+
+    var imports = '';
+    var fields = '';
+    var ctorParams = '';
+    var ctorAssigns = '';
+
+    if (ex.imports != null) {
+        ex.imports.forEach(function(imp) {
+            if (expr_import_strings[imp] != null) {
+                imports += expr_import_strings[imp];
+            }
+            else if (imp.endsWith('Expression')) {
+                imports += `import {${imp}} from "./${imp}";\n`;
+            }
+            else if (imp.endsWith('Statement')) {
+                imports += `import {${imp}} from "../Statements/${imp}";\n`;
+            }
+            else {
+                throw new Error(`Can't handle importing ${imp}`);
+            }
+        });
+    }
+
+    ex.fields.forEach(function(f) {
+        fields += `    _${f.name}${f.optional ? '?':''}:${f.type};\n`;
+        ctorParams += `${ctorParams.length > 0 ? ', ':''}${f.name}:${f.optional ? 'any':f.type}`
+        ctorAssigns += `${ctorAssigns.length > 0 ? '\n':''}        this._${f.name} = ${f.name};`;
+    })
+
+    var classDefn = `import { Expression } from "./Expression";
+${imports}
+export class ${ex.name}Expression implements Expression {
+
+    getExpressionType() : string {
+        return "${ex.name}";
+    }
+
+${fields}
+    constructor(${ctorParams}) {
+${ctorAssigns}
+    }
+
+    accept(visitor:any) {
+        return visitor.visit${ex.name}Expression(this);
+    }
+}`
+
+    fs.writeFileSync(`./src/Internals/Ast/Expressions/${ex.name}Expression.ts`, classDefn);
+
 });
