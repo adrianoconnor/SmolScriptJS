@@ -1,19 +1,19 @@
 import { Statement } from "./Statement";
 import { Expression } from "../Expressions/Expression";
 
-export class ExpressionStatement implements Statement {
+export class ThrowStatement implements Statement {
 
     getStatementType() : string {
-        return "Expression";
+        return "Throw";
     }
 
-    _expression:Expression;
+    _expression?:Expression;
 
-    constructor(expression:Expression) {
+    constructor(expression:any) {
         this._expression = expression;
     }
 
     accept(visitor:any) {
-        return visitor.visitExpressionStatement(this);
+        return visitor.visitThrowStatement(this);
     }
 }

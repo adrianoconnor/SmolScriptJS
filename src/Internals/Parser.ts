@@ -107,25 +107,21 @@ export class Parser {
     private varDeclaration() : Statement {
 
         var name = this.consume(TokenType.IDENTIFIER, "Expected variable name");
+        var initializerExpr:any = null;
 
-        this.consume(TokenType.EQUAL, "Expected =");
-
-        // Slight difference here versus c# version, tbc
-        var initializer = this.expression();
+        if (this.match(TokenType.EQUAL))
+        {
+            initializerExpr = this.expression();
+        }
 
         this.consume(TokenType.SEMICOLON, "Expected ;");
-        return new VarStatement(name, initializer);
+
+        return new VarStatement(name, initializerExpr);
     }
 
     private functionDeclaration() {
-
-        var functionName = undefined;
-
-        if (!this.check(TokenType.LEFT_BRACKET))
-        {
-            functionName = this.consume(TokenType.IDENTIFIER, "Expected function name");
-        }
-
+       
+        var functionName =  this.consume(TokenType.IDENTIFIER, "Expected function name");
         var functionParams:Token[] = new Array();
 
         this.consume(TokenType.LEFT_BRACKET, "Expected (");
@@ -221,7 +217,7 @@ export class Parser {
     private returnStatement() : ReturnStatement {
         if (this.peek().type == TokenType.SEMICOLON) {
             this.consume(TokenType.SEMICOLON, "Expected ;");
-            return new ReturnStatement();
+            return new ReturnStatement(undefined);
         }
         else {
             var expr = this.expression();

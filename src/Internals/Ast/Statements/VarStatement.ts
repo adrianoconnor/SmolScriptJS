@@ -1,19 +1,19 @@
+import { Statement } from "./Statement";
 import { Token } from "../../Token";
 import { Expression } from "../Expressions/Expression";
-import { Statement } from "./Statement";
 
 export class VarStatement implements Statement {
 
     getStatementType() : string {
         return "Var";
-    }   
+    }
 
     _name:Token;
-    _expression:Expression;
+    _initializerExpression?:Expression;
 
-    constructor(name:Token, expression:Expression) {
+    constructor(name:Token, initializerExpression:any) {
         this._name = name;
-        this._expression = expression;
+        this._initializerExpression = initializerExpression;
     }
 
     accept(visitor:any) {

@@ -1,9 +1,9 @@
 import { Statement } from "./Statement";
 
-export class BreakStatement implements Statement {
+export class ContinueStatement implements Statement {
 
     getStatementType() : string {
-        return "Break";
+        return "Continue";
     }
 
 
@@ -12,6 +12,6 @@ export class BreakStatement implements Statement {
     }
 
     accept(visitor:any) {
-        return visitor.visitBreakStatement(this);
+        return visitor.visitContinueStatement(this);
     }
 }

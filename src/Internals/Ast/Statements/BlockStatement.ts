@@ -4,7 +4,7 @@ export class BlockStatement implements Statement {
 
     getStatementType() : string {
         return "Block";
-    }    
+    }
 
     _statements:Statement[];
 

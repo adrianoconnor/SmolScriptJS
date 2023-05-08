@@ -261,7 +261,7 @@ export class Scanner {
                 this.processString('\'');
                 break;
             case '`':
-                this.processString('`');
+                this.processBacktickString();
                 break;
 
             default:
@@ -348,6 +348,70 @@ export class Scanner {
                 this._currentLine++;
                 //_errors.Add(new ScannerError(_line, "Unexpected Line break in string"));
                 throw new Error("Unexpected Line break in string");
+            }
+
+            if (this.peek() == '\\')
+            {
+                var next = this.peek(1);
+
+                if (next == '\'' || next == '"' || next == '\\')
+                {
+                    this.nextChar();
+                    extractedString += this.nextChar();
+                }
+                else if (next == 't')
+                {
+                    this.nextChar();
+                    this.nextChar();
+                    extractedString += '\t';
+                }
+                else if (next == 'r')
+                {
+                    this.nextChar();
+                    this.nextChar();
+                    extractedString += '\r';
+                }
+                else if (next == 'n')
+                {
+                    this.nextChar();
+                    this.nextChar();
+                    extractedString += '\n';
+                }
+                else
+                {
+                    extractedString += this.nextChar();
+                }
+            }
+            else
+            {
+                extractedString += this.nextChar();
+            } 
+        }
+
+        if (this.endOfFile()) {
+            //console.log("Unterminated string");
+            throw new Error("Unterminated string");
+        }
+
+        // Consume the final "
+        this.nextChar();
+
+        //var extractedString = this._source.substring(this._startOfToken + 1, this._currentPos - 1);
+        
+        this.addTokenWithLiteral(TokenType.STRING, extractedString);
+    }
+
+    private processBacktickString() : void {
+
+        var quoteChar = '`';
+        var extractedString = '';
+        var hasProducedAtLeastOneToken = false;
+
+        while(this.peek() != quoteChar && !this.endOfFile())
+        { 
+            if (this.peek() == '\n')
+            {
+                this._currentLine++;
             }
 
             if (this.peek() == '\\')

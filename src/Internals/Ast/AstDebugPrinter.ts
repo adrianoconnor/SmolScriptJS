@@ -23,14 +23,6 @@ import { Parser } from "../Parser";
 export class AstDebugPrinter {
 
     static parse(source:string) {
-        //let engine = new SmolEngine();
-        //let prog = engine.compile(source);
-        //let astPrinter = new AstDebugPrinter();
-
-        //for(var i = 0; i < prog.length; i++) {
-        //    astPrinter.processStmt(prog[i]);    
-        //}
-
         var t = Scanner.tokenize(source);
         var p = Parser.parse(t);
 
@@ -51,7 +43,15 @@ export class AstDebugPrinter {
 
     private visitBlockStatement(stmt:BlockStatement) {
         var _this = this;
-        return (`(block ${stmt._statements.forEach(function(x) { x.accept(_this); })})`);
+
+        var stmts = '';
+
+        stmt._statements.forEach(function(x) 
+        { 
+            stmts += x.accept(_this);
+        });
+
+        return `(block ${stmts})`;
     }
 
     private visitBreakStatement(stmt:BreakStatement) {
@@ -85,6 +85,7 @@ export class AstDebugPrinter {
     }
 
     private visitPrintStatement(stmt:PrintStatement) : string {
+
         return (`(print ${stmt._expression.accept(this)})`);
     }
 
@@ -98,11 +99,12 @@ export class AstDebugPrinter {
     }
 
     private visitVarStatement(stmt:VarStatement) : string {
-        return (`(declare var ${stmt._name.lexeme} = ${stmt._expression.accept(this)})`);
+
+        return (`(declare var ${stmt._name.lexeme})`);// = ${stmt._initializerExpression != undefined ? stmt._initializerExpression.accept(this) : ''})`);
     }
 
     private visitWhileStatement(stmt:WhileStatement) : string {
-        return (`(while ${stmt._expression.accept(this)} ...)`);
+        return (`(while ${stmt._executeStatement.accept(this)} ...)`);
     }
 
     private visitAssignmentExpression(expr:AssignmentExpression) : string {

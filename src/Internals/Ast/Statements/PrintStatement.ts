@@ -1,11 +1,11 @@
-import { Expression } from "../Expressions/Expression";
 import { Statement } from "./Statement";
+import { Expression } from "../Expressions/Expression";
 
 export class PrintStatement implements Statement {
 
     getStatementType() : string {
         return "Print";
-    }   
+    }
 
     _expression:Expression;
 
