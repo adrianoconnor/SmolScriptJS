@@ -11,11 +11,11 @@ export class VarStatement implements Statement {
     _name:Token;
     _initializerExpression?:Expression;
 
-    constructor(name:Token, initializerExpression:any) {
+    constructor(name:Token, initializerExpression:Expression|undefined = undefined) {
         this._name = name;
         this._initializerExpression = initializerExpression;
     }
-
+    
     accept(visitor:any) {
         return visitor.visitVarStatement(this);
     }

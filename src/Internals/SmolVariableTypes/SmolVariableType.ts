@@ -1,5 +1,11 @@
-import { SmolStackType } from "Internals/SmolStackTypes/SmolStackType";
+import { SmolStackType } from "../SmolStackTypes/SmolStackType";
+import { SmolNumber } from "./SmolNumber";
 
-export class SmolVariableType extends SmolStackType {
+export abstract class SmolVariableType extends SmolStackType {
 
+    abstract getValue():any;
+
+    equals(compareTo:SmolVariableType):Boolean {
+        return this.getValue() == compareTo.getValue();
+    }
 }

@@ -1,9 +1,22 @@
-import { AstDebugPrinter } from '../src/Internals/Ast/AstDebugPrinter'
-
-import {describe, expect, test} from '@jest/globals';
-
+import { describe, expect, test } from '@jest/globals';
+import { AstDebugPrinter } from '../src/Internals/Ast/AstDebugPrinter';
+import { Compiler } from '../src/Internals/Compiler';
 
 describe('Scratch Pad', () => {
+  test('Compiler', () => {
+    let source = `print "moo";`;
+    var c = new Compiler();
+
+    var ast = AstDebugPrinter.parse(source);
+
+    console.log(ast);
+
+    var prog = c.Compile(source);
+
+    console.log(prog);
+
+  });
+/*
   test('AST Debug Print for dev', () => {
 
     let source = `
@@ -45,4 +58,6 @@ describe('Scratch Pad', () => {
     //expect(1+2).toBe(3);
 
   });
+
+  */
 });

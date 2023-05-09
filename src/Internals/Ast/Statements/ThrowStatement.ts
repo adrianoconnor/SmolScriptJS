@@ -7,12 +7,12 @@ export class ThrowStatement implements Statement {
         return "Throw";
     }
 
-    _expression?:Expression;
+    _expression:Expression;
 
-    constructor(expression:any) {
+    constructor(expression:Expression) {
         this._expression = expression;
     }
-
+    
     accept(visitor:any) {
         return visitor.visitThrowStatement(this);
     }

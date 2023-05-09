@@ -9,10 +9,11 @@ export class ReturnStatement implements Statement {
 
     _expression?:Expression;
 
-    constructor(expression:any) {
+    constructor(expression:Expression|undefined = undefined) {
+        
         this._expression = expression;
     }
-
+    
     accept(visitor:any) {
         return visitor.visitReturnStatement(this);
     }

@@ -11,12 +11,12 @@ export class IfStatement implements Statement {
     _thenStatement:Statement;
     _elseStatement?:Statement;
 
-    constructor(expression:Expression, thenStatement:Statement, elseStatement:any) {
+    constructor(expression:Expression, thenStatement:Statement, elseStatement?:Statement) {
         this._expression = expression;
         this._thenStatement = thenStatement;
         this._elseStatement = elseStatement;
     }
-
+    
     accept(visitor:any) {
         return visitor.visitIfStatement(this);
     }

@@ -32,6 +32,7 @@ import { IndexerGetExpression } from "./Ast/Expressions/IndexerGetExpression";
 import { FunctionExpression } from "./Ast/Expressions/FunctionExpression";
 import { NewInstanceExpression } from "./Ast/Expressions/NewInstanceExpression";
 import { ObjectInitializerExpression } from "./Ast/Expressions/ObjectInitializerExpression";
+import { SmolString } from "./SmolVariableTypes/SmolString";
 
 export class Parser {
 
@@ -163,7 +164,7 @@ export class Parser {
        
         var className = this.consume(TokenType.IDENTIFIER, "Expected function name");
         var superclassName:any = null;
-        var functions:FunctionStatement[] = new Array();
+        var functions:FunctionStatement[] = new Array<FunctionStatement>();
 
         if (this.match(TokenType.COLON)) {
             superclassName = this.consume(TokenType.IDENTIFIER, "Expected superclass name");
@@ -220,7 +221,7 @@ export class Parser {
     private returnStatement() : ReturnStatement {
         if (this.peek().type == TokenType.SEMICOLON) {
             this.consume(TokenType.SEMICOLON, "Expected ;");
-            return new ReturnStatement(undefined); // Could be literal undefined.
+            return new ReturnStatement(); // Could be literal undefined.
         }
         else {
             var expr = this.expression();
@@ -284,7 +285,7 @@ export class Parser {
             return new IfStatement(expr, stmt, then);
         }
         else {
-            return new IfStatement(expr, stmt, undefined);
+            return new IfStatement(expr, stmt);
         }
     }
 
@@ -304,11 +305,10 @@ export class Parser {
     private tryStatement() : TryStatement {
 
         this.consume(TokenType.LEFT_BRACE, "Expected {");
-        var tryBody:BlockStatement = this.block();
-        var catchBody:any = null; //BlockStatement
-        var finallyBody:any = null; //BlockStatement
-
-        var exceptionVarName:any = null; // Token
+        let tryBody:BlockStatement = this.block();
+        let catchBody:BlockStatement|null = null;
+        let finallyBody:BlockStatement|null = null;
+        let exceptionVarName:Token|null = null;
 
         if (this.match(TokenType.CATCH))
         {
@@ -341,7 +341,7 @@ export class Parser {
 
         this.consume(TokenType.LEFT_BRACKET, "Expected (");
 
-        var initialiser:any = null; //Statement
+        let initialiser:Statement|null = null;
 
         if (this.match(TokenType.SEMICOLON))
         {
@@ -671,7 +671,8 @@ export class Parser {
 
         if(this.match(TokenType.STRING))
         {
-            return new LiteralExpression(this.previous().literal!);
+            var str = new SmolString(this.previous().literal!);
+            return new LiteralExpression(str);
         }
 
         if (this.match(TokenType.IDENTIFIER))
