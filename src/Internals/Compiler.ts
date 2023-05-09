@@ -181,29 +181,31 @@ export class Compiler {
 
     private visitClassStatement(stmt:ClassStatement) : ByteCodeInstruction {
 
+        const capturedThis = this;
+
         stmt.functions.forEach(function(fn) {
         
-            var function_index = this._function_bodies.length + 1;
+            var function_index = capturedThis._function_bodies.length + 1;
             var function_name = `@${stmt.className.lexeme}.${fn.name.lexeme}`;
 
-            this._function_table.push(new SmolFunction(
+            capturedThis._function_table.push(new SmolFunction(
                 function_name,
                 function_index,
                 fn.parameters.length,
                 fn.parameters.map<string>((p) => p.lexeme)
             ));
     
-            var body = this.createChunk();
+            var body = capturedThis.createChunk();
 
-            body.appendChunk(fn.functionBody.accept(this));
+            body.appendChunk(fn.functionBody.accept(capturedThis));
     
-            if (body.length == 0 || body.peek().opcode != OpCode.RETURN)
+            if (body.length == 0 || body.peek()._opcode != OpCode.RETURN)
             {
-                body.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
+                body.appendInstruction(OpCode.CONST, capturedThis.ensureConst(new SmolUndefined()));
                 body.appendInstruction(OpCode.RETURN);
             }
     
-            this._function_bodies.push(body);
+            capturedThis._function_bodies.push(body);
         });
 
         // We are declaring a function, we don't add anything to the byte stream at the current loc.
