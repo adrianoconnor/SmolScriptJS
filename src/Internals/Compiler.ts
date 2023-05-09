@@ -39,6 +39,8 @@ import { Scanner } from "./Scanner";
 import { Parser } from "./Parser";
 import { SmolProgram } from "./SmolProgram";
 import { SmolBool } from "./SmolVariableTypes/SmolBool";
+import { TokenType } from "./TokenType";
+import { SmolUndefined } from "./SmolVariableTypes/SmolUndefined";
 
 declare global {
     // We do a lot of work with arrays/collections, so these convenience methods/extensions
@@ -96,7 +98,9 @@ class WhileLoop {
 export class Compiler {
 
     private _function_table:SmolFunction[] = new Array<SmolFunction>();
-    private _code_sections:ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
+    private _function_bodies:ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
+
+    //private _code_sections:ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
     
     private _nextLabel:number = 1;
 
@@ -155,7 +159,20 @@ export class Compiler {
     }
 
     private visitBlockStatement(stmt:BlockStatement) : ByteCodeInstruction[] {
-        return this.createChunk();
+
+        var chunk = this.createChunk();
+
+        chunk.appendInstruction(OpCode.ENTER_SCOPE);
+
+        var outerThis = this;
+
+        stmt.statements.forEach(function(blockStmt:Statement) {
+            chunk.appendChunk(blockStmt.accept(outerThis));
+        });
+
+        chunk.appendInstruction(OpCode.LEAVE_SCOPE);
+
+        return chunk;
     }
 
     private visitBreakStatement(stmt:BreakStatement) : ByteCodeInstruction {        
@@ -169,28 +186,91 @@ export class Compiler {
 
     private visitContinueStatement(stmt:ContinueStatement) : ByteCodeInstruction[] {
 
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        chunk.appendInstruction(OpCode.LOOP_EXIT, this._loopStack.peek().startOfLoop);
+
+        return chunk;
     }
 
     private visitDebuggerStatement(stmt:DebuggerStatement) : ByteCodeInstruction[] {
 
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        chunk.appendInstruction(OpCode.DEBUGGER);
+
+        return chunk;
     }
 
     private visitExpressionStatement(stmt:ExpressionStatement) : ByteCodeInstruction[] {
 
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        chunk.appendChunk(stmt.expression.accept(this));
+        chunk.appendInstruction(OpCode.POP_AND_DISCARD);
+
+        return chunk;
     }
     
-    private visitFunctionStatement(stmt:FunctionStatement) : ByteCodeInstruction[] {
+    private visitFunctionStatement(stmt:FunctionStatement) : ByteCodeInstruction {
 
-        return this.createChunk();
+        let function_index = this._function_bodies.length + 1;
+        let function_name = stmt.name.lexeme;
+
+        this._function_table.push(new SmolFunction(
+            function_name,
+            function_index,
+            stmt.parameters.length,
+            stmt.parameters.map<string>((p) => p.lexeme)
+        ));
+
+        var body = stmt.functionBody.accept(this);
+
+        if (body.length == 0 || body.peek().opcode != OpCode.RETURN)
+        {
+            body.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
+            body.appendInstruction(OpCode.RETURN);
+        }
+
+        this._function_bodies.push(body);
+
+        // We are declaring a function, we don't add anything to the byte stream at the current loc.
+        // When we allow functions as expressions and assignments we'll need to do something
+        // here, I guess something more like load constant but for functions
+        return new ByteCodeInstruction(OpCode.NOP);
     }
     
 
     private visitIfStatement(stmt:IfStatement) : ByteCodeInstruction[] {
 
-        return this.createChunk();
+        let chunk = this.createChunk();
+
+        let notTrueLabel = this.reserveLabelId();
+
+        chunk.appendChunk(stmt.expression.accept(this));
+
+        chunk.appendInstruction(OpCode.JMPFALSE, notTrueLabel);
+
+        chunk.appendChunk(stmt.thenStatement.accept(this));
+
+        if (stmt.elseStatement == undefined)
+        {
+            chunk.appendInstruction(OpCode.LABEL, notTrueLabel);
+        }
+        else
+        {
+            let skipElseLabel = this.reserveLabelId();
+            
+            chunk.appendInstruction(OpCode.JMP, skipElseLabel);
+
+            chunk.appendInstruction(OpCode.LABEL, notTrueLabel);
+
+            chunk.appendChunk(stmt.elseStatement!.accept(this));
+
+            chunk.appendInstruction(OpCode.LABEL, skipElseLabel);
+        }
+
+        return chunk;
     }
 
     private visitPrintStatement(stmt:PrintStatement) : ByteCodeInstruction[] {
@@ -205,7 +285,20 @@ export class Compiler {
 
     private visitReturnStatement(stmt:ReturnStatement) : ByteCodeInstruction[] {
 
-        return this.createChunk();
+        var chunk = this.createChunk()
+
+        if (stmt.expression != undefined)
+        {
+            chunk.appendChunk(stmt.expression.accept(this));
+        }
+        else
+        {
+            chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
+        }
+
+        chunk.appendInstruction(OpCode.RETURN);
+
+        return chunk;
     }
 
     private visitTryStatement(stmt:TryStatement) : ByteCodeInstruction[] {
@@ -215,12 +308,26 @@ export class Compiler {
 
     private visitThrowStatement(stmt:ThrowStatement) : ByteCodeInstruction[] {
 
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        chunk.appendChunk(stmt.expression.accept(this));
+        chunk.appendInstruction(OpCode.THROW);
+        
+        return chunk;
     }
 
     private visitVarStatement(stmt:VarStatement) : ByteCodeInstruction[] {
 
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        chunk.appendInstruction(OpCode.DECLARE, stmt.name.lexeme);
+
+        if (stmt.initializerExpression != undefined) {    
+            chunk.appendChunk(stmt.initializerExpression.accept(this));
+            chunk.appendInstruction(OpCode.STORE, stmt.name.lexeme);
+        }
+
+        return chunk;
     }
 
     private visitWhileStatement(stmt:WhileStatement) : ByteCodeInstruction[] {
@@ -254,7 +361,74 @@ export class Compiler {
 
     private visitBinaryExpression(expr:BinaryExpression) : ByteCodeInstruction[] {
         
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        chunk.appendChunk(expr.left.accept(this));
+        chunk.appendChunk(expr.right.accept(this));
+
+        switch (expr.op.type)
+        {
+            case TokenType.MINUS:
+                chunk.appendInstruction(OpCode.SUB);
+                break;
+
+            case TokenType.DIVIDE:
+                chunk.appendInstruction(OpCode.DIV);
+                break;
+
+            case TokenType.MULTIPLY:
+                chunk.appendInstruction(OpCode.MUL);
+                break;
+
+            case TokenType.PLUS:
+                chunk.appendInstruction(OpCode.ADD);
+                break;
+
+            case TokenType.POW:
+                chunk.appendInstruction(OpCode.POW);
+                break;
+
+            case TokenType.REMAINDER:
+                chunk.appendInstruction(OpCode.REM);
+                break;
+
+            case TokenType.EQUAL_EQUAL:
+                chunk.appendInstruction(OpCode.EQL);
+                break;
+
+            case TokenType.NOT_EQUAL:
+                chunk.appendInstruction(OpCode.NEQ);
+                break;
+
+            case TokenType.GREATER:
+                chunk.appendInstruction(OpCode.GT);
+                break;
+
+            case TokenType.GREATER_EQUAL:
+                chunk.appendInstruction(OpCode.GTE);
+                break;
+
+            case TokenType.LESS:
+                chunk.appendInstruction(OpCode.LT);
+                break;
+
+            case TokenType.LESS_EQUAL:
+                chunk.appendInstruction(OpCode.LTE);
+                break;
+
+            case TokenType.BITWISE_AND:
+                chunk.appendInstruction(OpCode.BITWISE_AND);
+                break;
+
+            case TokenType.BITWISE_OR:
+                chunk.appendInstruction(OpCode.BITWISE_OR);
+                break;
+
+            default:
+                throw new Error("Binary operation not impleented");
+        }
+
+        return chunk;
     }
 
     private visitCallExpression(expr:CallExpression) : ByteCodeInstruction[] {
@@ -300,7 +474,55 @@ export class Compiler {
 
     private visitLogicalExpression(expr:LogicalExpression) : ByteCodeInstruction[] {
         
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        let shortcutLabel = this.reserveLabelId();
+        let testCompleteLabel = this.reserveLabelId();
+
+        switch (expr.op.type)
+        {
+            case TokenType.LOGICAL_AND:
+
+                chunk.appendChunk(expr.left.accept(this));
+
+                chunk.appendInstruction( OpCode.JMPFALSE, shortcutLabel);
+
+                chunk.appendChunk(expr.right.accept(this));
+
+                chunk.appendInstruction(OpCode.JMP, testCompleteLabel);
+
+                chunk.appendInstruction(OpCode.LABEL, shortcutLabel);
+
+                // We arrived at this point from the shortcut, which had to be FALSE, and that Jump-not-true
+                // instruction popped the false result from the stack, so we need to put it back. I think a
+                // specific test instruction would make this nicer, but for now we can live with a few extra steps...
+
+                chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolBool(false)));
+
+                chunk.appendInstruction(OpCode.LABEL, testCompleteLabel);
+
+                break;
+
+            case TokenType.LOGICAL_OR:
+
+                chunk.appendChunk(expr.left.accept(this));
+
+                chunk.appendInstruction(OpCode.JMPTRUE, shortcutLabel);
+
+                chunk.appendChunk(expr.right.accept(this));
+
+                chunk.appendInstruction(OpCode.JMP, testCompleteLabel);
+
+                chunk.appendInstruction(OpCode.LABEL, shortcutLabel);
+ 
+                chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolBool(true)));
+        
+                chunk.appendInstruction(OpCode.LABEL, testCompleteLabel);
+
+                break;
+        }
+
+        return chunk;   
     }
 
     private visitNewInstance(expr:NewInstanceExpression) : ByteCodeInstruction[] {

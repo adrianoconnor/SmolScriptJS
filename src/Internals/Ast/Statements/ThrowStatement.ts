@@ -7,9 +7,9 @@ export class ThrowStatement implements Statement {
         return "Throw";
     }
 
-    expression?:Expression;
+    expression:Expression;
 
-    constructor(expression:Expression|undefined) {
+    constructor(expression:Expression) {
         this.expression = expression;
     }
 

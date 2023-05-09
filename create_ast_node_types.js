@@ -70,7 +70,7 @@ var statement_types = [
     { 
         name: 'Throw', 
         fields: [
-            { name:'expression', type:'Expression', optional: true }
+            { name:'expression', type:'Expression' }
         ],
         imports: ['Expression']
     },
