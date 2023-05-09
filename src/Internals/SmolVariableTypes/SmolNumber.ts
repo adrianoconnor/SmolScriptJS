@@ -14,7 +14,7 @@ export class SmolNumber extends SmolVariableType {
         return this._value;
     }
 
-    toString():string
+    toString():String
     {
         return `(SmolNumber) ${this._value}`;
     }

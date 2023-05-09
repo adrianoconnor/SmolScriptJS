@@ -33,6 +33,10 @@ import { FunctionExpression } from "./Ast/Expressions/FunctionExpression";
 import { NewInstanceExpression } from "./Ast/Expressions/NewInstanceExpression";
 import { ObjectInitializerExpression } from "./Ast/Expressions/ObjectInitializerExpression";
 import { SmolString } from "./SmolVariableTypes/SmolString";
+import { SmolBool } from "./SmolVariableTypes/SmolBool";
+import { SmolNull } from "./SmolVariableTypes/SmolNull";
+import { SmolUndefined } from "./SmolVariableTypes/SmolUndefined";
+import { SmolNumber } from "./SmolVariableTypes/SmolNumber";
 
 export class Parser {
 
@@ -364,7 +368,7 @@ export class Parser {
         }
         else
         {
-            condition = new LiteralExpression(true);
+            condition = new LiteralExpression(new SmolBool(true));
         }
 
         this.consume(TokenType.SEMICOLON, "Expected ;");
@@ -659,20 +663,19 @@ export class Parser {
 
     private primary() : Expression {
 
-        if (this.match(TokenType.FALSE)) return new LiteralExpression(false);
-        if (this.match(TokenType.TRUE)) return new LiteralExpression(true);
-        if (this.match(TokenType.NULL)) return new LiteralExpression(null);
-        if (this.match(TokenType.UNDEFINED)) return new LiteralExpression(undefined);
+        if (this.match(TokenType.FALSE)) return new LiteralExpression(new SmolBool(false));
+        if (this.match(TokenType.TRUE)) return new LiteralExpression(new SmolBool(true));
+        if (this.match(TokenType.NULL)) return new LiteralExpression(new SmolNull());
+        if (this.match(TokenType.UNDEFINED)) return new LiteralExpression(new SmolUndefined());
 
         if(this.match(TokenType.NUMBER))
         {
-            return new LiteralExpression(Number(this.previous().literal!));
+            return new LiteralExpression(new SmolNumber(Number(this.previous().literal!)));
         }
 
         if(this.match(TokenType.STRING))
         {
-            var str = new SmolString(this.previous().literal!);
-            return new LiteralExpression(str);
+            return new LiteralExpression(new SmolString(this.previous().literal!));
         }
 
         if (this.match(TokenType.IDENTIFIER))

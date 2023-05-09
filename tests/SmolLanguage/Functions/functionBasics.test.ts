@@ -34,7 +34,7 @@ describe('Function Basics', () => {
     expect(ast).toBe(`[function name=test]
   param 0: a
   [block]
-    [return expr:(+ (var a) (literal 10))]
+    [return expr:(+ (var a) (literal (SmolNumber) 10))]
   [/block]
 [/functionExpression]
 [declare var b initializer:(call (var test) with 1 args)]

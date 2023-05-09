@@ -1,3 +1,4 @@
+import { SmolVariableType } from "../../SmolVariableTypes/SmolVariableType";
 import { Expression } from "./Expression";
 
 export class LiteralExpression implements Expression {
@@ -6,9 +7,9 @@ export class LiteralExpression implements Expression {
         return "Literal";
     }
 
-    value:any;
+    value:SmolVariableType;
 
-    constructor(value:any) {
+    constructor(value:SmolVariableType) {
         this.value = value;
     }
 
