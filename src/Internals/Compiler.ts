@@ -179,9 +179,37 @@ export class Compiler {
         return new ByteCodeInstruction(OpCode.LOOP_EXIT, this._loopStack.peek().startOfLoop);
     }
 
-    private visitClassStatement(stmt:ClassStatement) : ByteCodeInstruction[] {
+    private visitClassStatement(stmt:ClassStatement) : ByteCodeInstruction {
 
-        return this.createChunk();
+        stmt.functions.forEach(function(fn) {
+        
+            var function_index = this._function_bodies.length + 1;
+            var function_name = `@${stmt.className.lexeme}.${fn.name.lexeme}`;
+
+            this._function_table.push(new SmolFunction(
+                function_name,
+                function_index,
+                fn.parameters.length,
+                fn.parameters.map<string>((p) => p.lexeme)
+            ));
+    
+            var body = this.createChunk();
+
+            body.appendChunk(fn.functionBody.accept(this));
+    
+            if (body.length == 0 || body.peek().opcode != OpCode.RETURN)
+            {
+                body.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
+                body.appendInstruction(OpCode.RETURN);
+            }
+    
+            this._function_bodies.push(body);
+        });
+
+        // We are declaring a function, we don't add anything to the byte stream at the current loc.
+        // When we allow functions as expressions and assignments we'll need to do something
+        // here, I guess something more like load constant but for functions
+        return new ByteCodeInstruction(OpCode.NOP);
     }
 
     private visitContinueStatement(stmt:ContinueStatement) : ByteCodeInstruction[] {
@@ -224,9 +252,11 @@ export class Compiler {
             stmt.parameters.map<string>((p) => p.lexeme)
         ));
 
-        var body = stmt.functionBody.accept(this);
+        var body = this.createChunk();
 
-        if (body.length == 0 || body.peek().opcode != OpCode.RETURN)
+        body.appendChunk(stmt.functionBody.accept(this));
+
+        if (body.length == 0 || body.peek()._opcode != OpCode.RETURN)
         {
             body.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
             body.appendInstruction(OpCode.RETURN);
