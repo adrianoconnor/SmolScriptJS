@@ -197,7 +197,7 @@ export class Compiler {
 
         var chunk = this.createChunk();
 
-        chunk.appendChunk(stmt._expression.accept(this));
+        chunk.appendChunk(stmt.expression.accept(this));
         chunk.appendInstruction(OpCode.PRINT);
 
         return chunk;
@@ -234,9 +234,9 @@ export class Compiler {
 
         chunk.appendInstruction(OpCode.LOOP_START);
         chunk.appendInstruction(OpCode.LABEL, startOfLoop);
-        chunk.appendChunk(stmt._whileCondition.accept(this));
+        chunk.appendChunk(stmt.whileCondition.accept(this));
         chunk.appendInstruction(OpCode.JMPFALSE, endOfLoop);
-        chunk.appendChunk(stmt._executeStatement.accept(this));
+        chunk.appendChunk(stmt.executeStatement.accept(this));
         chunk.appendInstruction(OpCode.JMP, startOfLoop);
         chunk.appendInstruction(OpCode.LABEL, endOfLoop);
         chunk.appendInstruction(OpCode.LOOP_END);
@@ -274,7 +274,7 @@ export class Compiler {
 
     private visitGroupingExpression(expr:GroupingExpression) : ByteCodeInstruction[]|ByteCodeInstruction {
         
-        return expr._expr.accept(this);
+        return expr.expr.accept(this);
     }
 
     private visitIndexerGetExpression(expr:IndexerGetExpression) : ByteCodeInstruction[] {
@@ -291,7 +291,7 @@ export class Compiler {
              
         var chunk = this.createChunk();
 
-        var constIndex = this.ensureConst(expr._value);
+        var constIndex = this.ensureConst(expr.value);
 
         chunk.appendChunk(new ByteCodeInstruction(OpCode.CONST, constIndex));
 

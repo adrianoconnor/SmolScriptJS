@@ -8,16 +8,16 @@ export class TryStatement implements Statement {
         return "Try";
     }
 
-    _tryBody:BlockStatement;
-    _exceptionVariableName?:Token;
-    _catchBody?:BlockStatement;
-    _finallyBody?:BlockStatement;
+    tryBody:BlockStatement;
+    exceptionVariableName?:Token;
+    catchBody?:BlockStatement;
+    finallyBody?:BlockStatement;
 
-    constructor(tryBody:BlockStatement, exceptionVariableName:any, catchBody:any, finallyBody:any) {
-        this._tryBody = tryBody;
-        this._exceptionVariableName = exceptionVariableName;
-        this._catchBody = catchBody;
-        this._finallyBody = finallyBody;
+    constructor(tryBody:BlockStatement, exceptionVariableName:Token|undefined, catchBody:BlockStatement|undefined, finallyBody:BlockStatement|undefined) {
+        this.tryBody = tryBody;
+        this.exceptionVariableName = exceptionVariableName;
+        this.catchBody = catchBody;
+        this.finallyBody = finallyBody;
     }
 
     accept(visitor:any) {

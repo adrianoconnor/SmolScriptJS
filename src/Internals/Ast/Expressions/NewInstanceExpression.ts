@@ -7,12 +7,12 @@ export class NewInstanceExpression implements Expression {
         return "NewInstance";
     }
 
-    _className:Token;
-    _ctorArgs:Expression[];
+    className:Token;
+    ctorArgs:Expression[];
 
     constructor(className:Token, ctorArgs:Expression[]) {
-        this._className = className;
-        this._ctorArgs = ctorArgs;
+        this.className = className;
+        this.ctorArgs = ctorArgs;
     }
 
     accept(visitor:any) {

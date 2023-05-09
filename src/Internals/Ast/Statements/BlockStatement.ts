@@ -6,10 +6,10 @@ export class BlockStatement implements Statement {
         return "Block";
     }
 
-    _statements:Statement[];
+    statements:Statement[];
 
     constructor(statements:Statement[]) {
-        this._statements = statements;
+        this.statements = statements;
     }
 
     accept(visitor:any) {

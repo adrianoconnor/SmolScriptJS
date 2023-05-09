@@ -6,10 +6,10 @@ export class LiteralExpression implements Expression {
         return "Literal";
     }
 
-    _value:any;
+    value:any;
 
     constructor(value:any) {
-        this._value = value;
+        this.value = value;
     }
 
     accept(visitor:any) {

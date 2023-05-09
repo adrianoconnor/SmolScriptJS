@@ -7,13 +7,12 @@ export class ReturnStatement implements Statement {
         return "Return";
     }
 
-    _expression?:Expression;
+    expression?:Expression;
 
-    constructor(expression:Expression|undefined = undefined) {
-        
-        this._expression = expression;
+    constructor(expression:Expression|undefined) {
+        this.expression = expression;
     }
-    
+
     accept(visitor:any) {
         return visitor.visitReturnStatement(this);
     }

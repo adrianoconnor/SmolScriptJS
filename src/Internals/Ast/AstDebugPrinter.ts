@@ -76,7 +76,7 @@ export class AstDebugPrinter {
 
         rt += `${i}[block]\n`;
 
-        stmt._statements.forEach(function(x) 
+        stmt.statements.forEach(function(x) 
         { 
             rt += x.accept(_this);
         });
@@ -104,14 +104,14 @@ export class AstDebugPrinter {
         var rt = '';
         var t = this;
 
-        rt += `${i}[class name=${stmt._className}]\n`;
+        rt += `${i}[class name=${stmt.className}]\n`;
         var i2 = this.indent();
-        stmt._functions.forEach(function(f, n) {
-            rt += `${i}[classFunction name=${f._name.lexeme}]\n`;
-            f._parameters.forEach(function(p, n2) {
+        stmt.functions.forEach(function(f, n) {
+            rt += `${i}[classFunction name=${f.name.lexeme}]\n`;
+            f.parameters.forEach(function(p, n2) {
                 rt += `${i}  param ${n2}: ${p.lexeme}\n`;
             });
-            rt += f._functionBody.accept(t);
+            rt += f.functionBody.accept(t);
             rt += `${i}[/classFunction]\n`;            
         });
         this.outdent();
@@ -145,7 +145,7 @@ export class AstDebugPrinter {
         var i = this.indent();
         var rt = '';
 
-        rt += `${i}[exprStmt ${stmt._expression.accept(this)}]\n`;
+        rt += `${i}[exprStmt ${stmt.expression.accept(this)}]\n`;
 
         this.outdent();
         return rt;
@@ -156,11 +156,11 @@ export class AstDebugPrinter {
         var i = this.indent();
         var rt = '';
 
-        rt += `${i}[function name=${stmt._name.lexeme}]\n`;
-        stmt._parameters.forEach(function(p, n) {
+        rt += `${i}[function name=${stmt.name.lexeme}]\n`;
+        stmt.parameters.forEach(function(p, n) {
             rt += `${i}  param ${n}: ${p.lexeme}\n`;
         });
-        rt += stmt._functionBody.accept(this);
+        rt += stmt.functionBody.accept(this);
         rt += `${i}[/functionExpression]\n`;
         
         this.outdent();
@@ -172,12 +172,12 @@ export class AstDebugPrinter {
         var i = this.indent();
         var rt = '';
 
-        rt += `${i}[if testExpr:${stmt._expression.accept(this)}]\n`;
-        rt += stmt._thenStatement.accept(this);
+        rt += `${i}[if testExpr:${stmt.expression.accept(this)}]\n`;
+        rt += stmt.thenStatement.accept(this);
         
-        if (stmt._elseStatement != undefined) {
+        if (stmt.elseStatement != undefined) {
             rt += `${i}[else]\n`;
-            rt += stmt._elseStatement.accept(this);
+            rt += stmt.elseStatement.accept(this);
         }
 
         rt += `${i}[end if]\n`;
@@ -192,7 +192,7 @@ export class AstDebugPrinter {
         var i = this.indent();
         var rt = '';
 
-        rt = `${i}[print expr:${stmt._expression.accept(this)}]\n`;
+        rt = `${i}[print expr:${stmt.expression.accept(this)}]\n`;
 
         this.outdent();
 
@@ -204,11 +204,11 @@ export class AstDebugPrinter {
         var i = this.indent();
         var rt = '';
 
-        if (stmt._expression == undefined) {
+        if (stmt.expression == undefined) {
             rt = `${i}[return default(undefined)]\n`;
         }
         else {
-            rt = `${i}[return expr:${stmt._expression.accept(this)}]\n`;
+            rt = `${i}[return expr:${stmt.expression.accept(this)}]\n`;
         }
 
         this.outdent();
@@ -222,23 +222,23 @@ export class AstDebugPrinter {
         var rt = '';
 
         rt += `${i}[try]\n`;
-        rt += stmt._tryBody.accept(this);
+        rt += stmt.tryBody.accept(this);
         rt += `${i}[/try]\n`;
         
-        if (stmt._catchBody != null) {
-            if (stmt._exceptionVariableName != null) {
-                rt = `${i}[catch exceptionVariable=${stmt._exceptionVariableName.lexeme}]\n`;
+        if (stmt.catchBody != null) {
+            if (stmt.exceptionVariableName != null) {
+                rt = `${i}[catch exceptionVariable=${stmt.exceptionVariableName.lexeme}]\n`;
             }
             else {
                 rt = `${i}[catch]\n`;
             }
-            rt += stmt._catchBody.accept(this);
+            rt += stmt.catchBody.accept(this);
             rt = `${i}[/catch]\n`;
         }
 
-        if (stmt._finallyBody != null) {
+        if (stmt.finallyBody != null) {
             rt = `${i}[finally]\n`;
-            rt += stmt._finallyBody.accept(this);
+            rt += stmt.finallyBody.accept(this);
             rt = `${i}[/finally]\n`;
         }
 
@@ -251,8 +251,8 @@ export class AstDebugPrinter {
         var i = this.indent();
         var rt = '';
 
-        if (stmt._expression != null) {
-            rt = `${i}[throw expr:${stmt._expression.accept(this)}]\n`;
+        if (stmt.expression != null) {
+            rt = `${i}[throw expr:${stmt.expression.accept(this)}]\n`;
         }
         else {
             rt = `${i}[throw]\n`;
@@ -267,11 +267,11 @@ export class AstDebugPrinter {
         var i = this.indent();
         var rt = '';
 
-        if (stmt._initializerExpression != undefined) {
-            rt += `${i}[declare var ${stmt._name.lexeme} initializer:${stmt._initializerExpression.accept(this)}]\n`;
+        if (stmt.initializerExpression != undefined) {
+            rt += `${i}[declare var ${stmt.name.lexeme} initializer:${stmt.initializerExpression.accept(this)}]\n`;
         }
         else {
-            rt = `${i}[declare var ${stmt._name.lexeme}]\n`;
+            rt = `${i}[declare var ${stmt.name.lexeme}]\n`;
         }
 
         this.outdent();
@@ -283,8 +283,8 @@ export class AstDebugPrinter {
         var i = this.indent();
         var rt = '';
 
-        rt += `${i}[while expr:${stmt._whileCondition.accept(this)}]\n`;
-        rt += stmt._executeStatement.accept(this);
+        rt += `${i}[while expr:${stmt.whileCondition.accept(this)}]\n`;
+        rt += stmt.executeStatement.accept(this);
         rt += `${i}[/while]\n`;
 
         this.outdent();
@@ -293,15 +293,15 @@ export class AstDebugPrinter {
 
 
     private visitAssignExpression(expr:AssignExpression) : string {
-        return (`(assign var ${expr._name.lexeme} = ${expr._value.accept(this)})`);
+        return (`(assign var ${expr.name.lexeme} = ${expr.value.accept(this)})`);
     }
 
     private visitBinaryExpression(expr:BinaryExpression) : string {
-        return (`(${expr._op.lexeme} ${expr._left.accept(this)} ${expr._right.accept(this)})`);
+        return (`(${expr.op.lexeme} ${expr.left.accept(this)} ${expr.right.accept(this)})`);
     }
 
     private visitCallExpression(expr:CallExpression) : string {
-        return (`(call ${expr._callee.accept(this)} with ${expr._args.length} args)`);
+        return (`(call ${expr.callee.accept(this)} with ${expr.args.length} args)`);
     }
 
     private visitFunctionExpression(expr:FunctionExpression) : string {
@@ -311,64 +311,64 @@ export class AstDebugPrinter {
 
         rt = `(functionExpression)\n`;
         rt += `${i}[functionExpression]\n`;
-        expr._parameters.forEach(function(p, n) {
+        expr.parameters.forEach(function(p, n) {
             rt += `${i}  param ${n}: ${p.lexeme}\n`;
         });
-        rt += expr._functionBody.accept(this);
+        rt += expr.functionBody.accept(this);
         rt += `${i}[/functionExpression]\n`;
 
         this.outdent();
 
         return rt;
 
-        //return (`(function params: [${expr._parameters.map<string>(function (t) { return t.lexeme })}])`);
+        //return (`(function params: [${expr.parameters.map<string>(function (t) { return t.lexeme })}])`);
     }
 
     private visitGetExpression(expr:GetExpression) : string {
-        return (`(get obj:${expr._obj.accept(this)} name:${expr._name.lexeme})`);
+        return (`(get obj:${expr.obj.accept(this)} name:${expr.name.lexeme})`);
     }
 
     private visitGroupingExpression(expr:GroupingExpression) : string {
-        return (`(group expr:${expr._expr.accept(this)})`);
+        return (`(group expr:${expr.expr.accept(this)})`);
     }
 
     private visitIndexerGetExpression(expr:IndexerGetExpression) : string {
-        return (`(indexerGet obj:${expr._obj.accept(this)} property:${expr._obj.accept(this)})`);
+        return (`(indexerGet obj:${expr.obj.accept(this)} property:${expr.obj.accept(this)})`);
     }
     
     private visitIndexerSetExpression(expr:IndexerSetExpression) : string {
-        return (`(indexerSet obj:${expr._obj.accept(this)} property:${expr._obj.accept(this)} value:${expr._value.accept(this)})`);
+        return (`(indexerSet obj:${expr.obj.accept(this)} property:${expr.obj.accept(this)} value:${expr.value.accept(this)})`);
     }
 
     private visitLiteralExpression(expr:LiteralExpression) : string {
-        return (`(literal ${expr._value == null ? "nil" : expr._value.toString()})`);
+        return (`(literal ${expr.value == null ? "nil" : expr.value.toString()})`);
     }
 
     private visitLogicalExpression(expr:LogicalExpression) : string {
-        return (`(${expr._op.lexeme} ${expr._left.accept(this)} ${expr._right.accept(this)})`);
+        return (`(${expr.op.lexeme} ${expr.left.accept(this)} ${expr.right.accept(this)})`);
     }
 
     private visitNewInstance(expr:NewInstanceExpression) : string {
-        return (`(new ${expr._className.lexeme} with ${expr._ctorArgs.length} args in ctor)`);
+        return (`(new ${expr.className.lexeme} with ${expr.ctorArgs.length} args in ctor)`);
     }
 
     private visitObjectInitializer(expr:ObjectInitializerExpression) : string {
-        return (`(initialize ${expr._name.lexeme} value:${expr._value.accept(this)})`);
+        return (`(initialize ${expr.name.lexeme} value:${expr.value.accept(this)})`);
     }
 
     private visitSetExpression(expr:SetExpression) : string {
-        return (`(set obj:${expr._obj.accept(this)} name:${expr._name.lexeme} value:${expr._value.accept(this)})`);
+        return (`(set obj:${expr.obj.accept(this)} name:${expr.name.lexeme} value:${expr.value.accept(this)})`);
     }
 
     private visitTernaryExpression(expr:TernaryExpression) : string {
-        return (`(${expr._evaluationExpression.accept(this)} ? ${expr._expresisonIfTrue.accept(this)} : ${expr._expresisonIfFalse.accept(this)})`);
+        return (`(${expr.evaluationExpression.accept(this)} ? ${expr.expresisonIfTrue.accept(this)} : ${expr.expresisonIfFalse.accept(this)})`);
     }
 
     private visitUnaryExpression(expr:UnaryExpression) : string {
-        return (`(${expr._op.lexeme} ${expr._right.accept(this)})`);
+        return (`(${expr.op.lexeme} ${expr.right.accept(this)})`);
     }
 
     private visitVariableExpression(expr:VariableExpression) : string {
-        return (`(var ${expr._name.lexeme})`);
+        return (`(var ${expr.name.lexeme})`);
     }
 }

@@ -272,9 +272,9 @@ statement_types.forEach(function(st) {
     }
 
     st.fields.forEach(function(f) {
-        fields += `    _${f.name}${f.optional ? '?':''}:${f.type};\n`;
-        ctorParams += `${ctorParams.length > 0 ? ', ':''}${f.name}:${f.optional ? 'any':f.type}`
-        ctorAssigns += `${ctorAssigns.length > 0 ? '\n':''}        this._${f.name} = ${f.name};`;
+        fields += `    ${f.name}${f.optional ? '?':''}:${f.type};\n`;
+        ctorParams += `${ctorParams.length > 0 ? ', ':''}${f.name}:${f.optional ? `${f.type}|undefined`:f.type}`
+        ctorAssigns += `${ctorAssigns.length > 0 ? '\n':''}        this.${f.name} = ${f.name};`;
     })
 
     var classDefn = `import { Statement } from "./Statement";
@@ -326,9 +326,9 @@ expression_types.forEach(function(ex) {
     }
 
     ex.fields.forEach(function(f) {
-        fields += `    _${f.name}${f.optional ? '?':''}:${f.type};\n`;
-        ctorParams += `${ctorParams.length > 0 ? ', ':''}${f.name}:${f.optional ? 'any':f.type}`
-        ctorAssigns += `${ctorAssigns.length > 0 ? '\n':''}        this._${f.name} = ${f.name};`;
+        fields += `    ${f.name}${f.optional ? '?':''}:${f.type};\n`;
+        ctorParams += `${ctorParams.length > 0 ? ', ':''}${f.name}:${f.optional ? `${f.type}|undefined`:f.type}`
+        ctorAssigns += `${ctorAssigns.length > 0 ? '\n':''}        this.${f.name} = ${f.name};`;
     })
 
     var classDefn = `import { Expression } from "./Expression";

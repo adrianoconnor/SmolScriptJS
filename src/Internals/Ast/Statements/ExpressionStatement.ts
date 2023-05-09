@@ -7,10 +7,10 @@ export class ExpressionStatement implements Statement {
         return "Expression";
     }
 
-    _expression:Expression;
+    expression:Expression;
 
     constructor(expression:Expression) {
-        this._expression = expression;
+        this.expression = expression;
     }
 
     accept(visitor:any) {

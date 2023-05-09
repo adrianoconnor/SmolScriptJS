@@ -122,7 +122,7 @@ export class Parser {
     private varDeclaration() : Statement {
 
         var name = this.consume(TokenType.IDENTIFIER, "Expected variable name");
-        var initializerExpr:any = null;
+        var initializerExpr:Expression|undefined = undefined;
 
         if (this.match(TokenType.EQUAL))
         {
@@ -221,7 +221,7 @@ export class Parser {
     private returnStatement() : ReturnStatement {
         if (this.peek().type == TokenType.SEMICOLON) {
             this.consume(TokenType.SEMICOLON, "Expected ;");
-            return new ReturnStatement(); // Could be literal undefined.
+            return new ReturnStatement(undefined); // Could be literal undefined.
         }
         else {
             var expr = this.expression();
@@ -285,7 +285,7 @@ export class Parser {
             return new IfStatement(expr, stmt, then);
         }
         else {
-            return new IfStatement(expr, stmt);
+            return new IfStatement(expr, stmt, undefined);
         }
     }
 
@@ -306,9 +306,9 @@ export class Parser {
 
         this.consume(TokenType.LEFT_BRACE, "Expected {");
         let tryBody:BlockStatement = this.block();
-        let catchBody:BlockStatement|null = null;
-        let finallyBody:BlockStatement|null = null;
-        let exceptionVarName:Token|null = null;
+        let catchBody:BlockStatement|undefined = undefined;
+        let finallyBody:BlockStatement|undefined = undefined;
+        let exceptionVarName:Token|undefined = undefined;
 
         if (this.match(TokenType.CATCH))
         {
@@ -431,16 +431,16 @@ export class Parser {
             var value:Expression = this.assignment();
 
             if (expr instanceof VariableExpression) {
-                var name = (expr as VariableExpression)._name;
+                var name = (expr as VariableExpression).name;
                 return new AssignExpression(name, value);
             }
             else if (expr instanceof GetExpression) {            
                 var getExpr = expr as GetExpression;
-                return new SetExpression(getExpr._obj, getExpr._name, value);
+                return new SetExpression(getExpr.obj, getExpr.name, value);
             }
             else if (expr instanceof IndexerGetExpression) {
                 var getIndexerExpr = expr as IndexerGetExpression;
-                return new IndexerSetExpression(getIndexerExpr._obj, getIndexerExpr._indexerExpr, value);
+                return new IndexerSetExpression(getIndexerExpr.obj, getIndexerExpr.indexerExpr, value);
             }
 
             throw new Error("Invalid assignment target");
@@ -677,7 +677,7 @@ export class Parser {
 
         if (this.match(TokenType.IDENTIFIER))
         {
-            return new VariableExpression(this.previous(), null);
+            return new VariableExpression(this.previous(), undefined);
         }
 
 

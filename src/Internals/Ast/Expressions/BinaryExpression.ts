@@ -7,14 +7,14 @@ export class BinaryExpression implements Expression {
         return "Binary";
     }
 
-    _left:Expression;
-    _op:Token;
-    _right:Expression;
+    left:Expression;
+    op:Token;
+    right:Expression;
 
     constructor(left:Expression, op:Token, right:Expression) {
-        this._left = left;
-        this._op = op;
-        this._right = right;
+        this.left = left;
+        this.op = op;
+        this.right = right;
     }
 
     accept(visitor:any) {

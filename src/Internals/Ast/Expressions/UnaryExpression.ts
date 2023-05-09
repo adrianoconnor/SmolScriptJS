@@ -7,12 +7,12 @@ export class UnaryExpression implements Expression {
         return "Unary";
     }
 
-    _op:Token;
-    _right:Expression;
+    op:Token;
+    right:Expression;
 
     constructor(op:Token, right:Expression) {
-        this._op = op;
-        this._right = right;
+        this.op = op;
+        this.right = right;
     }
 
     accept(visitor:any) {

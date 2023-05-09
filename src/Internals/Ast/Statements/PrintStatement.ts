@@ -7,10 +7,10 @@ export class PrintStatement implements Statement {
         return "Print";
     }
 
-    _expression:Expression;
+    expression:Expression;
 
     constructor(expression:Expression) {
-        this._expression = expression;
+        this.expression = expression;
     }
 
     accept(visitor:any) {

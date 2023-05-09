@@ -8,12 +8,12 @@ export class VariableExpression implements Expression {
         return "Variable";
     }
 
-    _name:Token;
-    _prepostfixOp?:TokenType;
+    name:Token;
+    prepostfixOp?:TokenType;
 
-    constructor(name:Token, prepostfixOp:any) {
-        this._name = name;
-        this._prepostfixOp = prepostfixOp;
+    constructor(name:Token, prepostfixOp:TokenType|undefined) {
+        this.name = name;
+        this.prepostfixOp = prepostfixOp;
     }
 
     accept(visitor:any) {

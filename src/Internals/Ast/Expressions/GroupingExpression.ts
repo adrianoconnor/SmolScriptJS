@@ -6,10 +6,10 @@ export class GroupingExpression implements Expression {
         return "Grouping";
     }
 
-    _expr:Expression;
+    expr:Expression;
 
     constructor(expr:Expression) {
-        this._expr = expr;
+        this.expr = expr;
     }
 
     accept(visitor:any) {

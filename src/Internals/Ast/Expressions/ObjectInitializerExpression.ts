@@ -7,12 +7,12 @@ export class ObjectInitializerExpression implements Expression {
         return "ObjectInitializer";
     }
 
-    _name:Token;
-    _value:Expression;
+    name:Token;
+    value:Expression;
 
     constructor(name:Token, value:Expression) {
-        this._name = name;
-        this._value = value;
+        this.name = name;
+        this.value = value;
     }
 
     accept(visitor:any) {

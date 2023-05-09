@@ -6,12 +6,12 @@ export class IndexerGetExpression implements Expression {
         return "IndexerGet";
     }
 
-    _obj:Expression;
-    _indexerExpr:Expression;
+    obj:Expression;
+    indexerExpr:Expression;
 
     constructor(obj:Expression, indexerExpr:Expression) {
-        this._obj = obj;
-        this._indexerExpr = indexerExpr;
+        this.obj = obj;
+        this.indexerExpr = indexerExpr;
     }
 
     accept(visitor:any) {

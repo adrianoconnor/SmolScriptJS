@@ -7,14 +7,14 @@ export class SetExpression implements Expression {
         return "Set";
     }
 
-    _obj:Expression;
-    _name:Token;
-    _value:Expression;
+    obj:Expression;
+    name:Token;
+    value:Expression;
 
     constructor(obj:Expression, name:Token, value:Expression) {
-        this._obj = obj;
-        this._name = name;
-        this._value = value;
+        this.obj = obj;
+        this.name = name;
+        this.value = value;
     }
 
     accept(visitor:any) {

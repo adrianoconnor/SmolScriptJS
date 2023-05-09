@@ -7,12 +7,12 @@ export class GetExpression implements Expression {
         return "Get";
     }
 
-    _obj:Expression;
-    _name:Token;
+    obj:Expression;
+    name:Token;
 
     constructor(obj:Expression, name:Token) {
-        this._obj = obj;
-        this._name = name;
+        this.obj = obj;
+        this.name = name;
     }
 
     accept(visitor:any) {

@@ -7,12 +7,12 @@ export class WhileStatement implements Statement {
         return "While";
     }
 
-    _whileCondition:Expression;
-    _executeStatement:Statement;
+    whileCondition:Expression;
+    executeStatement:Statement;
 
     constructor(whileCondition:Expression, executeStatement:Statement) {
-        this._whileCondition = whileCondition;
-        this._executeStatement = executeStatement;
+        this.whileCondition = whileCondition;
+        this.executeStatement = executeStatement;
     }
 
     accept(visitor:any) {

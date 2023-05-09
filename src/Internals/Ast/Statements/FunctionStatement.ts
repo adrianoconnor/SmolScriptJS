@@ -8,14 +8,14 @@ export class FunctionStatement implements Statement {
         return "Function";
     }
 
-    _name:Token;
-    _parameters:Token[];
-    _functionBody:BlockStatement;
+    name:Token;
+    parameters:Token[];
+    functionBody:BlockStatement;
 
     constructor(name:Token, parameters:Token[], functionBody:BlockStatement) {
-        this._name = name;
-        this._parameters = parameters;
-        this._functionBody = functionBody;
+        this.name = name;
+        this.parameters = parameters;
+        this.functionBody = functionBody;
     }
 
     accept(visitor:any) {

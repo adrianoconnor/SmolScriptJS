@@ -6,14 +6,14 @@ export class CallExpression implements Expression {
         return "Call";
     }
 
-    _callee:Expression;
-    _args:Expression[];
-    _useObjectRef:Boolean;
+    callee:Expression;
+    args:Expression[];
+    useObjectRef:Boolean;
 
     constructor(callee:Expression, args:Expression[], useObjectRef:Boolean) {
-        this._callee = callee;
-        this._args = args;
-        this._useObjectRef = useObjectRef;
+        this.callee = callee;
+        this.args = args;
+        this.useObjectRef = useObjectRef;
     }
 
     accept(visitor:any) {

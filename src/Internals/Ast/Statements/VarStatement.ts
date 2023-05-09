@@ -8,14 +8,14 @@ export class VarStatement implements Statement {
         return "Var";
     }
 
-    _name:Token;
-    _initializerExpression?:Expression;
+    name:Token;
+    initializerExpression?:Expression;
 
-    constructor(name:Token, initializerExpression:Expression|undefined = undefined) {
-        this._name = name;
-        this._initializerExpression = initializerExpression;
+    constructor(name:Token, initializerExpression:Expression|undefined) {
+        this.name = name;
+        this.initializerExpression = initializerExpression;
     }
-    
+
     accept(visitor:any) {
         return visitor.visitVarStatement(this);
     }

@@ -8,12 +8,12 @@ export class FunctionExpression implements Expression {
         return "Function";
     }
 
-    _parameters:Token[];
-    _functionBody:BlockStatement;
+    parameters:Token[];
+    functionBody:BlockStatement;
 
     constructor(parameters:Token[], functionBody:BlockStatement) {
-        this._parameters = parameters;
-        this._functionBody = functionBody;
+        this.parameters = parameters;
+        this.functionBody = functionBody;
     }
 
     accept(visitor:any) {

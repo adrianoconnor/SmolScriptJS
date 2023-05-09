@@ -7,15 +7,15 @@ export class ClassStatement implements Statement {
     getStatementType() : string {
         return "Class";
     }
-    
-    _className:Token;
-    _superclassName?:Token;
-    _functions:FunctionStatement[];
+
+    className:Token;
+    superclassName?:Token;
+    functions:FunctionStatement[];
 
     constructor(className:Token, superclassName:Token|undefined, functions:FunctionStatement[]) {
-        this._className = className;
-        this._superclassName = superclassName;
-        this._functions = functions;
+        this.className = className;
+        this.superclassName = superclassName;
+        this.functions = functions;
     }
 
     accept(visitor:any) {

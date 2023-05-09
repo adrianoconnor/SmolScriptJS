@@ -7,16 +7,16 @@ export class IfStatement implements Statement {
         return "If";
     }
 
-    _expression:Expression;
-    _thenStatement:Statement;
-    _elseStatement?:Statement;
+    expression:Expression;
+    thenStatement:Statement;
+    elseStatement?:Statement;
 
-    constructor(expression:Expression, thenStatement:Statement, elseStatement?:Statement) {
-        this._expression = expression;
-        this._thenStatement = thenStatement;
-        this._elseStatement = elseStatement;
+    constructor(expression:Expression, thenStatement:Statement, elseStatement:Statement|undefined) {
+        this.expression = expression;
+        this.thenStatement = thenStatement;
+        this.elseStatement = elseStatement;
     }
-    
+
     accept(visitor:any) {
         return visitor.visitIfStatement(this);
     }

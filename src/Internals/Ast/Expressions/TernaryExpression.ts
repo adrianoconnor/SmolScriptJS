@@ -6,14 +6,14 @@ export class TernaryExpression implements Expression {
         return "Ternary";
     }
 
-    _evaluationExpression:Expression;
-    _expresisonIfTrue:Expression;
-    _expresisonIfFalse:Expression;
+    evaluationExpression:Expression;
+    expresisonIfTrue:Expression;
+    expresisonIfFalse:Expression;
 
     constructor(evaluationExpression:Expression, expresisonIfTrue:Expression, expresisonIfFalse:Expression) {
-        this._evaluationExpression = evaluationExpression;
-        this._expresisonIfTrue = expresisonIfTrue;
-        this._expresisonIfFalse = expresisonIfFalse;
+        this.evaluationExpression = evaluationExpression;
+        this.expresisonIfTrue = expresisonIfTrue;
+        this.expresisonIfFalse = expresisonIfFalse;
     }
 
     accept(visitor:any) {
