@@ -41,6 +41,7 @@ import { SmolProgram } from "./SmolProgram";
 import { SmolBool } from "./SmolVariableTypes/SmolBool";
 import { TokenType } from "./TokenType";
 import { SmolUndefined } from "./SmolVariableTypes/SmolUndefined";
+import { SmolNumber } from "./SmolVariableTypes/SmolNumber";
 
 declare global {
     // We do a lot of work with arrays/collections, so these convenience methods/extensions
@@ -100,8 +101,6 @@ export class Compiler {
     private _function_table:SmolFunction[] = new Array<SmolFunction>();
     private _function_bodies:ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
 
-    //private _code_sections:ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
-    
     private _nextLabel:number = 1;
 
     // Labels for jumoing to are just numeric place holders. When a code gen section needs to
@@ -145,10 +144,12 @@ export class Compiler {
         for(var i = 0; i < p.length; i++) {
             mainChunk.appendChunk(p[i].accept(this));
         }
-
+        
         let program = new SmolProgram();
         program.constants = this._constants;
         program.code_sections.push(mainChunk);
+        this._function_bodies.forEach((b) => program.code_sections.push(b));
+        program.function_table = this._function_table;
 
         return program;
     }
@@ -388,7 +389,17 @@ export class Compiler {
 
     private visitAssignExpression(expr:AssignExpression) : ByteCodeInstruction[] {
 
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        chunk.appendChunk(expr.value.accept(this));
+
+        chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
+
+        // This is so inefficient
+
+        chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
+
+        return chunk;
     }
 
     private visitBinaryExpression(expr:BinaryExpression) : ByteCodeInstruction[] {
@@ -465,17 +476,56 @@ export class Compiler {
 
     private visitCallExpression(expr:CallExpression) : ByteCodeInstruction[] {
         
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        // Evalulate the arguments from left to right and pop them on the stack.
+
+        expr.args.reverse().forEach((arg) => {
+            chunk.appendChunk((arg as Expression).accept(this));
+        })
+
+        chunk.appendChunk(expr.callee.accept(this)); // Load the function name onto the stack
+
+        chunk.appendInstruction(OpCode.CALL, expr.args.length, expr.useObjectRef);
+
+        return chunk;
     }
 
-    private visitFunctionExpression(expr:FunctionExpression) : ByteCodeInstruction[] {
+    private visitFunctionExpression(expr:FunctionExpression) : ByteCodeInstruction {
 
-        return this.createChunk();
+        var function_index = this._function_bodies.length + 1;
+        var function_name = `$_anon_${function_index}`;
+
+        this._function_table.push(new SmolFunction(
+            function_name,
+            function_index,
+            expr.parameters.length,
+            expr.parameters.map<string>((p) => p.lexeme)
+        ));
+
+        var body = this.createChunk();
+
+        body.appendChunk(expr.functionBody.accept(this));
+
+        if (body.length == 0 || body.peek()._opcode != OpCode.RETURN)
+        {
+            body.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
+            body.appendInstruction(OpCode.RETURN);
+        }
+
+        this._function_bodies.push(body);
+
+        return new ByteCodeInstruction(OpCode.FETCH, function_index);
     }
 
     private visitGetExpression(expr:GetExpression) : ByteCodeInstruction[] {
         
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        chunk.appendChunk(expr.obj.accept(this));
+        chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme, true);
+
+        return chunk;
     }
 
     private visitGroupingExpression(expr:GroupingExpression) : ByteCodeInstruction[]|ByteCodeInstruction {
@@ -485,23 +535,43 @@ export class Compiler {
 
     private visitIndexerGetExpression(expr:IndexerGetExpression) : ByteCodeInstruction[] {
         
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        chunk.appendChunk(expr.obj.accept(this));
+        chunk.appendChunk(expr.indexerExpr.accept(this));
+        chunk.appendInstruction(OpCode.FETCH, "@IndexerGet", true);
+
+        return chunk;
     }
     
     private visitIndexerSetExpression(expr:IndexerSetExpression) : ByteCodeInstruction[] {
     
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        chunk.appendChunk(expr.obj.accept(this));
+
+        chunk.appendChunk(expr.value.accept(this));
+
+        chunk.appendChunk(expr.indexerExpr.accept(this));
+
+        chunk.appendInstruction(OpCode.STORE, "@IndexerGet", true);
+        // This is so inefficient, but we need to read the saved value back onto the stack
+
+        chunk.appendChunk(expr.obj.accept(this));
+
+        // TODO: This won't even work for indexer++ etc.
+        chunk.appendChunk(expr.indexerExpr.accept(this));
+
+        chunk.appendInstruction(OpCode.FETCH, "@IndexerGet", true);
+
+        return chunk;
     }
 
-    private visitLiteralExpression(expr:LiteralExpression) : ByteCodeInstruction[] {
-             
-        var chunk = this.createChunk();
+    private visitLiteralExpression(expr:LiteralExpression) : ByteCodeInstruction {
 
         var constIndex = this.ensureConst(expr.value);
 
-        chunk.appendChunk(new ByteCodeInstruction(OpCode.CONST, constIndex));
-
-        return chunk;
+        return new ByteCodeInstruction(OpCode.CONST, constIndex);
     }
 
     private visitLogicalExpression(expr:LogicalExpression) : ByteCodeInstruction[] {
@@ -559,31 +629,203 @@ export class Compiler {
 
     private visitNewInstance(expr:NewInstanceExpression) : ByteCodeInstruction[] {
         
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        var className = expr.className.lexeme;
+
+        // We need to tell the VM that we want to create an instance of a class.
+        // It will need its own environment, and the instance info needs to be on the stack
+        // so we can call the ctor, which needs to leave it on the stack afterwards
+        // ready for whatever was wanting it in the first place
+        chunk.appendInstruction(OpCode.CREATE_OBJECT, className);
+
+        if (className != "Object")
+        {
+            expr.ctorArgs.reverse().forEach((arg) => {
+                chunk.appendChunk(arg.accept(this));
+            });
+
+            chunk.appendInstruction(OpCode.DUPLICATE_VALUE, expr.ctorArgs.length); // We need two copies of that ref
+        }
+        else
+        {
+            chunk.appendInstruction(OpCode.DUPLICATE_VALUE, 0); // We need two copies of that ref
+        }
+
+
+        // Stack now has class instance value
+
+        chunk.appendInstruction(OpCode.FETCH, `@${expr.className.lexeme}.constructor`, true);
+
+        if (className == "Object")
+        {
+            expr.ctorArgs.reverse().forEach((arg) => {
+                chunk.appendChunk(arg.accept(this));
+            });
+        }
+
+        chunk.appendInstruction(OpCode.CALL, expr.ctorArgs.length, true);
+
+        chunk.appendInstruction(OpCode.POP_AND_DISCARD); // We don't care about the ctor's return value
+
+        return chunk;
     }
 
     private visitObjectInitializer(expr:ObjectInitializerExpression) : ByteCodeInstruction[] {
         
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        chunk.appendInstruction(OpCode.DUPLICATE_VALUE, 2);
+
+        chunk.appendChunk(expr.value.accept(this));
+
+        chunk.appendInstruction(OpCode.STORE, expr.name.lexeme, true);
+
+        // We don't reload the value onto the stack for these...
+
+        return chunk;
     }
 
     private visitSetExpression(expr:SetExpression) : ByteCodeInstruction[] {
         
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        chunk.appendChunk(expr.obj.accept(this));
+
+        chunk.appendChunk(expr.value.accept(this));
+
+        chunk.appendInstruction(OpCode.STORE, expr.name.lexeme, true);
+
+        // This is so inefficient, but we need to read the saved value back onto the stack
+
+        chunk.appendChunk(expr.obj.accept(this));
+
+        chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme, true);
+
+        return chunk;
     }
 
     private visitTernaryExpression(expr:TernaryExpression) : ByteCodeInstruction[] {
         
-        return this.createChunk();
+        var chunk = this.createChunk();
+        let notTrueLabel = this.reserveLabelId();
+        let endLabel = this.reserveLabelId();
+
+        chunk.appendChunk(expr.evaluationExpression.accept(this));
+
+        chunk.appendInstruction(OpCode.JMPFALSE, notTrueLabel);
+
+        chunk.appendChunk(expr.expresisonIfTrue.accept(this));
+
+        chunk.appendInstruction(OpCode.JMP, endLabel);
+
+        chunk.appendInstruction(OpCode.LABEL, notTrueLabel);
+
+        chunk.appendChunk(expr.expresisonIfFalse.accept(this));
+
+        chunk.appendInstruction(OpCode.LABEL, endLabel);
+
+        return chunk;
     }
 
     private visitUnaryExpression(expr:UnaryExpression) : ByteCodeInstruction[] {
         
-        return this.createChunk();
+        let chunk = this.createChunk();
+
+        switch (expr.op.type)
+        {
+            case TokenType.NOT:
+                {
+                    chunk.appendChunk(expr.right.accept(this));
+
+                    let isTrueLabel = this.reserveLabelId();
+                    let endLabel = this.reserveLabelId();
+
+                    chunk.appendInstruction(OpCode.JMPTRUE, isTrueLabel);
+
+                    // If we're here it was false, so now it's true
+                    chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolBool(true)));
+
+                    chunk.appendInstruction(OpCode.JMP, endLabel);
+
+                    chunk.appendInstruction(OpCode.LABEL, isTrueLabel);
+
+                    // If we're here it was true, so now it's false
+                    chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolBool(false)));
+
+                    chunk.appendInstruction(OpCode.LABEL, endLabel);
+
+                    break;
+                }
+
+            case TokenType.MINUS:
+
+                chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(0)));
+
+                chunk.appendChunk(expr.right.accept(this));
+
+                chunk.appendInstruction(OpCode.SUB);
+
+                break;
+
+        }
+
+        return chunk;
     }
 
     private visitVariableExpression(expr:VariableExpression) : ByteCodeInstruction[] {
         
-        return this.createChunk();
+        var chunk = this.createChunk();
+
+        chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
+
+        if (expr.prepostfixOp != undefined)
+        {
+            if (expr.prepostfixOp == TokenType.POSTFIX_INCREMENT)
+            {
+                chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
+
+                chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
+
+                chunk.appendInstruction(OpCode.ADD);
+
+                chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
+            }
+
+            if (expr.prepostfixOp == TokenType.POSTFIX_DECREMENT)
+            {
+                chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
+
+                chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
+
+                chunk.appendInstruction(OpCode.SUB);
+
+                chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
+            }
+
+            if (expr.prepostfixOp == TokenType.PREFIX_INCREMENT)
+            {
+                chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
+
+                chunk.appendInstruction(OpCode.ADD);
+
+                chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
+
+                chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
+            }
+
+            if (expr.prepostfixOp == TokenType.PREFIX_DECREMENT)
+            {
+                chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
+
+                chunk.appendInstruction(OpCode.SUB);
+
+                chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
+
+                chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
+            }
+        }
+
+        return chunk;
     }
 } 

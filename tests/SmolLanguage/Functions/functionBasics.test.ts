@@ -5,18 +5,18 @@ import { Compiler } from '../../../src/Internals/Compiler';
 describe('Function Basics', () => {
   test('Declare and Call Simple Function', () => {
     let source = `
-    function test(a) {
-        return a + 10;
+    function test(a, b) {
+        return a + b + 10;
     }
     
-    var b = test(5);
+    var b = test(5, 1);
     `;
 
     var c = new Compiler();
 
     var prog = c.Compile(source);
 
-    console.log(prog);
+    console.log(prog.decompile());
     
   }),
   

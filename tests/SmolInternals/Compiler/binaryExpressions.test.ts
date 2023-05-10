@@ -5,13 +5,13 @@ describe('SmolInteral BinaryExpression Compilation', () => {
   test('Simple Tests', () => {
 
     let source = `
-    10 + 5 * 2;
+    (10 + 5) * 2;
     `;
 
     var c = new Compiler();
 
     var prog = c.Compile(source);
 
-    console.log(prog); 
+    console.log(prog.decompile()); 
   });
 });

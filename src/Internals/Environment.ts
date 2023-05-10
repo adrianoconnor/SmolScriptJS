@@ -1,9 +1,9 @@
-export class Enviornment {
+export class Environment {
 
-    private _enclosing?:Enviornment;
+    private _enclosing?:Environment;
     private _variables: { [name:string] : any };
 
-    constructor(enclosing?:Enviornment) {
+    constructor(enclosing?:Environment) {
         this._variables = {};
         this._enclosing = enclosing;
     }
