@@ -23,9 +23,9 @@ export class SmolProgram
 
             p += `.code_section_${n}\n`;
             s.forEach((i) => {
-                const op1 = i._operand1 != undefined ? ` ${i._operand1}` : '';
-                const op2 = i._operand2 != undefined ? ` ${i._operand2}` : '';
-                p += `${OpCode[i._opcode]}${op1}${op2}\n`;
+                const op1 = i.operand1 != undefined ? ` ${i.operand1}` : '';
+                const op2 = i.operand2 != undefined ? ` ${i.operand2}` : '';
+                p += `${OpCode[i.opcode]}${op1}${op2}\n`;
             });    
             
             p += `\n`;

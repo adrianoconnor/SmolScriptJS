@@ -144,7 +144,9 @@ export class Compiler {
         for(var i = 0; i < p.length; i++) {
             mainChunk.appendChunk(p[i].accept(this));
         }
-        
+
+        mainChunk.appendInstruction(OpCode.EOF);
+
         let program = new SmolProgram();
         program.constants = this._constants;
         program.code_sections.push(mainChunk);
@@ -200,7 +202,7 @@ export class Compiler {
 
             body.appendChunk(fn.functionBody.accept(capturedThis));
     
-            if (body.length == 0 || body.peek()._opcode != OpCode.RETURN)
+            if (body.length == 0 || body.peek().opcode != OpCode.RETURN)
             {
                 body.appendInstruction(OpCode.CONST, capturedThis.ensureConst(new SmolUndefined()));
                 body.appendInstruction(OpCode.RETURN);
@@ -259,7 +261,7 @@ export class Compiler {
 
         body.appendChunk(stmt.functionBody.accept(this));
 
-        if (body.length == 0 || body.peek()._opcode != OpCode.RETURN)
+        if (body.length == 0 || body.peek().opcode != OpCode.RETURN)
         {
             body.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
             body.appendInstruction(OpCode.RETURN);
@@ -507,7 +509,7 @@ export class Compiler {
 
         body.appendChunk(expr.functionBody.accept(this));
 
-        if (body.length == 0 || body.peek()._opcode != OpCode.RETURN)
+        if (body.length == 0 || body.peek().opcode != OpCode.RETURN)
         {
             body.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
             body.appendInstruction(OpCode.RETURN);

@@ -1,7 +1,7 @@
 import { SmolStackType } from "./SmolStackType";
 import { Environment } from "../Environment";
 
-export class SmolLoopMaker extends SmolStackType {
+export class SmolLoopMarker extends SmolStackType {
 
     current_env:Environment;
 

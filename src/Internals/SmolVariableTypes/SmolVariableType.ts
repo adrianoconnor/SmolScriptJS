@@ -5,7 +5,7 @@ export abstract class SmolVariableType extends SmolStackType {
 
     abstract getValue():any;
 
-    equals(compareTo:SmolVariableType):Boolean {
+    equals(compareTo:SmolVariableType):boolean {
         return this.getValue() == compareTo.getValue();
     }
 }

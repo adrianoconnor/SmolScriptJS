@@ -2,14 +2,14 @@ import { SmolVariableType } from "./SmolVariableType";
 
 export class SmolBool extends SmolVariableType {
     
-    _value:Boolean;
+    _value:boolean;
 
-    constructor(value:Boolean) {
+    constructor(value:boolean) {
         super();
         this._value = value;
     }
 
-    getValue():Boolean {
+    getValue():boolean {
         return this._value;
     }
 }

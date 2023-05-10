@@ -6,9 +6,9 @@ export class SmolTryRegionSaveState extends SmolStackType {
     code_section:number;
     PC:number;
     this_env:Environment;
-    jump_exception:Number;
+    jump_exception:number;
 
-    constructor(code_section:number, PC:number, this_env:Environment, jump_exception:Number) {
+    constructor(code_section:number, PC:number, this_env:Environment, jump_exception:number) {
         super();
         this.code_section = code_section;
         this.PC = PC;

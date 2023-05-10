@@ -2,19 +2,19 @@ import { SmolVariableType } from "./SmolVariableType";
 
 export class SmolString extends SmolVariableType {
     
-    _value:String;
+    _value:string;
 
-    constructor(value:String) {
+    constructor(value:string) {
         super();
         this._value = value;
     }
 
-    getValue():String
+    getValue():string
     {
         return this._value;
     }
 
-    toString():String
+    toString():string
     {
         return `(SmolString) ${this._value}`;
     }
