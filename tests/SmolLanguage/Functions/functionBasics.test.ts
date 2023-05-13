@@ -96,13 +96,9 @@ var a = c.getTest();
   console.log(s);
 */
 
-  var vm = new SmolVM(source);
-
-  vm.run();
-
-  var a = vm.globalEnv.tryGet('a');
-
-  expect(a!.getValue()!).toBe(5);
+  var vm = SmolVM.Init(source);
+  
+  expect(vm.getGlobalVar('a')).toBe(5);
 });
 
 

@@ -15,6 +15,7 @@ import { SmolString } from "./Internals/SmolVariableTypes/SmolString";
 import { SmolTryRegionSaveState } from "./Internals/SmolStackTypes/SmolTryRegionSaveState";
 import { SmolLoopMarker } from "./Internals/SmolStackTypes/SmolLoopMarker";
 import { ISmolNativeCallable } from "./Internals/SmolVariableTypes/ISmolNativeCallable";
+import { SmolArray } from "./Internals/SmolVariableTypes/SmolArray";
 
 enum RunMode
 {
@@ -47,6 +48,20 @@ export class SmolVM {
         this.buildJumpTable();
     }
 
+    static Compile(source:string):SmolVM {
+        return new SmolVM(source);
+    }
+
+    static Init(source:string):SmolVM {
+        let vm = SmolVM.Compile(source);
+        vm.run();
+        return vm;
+    }
+
+    getGlobalVar(varName:string):any {
+        return this.globalEnv.tryGet(varName)?.getValue() ?? undefined;
+    }
+
     buildJumpTable()
     {
         // Loop through all labels in all code sections, capturing
@@ -77,6 +92,7 @@ export class SmolVM {
 
     createStdLib() {
         this.staticTypes['String'] = SmolString;
+        this.staticTypes['Array'] = SmolArray;
     }
     
     decompile():string {
