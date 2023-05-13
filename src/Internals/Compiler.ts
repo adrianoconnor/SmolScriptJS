@@ -517,7 +517,7 @@ export class Compiler {
 
         this._function_bodies.push(body);
 
-        return new ByteCodeInstruction(OpCode.FETCH, function_index);
+        return new ByteCodeInstruction(OpCode.FETCH, function_name);
     }
 
     private visitGetExpression(expr:GetExpression) : ByteCodeInstruction[] {
@@ -629,7 +629,7 @@ export class Compiler {
         return chunk;   
     }
 
-    private visitNewInstance(expr:NewInstanceExpression) : ByteCodeInstruction[] {
+    private visitNewInstanceExpression(expr:NewInstanceExpression) : ByteCodeInstruction[] {
         
         var chunk = this.createChunk();
 

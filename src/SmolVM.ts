@@ -14,6 +14,7 @@ import { SmolBool } from "./Internals/SmolVariableTypes/SmolBool";
 import { SmolString } from "./Internals/SmolVariableTypes/SmolString";
 import { SmolTryRegionSaveState } from "./Internals/SmolStackTypes/SmolTryRegionSaveState";
 import { SmolLoopMarker } from "./Internals/SmolStackTypes/SmolLoopMarker";
+import { ISmolNativeCallable } from "./Internals/SmolVariableTypes/ISmolNativeCallable";
 
 enum RunMode
 {
@@ -34,6 +35,7 @@ export class SmolVM {
 
     globalEnv:Environment = new Environment();
     environment:Environment = this.globalEnv;
+    staticTypes:{ [name:string] : any } = {};
 
     constructor(source:string)
     {    
@@ -41,7 +43,7 @@ export class SmolVM {
 
         this.program = compiler.Compile(source);
 
-        //this.createStdLib();
+        this.createStdLib();
         this.buildJumpTable();
     }
 
@@ -72,12 +74,26 @@ export class SmolVM {
             }
         }        
     }
-    
-    debug(str:String) {
-        console.log(str);
+
+    createStdLib() {
+        this.staticTypes['String'] = SmolString;
     }
     
-    run() {
+    decompile():string {
+        return this.program.decompile();
+    }
+
+    private debugFunc:Function|undefined = undefined;
+
+    onDebugPrint(debugFunc:Function):void {
+        this.debugFunc = debugFunc;
+    }
+
+    debug(str:String):void {
+        if (this.debugFunc != undefined) this.debugFunc(str);
+    }
+    
+    run():void {
         this._run(RunMode.Run);
     }
 
@@ -86,10 +102,12 @@ export class SmolVM {
         this.runMode = newRunMode;
 
         while (true)
-        {
+        {        
             var instr = this.program.code_sections[this.code_section][this.pc++];
             
-            this.debug(OpCode[instr.opcode]);
+            //this.debug(OpCode[instr.opcode]);
+            //this.debug(this.stack.length.toString());
+            //this.debug(this.stack.map<string>((el) => el.toString()).join(', '));
 
             try
             {
@@ -395,6 +413,8 @@ Don't need this right now :)
 
                             if (instr.operand2 != undefined && (instr.operand2 as boolean))
                             {
+                                //console.log(this.stack);
+
                                 var objRef = this.stack.pop();
 
                                 isPropertySetter = true;
@@ -403,13 +423,11 @@ Don't need this right now :)
                                 {
                                     env_in_context = (objRef as SmolObject).object_env;
                                 }
-                                /*else if (objRef instanceof ISmolNativeCallable)
+                                else if (objRef instanceof ISmolNativeCallable)
                                 {
-                                    TODO !!!!
-
-                                    ((ISmolNativeCallable)objRef).SetProp(name!, value);
+                                    (objRef as ISmolNativeCallable).setProp(name!, value);
                                     break;
-                                }*/
+                                }
                                 else
                                 {
                                     throw new Error(`${objRef} is not a valid target for this call`);
@@ -439,6 +457,7 @@ Don't need this right now :)
 
                             if (instr.operand2 != null && (instr.operand2 as boolean))
                             {
+
                                 var objRef = this.stack.pop();
                                 var peek_instr = this.program.code_sections[this.code_section][this.pc];
 
@@ -452,56 +471,61 @@ Don't need this right now :)
                                     }
                                 }
                                 else
-                                {
-                                    /*
+                                {                                
                                     if (objRef instanceof ISmolNativeCallable)
                                     {
-                                        var isFuncCall = (peek_instr.opcode == OpCode.CALL && (bool)peek_instr.operand2!);
+                                        var isFuncCall = (peek_instr.opcode == OpCode.CALL && peek_instr.operand2);
 
                                         if (isFuncCall)
                                         {
                                             // We need to get some arguments
 
-                                            List<SmolVariableType> paramValues = new List<SmolVariableType>();
+                                           let paramValues = new Array<SmolVariableType>();
 
-                                            for (int i = 0; i < (int)peek_instr.operand1!; i++)
+                                            for (let i = 0; i < (peek_instr.operand1 as number); i++)
                                             {
-                                                paramValues.Add((SmolVariableType)this.stack.Pop());
+                                                paramValues.push(this.stack.pop() as SmolVariableType);
                                             }
 
-                                            stack.Push(((ISmolNativeCallable)objRef).NativeCall(name, paramValues)!);
-                                            stack.Push(new SmolNativeFunctionResult()); // Call will use this to see that the call is already done.
+                                            this.stack.push((objRef as ISmolNativeCallable).nativeCall(name, paramValues)!);
+                                            this.stack.push(new SmolNativeFunctionResult()); // Call will use this to see that the call is already done.
                                         }
                                         else
                                         {
                                             // For now won't work with Setter
 
-                                            stack.Push(((ISmolNativeCallable)objRef).GetProp(name)!);
+                                            this.stack.push((objRef as ISmolNativeCallable).getProp(name));
                                         }
 
                                         break;
                                     }
-                                    else if (objRef is SmolNativeFunctionResult)
+                                    else if (objRef instanceof SmolNativeFunctionResult)
                                     {
-                                        var classMethodRegEx = new Regex(@"\@([A-Za-z]+)[\.]([A-Za-z]+)");
-                                        var rex = classMethodRegEx.Match(name);
-                                        if (rex.Success)
+                                        var classMethodRegEx = new RegExp("\@([A-Za-z]+)[\.]([A-Za-z]+)");
+
+                                        if (classMethodRegEx.test(name))
                                         {
-                                            let parameters:any[] = new Arrau<any>();
+                                            var rexResult = classMethodRegEx.exec(name);
 
-                                            parameters.push(rex.Groups[2].Value);
+                                            if (rexResult == null || rexResult!.groups == null) {
+                                                throw new Error("class method name regex failed");
+                                            }
 
-                                            var functionArgs = new List<SmolVariableType>();
+                                            let parameters:any[] = new Array<any>();
+
+                                            parameters.push(rexResult.groups[2]);
+
+                                            var functionArgs = new Array<SmolVariableType>();
 
                                             if (name != "@Object.constructor")
                                             {
-                                                for (int i = 0; i < (int)peek_instr.operand1!; i++)
+                                                for (let i = 0; i < (peek_instr.operand1 as number); i++)
                                                 {
-                                                    functionArgs.Add((SmolVariableType)this.stack.Pop());
+                                                    functionArgs.push(this.stack.pop() as SmolVariableType);
                                                 }
                                             }
 
-                                            parameters.Add(functionArgs);
+                                            parameters.push(functionArgs);
 
                                             // Now we've got rid of the params we can get rid
                                             // of the dummy object that create_object left
@@ -509,23 +533,20 @@ Don't need this right now :)
 
                                             this.stack.pop();
 
-                                            // Put our actual new object on after calling the ctor:
-
-                                            //var r = staticNativeClassMethods["@String.constructor"](paramValues);
-
-                                            var r = (SmolVariableType)staticTypes[rex.Groups[1].Value].GetMethod("StaticCall")!.Invoke(null, parameters.ToArray());
-
+                                            // Put our actual new object on after calling the ctor:                                            
+                                            var r = this.staticTypes[rexResult.groups[1]]["StaticCall"](parameters) as SmolVariableType;
+                                            
                                             if (name == "@Object.constructor")
                                             {
                                                 // Hack alert!!!
-                                                ((SmolObject)r).object_env = new Internals.Environment(this.globalEnv);
+                                                (r as SmolObject).object_env = new Environment(this.globalEnv);
                                             }
 
-                                            stack.Push(r);
+                                            this.stack.push(r);
 
                                             // And now fill in some fake object refs again:
-                                            stack.Push(new SmolNativeFunctionResult()); // Call will use this to see that the call is already done.
-                                            stack.Push(new SmolNativeFunctionResult()); // Pop and Discard following Call will discard this
+                                            this.stack.push(new SmolNativeFunctionResult()); // Call will use this to see that the call is already done.
+                                            this.stack.push(new SmolNativeFunctionResult()); // Pop and Discard following Call will discard this
 
                                             break;
                                         }
@@ -535,11 +556,7 @@ Don't need this right now :)
                                     {
                                         throw new Error(`${objRef} is not a valid target for this call`);
                                     }
-                                }*/
-
-                                    // Temp 
-                                    throw new Error(`We have not implemented this yet...`);
-                                }
+                                }                    
                             }
 
                             var fetchedValue = env_in_context.tryGet(name);
@@ -719,35 +736,32 @@ Don't need this right now :)
                         // a single env?!
 
                         var class_name = instr.operand1 as string;
-/*
-                        if (staticTypes.ContainsKey(class_name))
+
+                        if (this.staticTypes[class_name] != undefined)
                         {
-                            stack.Push(new SmolNativeFunctionResult());
+                            this.stack.push(new SmolNativeFunctionResult());
                             break;
                         }
 
-                        var obj_environment = new SmolScript.Internals.Environment(this.globalEnv);
+                        var obj_environment = new Environment(this.globalEnv);
+                        
+                        this.program.function_table.filter((el) => el.global_function_name.startsWith(`@${class_name}.`)).forEach(classFunc => {
+                                                    
+                            var funcName = classFunc.global_function_name.substring(class_name.length + 2);
 
-                        foreach (var classFunc in program.function_table.Where(f => f.global_function_name!.StartsWith($"@{class_name}.")))
-                        {
-                            var funcName = classFunc.global_function_name!.Substring(class_name.Length + 2);
-
-                            obj_environment.Define(funcName, new SmolFunction(
-                                arity: classFunc.arity,
-                                code_section: classFunc.code_section,
-                                global_function_name: classFunc.global_function_name,
-                                param_variable_names: classFunc.param_variable_names
+                            obj_environment.define(funcName, new SmolFunction(
+                                classFunc.global_function_name,
+                                classFunc.code_section,
+                                classFunc.arity,
+                                classFunc.param_variable_names
                             ));
-                        }
 
-                        stack.Push(new SmolObject(
-                                object_env: obj_environment,
-                                class_name: class_name
-                            )
-                        );
+                        });
 
-                        obj_environment.Define("this", (SmolVariableType)stack.Peek());
-*/
+                        this.stack.push(new SmolObject(obj_environment, class_name));
+
+                        obj_environment.define("this", (this.stack.peek() as SmolVariableType));
+
                         break;
 
                     case OpCode.DUPLICATE_VALUE:
@@ -755,11 +769,6 @@ Don't need this right now :)
                         let skip:number = instr.operand1 != undefined ? (instr.operand1 as number) : 0;
 
                         var itemToDuplicate = this.stack[this.stack.length - 1 - skip];
-
-                        if (itemToDuplicate instanceof SmolNativeFunctionResult)
-                        {
-                            /// ????? TODO: Check .net here
-                        }
 
                         this.stack.push(itemToDuplicate);
 

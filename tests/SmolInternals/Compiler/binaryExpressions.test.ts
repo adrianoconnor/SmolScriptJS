@@ -12,6 +12,6 @@ describe('SmolInteral BinaryExpression Compilation', () => {
 
     var prog = c.Compile(source);
 
-    console.log(prog.decompile()); 
+    //console.log(prog.decompile()); 
   });
 });

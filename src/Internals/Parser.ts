@@ -176,11 +176,12 @@ export class Parser {
 
         this.consume(TokenType.LEFT_BRACE, "Expected {");
         
-        while (!this.check(TokenType.RIGHT_BRACE) && !this.endOfTokenStream) {
-          
-            if (this.check(TokenType.IDENTIFIER) && this.check(TokenType.LEFT_BRACKET, 1))
-            {
-                functions.push(this.functionDeclaration());
+        while (!this.check(TokenType.RIGHT_BRACE) && !this.endOfTokenStream()) {
+        
+            if (this.check(TokenType.IDENTIFIER) && this.check(TokenType.LEFT_BRACKET, 1)) {
+                var classFn = this.functionDeclaration();
+
+                functions.push(classFn);
             }
             else
             {

@@ -475,7 +475,7 @@ export class Scanner {
 
         var identifierAsString = this._source.substring(this._startOfToken, this._currentPos);
         
-        if (this._keywords[identifierAsString] != null) {
+        if (identifierAsString != "constructor" && this._keywords[identifierAsString] != undefined) {
             this.addTokenWithLiteral(this._keywords[identifierAsString], identifierAsString);
         }
         else {
