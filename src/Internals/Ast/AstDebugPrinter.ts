@@ -46,22 +46,18 @@ export class AstDebugPrinter {
     }
 
     static parse(source:string) : string {
-        var t = Scanner.tokenize(source);
-        var p = Parser.parse(t);
+        const t = Scanner.tokenize(source);
+        const p = Parser.parse(t);
 
-        let astPrinter = new AstDebugPrinter();
+        const astPrinter = new AstDebugPrinter();
 
-        var ast = '';
+        let ast = '';
 
-        for(var i = 0; i < p.length; i++) {
+        for(let i = 0; i < p.length; i++) {
             ast += astPrinter.processStmt(p[i]);    
         }
 
         return ast;
-    }
-
-    private constructor() {
-
     }
 
     private processStmt(stmt:Statement) : string {
@@ -69,10 +65,10 @@ export class AstDebugPrinter {
     }
 
     private visitBlockStatement(stmt:BlockStatement) {
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
-        var _this = this;
+        let _this = this;
 
         rt += `${i}[block]\n`;
 
@@ -89,8 +85,8 @@ export class AstDebugPrinter {
     }
 
     private visitBreakStatement(stmt:BreakStatement) {
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
         rt = `${i}[break]\n`;
 
@@ -100,19 +96,19 @@ export class AstDebugPrinter {
 
     private visitClassStatement(stmt:ClassStatement) : string {
 
-        var i = this.indent();
-        var rt = '';
-        var t = this;
+        const i = this.indent();
+        let rt = '';
+        const t = this;
 
         rt += `${i}[class name=${stmt.className}]\n`;
-        var i2 = this.indent();
+        const i2 = this.indent();
         stmt.functions.forEach(function(f, n) {
-            rt += `${i}[classFunction name=${f.name.lexeme}]\n`;
+            rt += `${i2}[classFunction name=${f.name.lexeme}]\n`;
             f.parameters.forEach(function(p, n2) {
-                rt += `${i}  param ${n2}: ${p.lexeme}\n`;
+                rt += `${i2}  param ${n2}: ${p.lexeme}\n`;
             });
             rt += f.functionBody.accept(t);
-            rt += `${i}[/classFunction]\n`;            
+            rt += `${i2}[/classFunction]\n`;            
         });
         this.outdent();
         rt += `${i}[/class]\n`;
@@ -122,8 +118,8 @@ export class AstDebugPrinter {
     }
 
     private visitContinueStatement(stmt:ContinueStatement) {
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
         rt = `${i}[continue]\n`;
 
@@ -132,8 +128,8 @@ export class AstDebugPrinter {
     }
 
     private visitDebuggerStatement(stmt:DebuggerStatement) {
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
         rt = `${i}[debugger]\n`;
 
@@ -142,8 +138,8 @@ export class AstDebugPrinter {
     }
 
     private visitExpressionStatement(stmt:ExpressionStatement) {
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
         rt += `${i}[exprStmt ${stmt.expression.accept(this)}]\n`;
 
@@ -153,8 +149,8 @@ export class AstDebugPrinter {
     
     private visitFunctionStatement(stmt:FunctionStatement) : string {
 
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
         rt += `${i}[function name=${stmt.name.lexeme}]\n`;
         stmt.parameters.forEach(function(p, n) {
@@ -169,8 +165,8 @@ export class AstDebugPrinter {
     
 
     private visitIfStatement(stmt:IfStatement) {
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
         rt += `${i}[if testExpr:${stmt.expression.accept(this)}]\n`;
         rt += stmt.thenStatement.accept(this);
@@ -189,8 +185,8 @@ export class AstDebugPrinter {
 
     private visitPrintStatement(stmt:PrintStatement) : string {
 
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
         rt = `${i}[print expr:${stmt.expression.accept(this)}]\n`;
 
@@ -201,8 +197,8 @@ export class AstDebugPrinter {
 
     private visitReturnStatement(stmt:ReturnStatement) : string {
         
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
         if (stmt.expression == undefined) {
             rt = `${i}[return default(undefined)]\n`;
@@ -218,8 +214,8 @@ export class AstDebugPrinter {
 
     private visitTryStatement(stmt:TryStatement) : string {
 
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
         rt += `${i}[try]\n`;
         rt += stmt.tryBody.accept(this);
@@ -227,7 +223,7 @@ export class AstDebugPrinter {
         
         if (stmt.catchBody != null) {
             if (stmt.exceptionVariableName != null) {
-                rt = `${i}[catch exceptionVariable=${stmt.exceptionVariableName.lexeme}]\n`;
+                rt = `${i}[catch exceptionletiable=${stmt.exceptionVariableName.lexeme}]\n`;
             }
             else {
                 rt = `${i}[catch]\n`;
@@ -248,8 +244,8 @@ export class AstDebugPrinter {
 
     private visitThrowStatement(stmt:ThrowStatement) : string {
 
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
         if (stmt.expression != null) {
             rt = `${i}[throw expr:${stmt.expression.accept(this)}]\n`;
@@ -264,8 +260,8 @@ export class AstDebugPrinter {
 
     private visitVarStatement(stmt:VarStatement) : string {
 
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
         if (stmt.initializerExpression != undefined) {
             rt += `${i}[declare var ${stmt.name.lexeme} initializer:${stmt.initializerExpression.accept(this)}]\n`;
@@ -280,8 +276,8 @@ export class AstDebugPrinter {
 
     private visitWhileStatement(stmt:WhileStatement) : string {
         
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
         rt += `${i}[while expr:${stmt.whileCondition.accept(this)}]\n`;
         rt += stmt.executeStatement.accept(this);
@@ -306,8 +302,8 @@ export class AstDebugPrinter {
 
     private visitFunctionExpression(expr:FunctionExpression) : string {
 
-        var i = this.indent();
-        var rt = '';
+        const i = this.indent();
+        let rt = '';
 
         rt = `(functionExpression)\n`;
         rt += `${i}[functionExpression]\n`;

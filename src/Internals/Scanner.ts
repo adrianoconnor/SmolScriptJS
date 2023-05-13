@@ -7,12 +7,12 @@ export class Scanner {
 
     _source: string;
 
-    _currentPos: number = 0;
-    _startOfToken: number = 0;
-    _currentLine: number = 1;
+    _currentPos = 0;
+    _startOfToken = 0;
+    _currentLine = 1;
 
-    _tokens: Token[] = new Array();
-    _errors: ScannerError[] = new Array();
+    _tokens: Token[] = [];
+    _errors: ScannerError[] = [];
 
     _keywords: { [keyword:string] : TokenType };
 
@@ -48,8 +48,7 @@ export class Scanner {
     }
 
     static tokenize(source:string) : Token[] {
-        var scanner = new Scanner(source);
-        return scanner.scanTokens();
+        return new Scanner(source).scanTokens();
     }
 
     private scanTokens() : Token[] {
@@ -71,7 +70,7 @@ export class Scanner {
 
     private scanToken() : void {
 
-        var c = this.nextChar();
+        let c = this.nextChar();
 
         switch(c) {
             case "(": this.addToken(TokenType.LEFT_BRACKET); break;
@@ -282,7 +281,7 @@ export class Scanner {
         return this._source.charAt(this._currentPos++);
     }
 
-    private peek(lookAhead:number = 0) : string {
+    private peek(lookAhead = 0) : string {
         if (this.endOfFile()) return '\0';
         return this._source.charAt(this._currentPos + lookAhead); 
     }
@@ -305,8 +304,8 @@ export class Scanner {
 
     }
 
-    private _charIsDigitRegex:RegExp = new RegExp("[0-9]");
-    private _charIsAlphaRegex:RegExp = new RegExp("[A-Za-z_]");
+    private _charIsDigitRegex = new RegExp("[0-9]");
+    private _charIsAlphaRegex = new RegExp("[A-Za-z_]");
 
     private charIsDigit(char:string) : boolean {
         return char.length == 1 && this._charIsDigitRegex.test(char);        
@@ -332,14 +331,14 @@ export class Scanner {
             while(this.charIsDigit(this.peek())) this.nextChar(); 
         }
 
-        var numberAsString = this._source.substring(this._startOfToken, this._currentPos);
+        const numberAsString = this._source.substring(this._startOfToken, this._currentPos);
         
         this.addTokenWithLiteral(TokenType.NUMBER, numberAsString);
     }
 
     private processString(quoteChar:string) : void {
 
-        var extractedString = '';
+        let extractedString = '';
 
         while(this.peek() != quoteChar && !this.endOfFile())
         { 
@@ -352,7 +351,7 @@ export class Scanner {
 
             if (this.peek() == '\\')
             {
-                var next = this.peek(1);
+                const next = this.peek(1);
 
                 if (next == '\'' || next == '"' || next == '\\')
                 {
@@ -403,9 +402,9 @@ export class Scanner {
 
     private processBacktickString() : void {
 
-        var quoteChar = '`';
-        var extractedString = '';
-        var hasProducedAtLeastOneToken = false;
+        const quoteChar = '`';
+        let extractedString = '';
+        //let hasProducedAtLeastOneToken = false;
 
         // Todo: Currently only difference between this and the regular string
         // parser func is that it allows multi-lines. Need to bring over the rest
@@ -420,7 +419,7 @@ export class Scanner {
 
             if (this.peek() == '\\')
             {
-                var next = this.peek(1);
+                const next = this.peek(1);
 
                 if (next == '\'' || next == '"' || next == '\\')
                 {
@@ -473,7 +472,7 @@ export class Scanner {
         
         while(this.charIsAlphaNumeric(this.peek())) this.nextChar(); 
 
-        var identifierAsString = this._source.substring(this._startOfToken, this._currentPos);
+        const identifierAsString = this._source.substring(this._startOfToken, this._currentPos);
         
         if (identifierAsString != "constructor" && this._keywords[identifierAsString] != undefined) {
             this.addTokenWithLiteral(this._keywords[identifierAsString], identifierAsString);
@@ -487,8 +486,8 @@ export class Scanner {
         this.addTokenWithLiteral(tokenType, null);
     }
 
-    private addTokenWithLiteral(tokenType:TokenType, literal:any) : void {
-        var lexeme = this._source.substring(this._startOfToken, this._currentPos);
+    private addTokenWithLiteral(tokenType:TokenType, literal:unknown) : void {
+        const lexeme = this._source.substring(this._startOfToken, this._currentPos);
 
         this._tokens.push(new Token(tokenType, lexeme, literal, this._currentLine));
     }

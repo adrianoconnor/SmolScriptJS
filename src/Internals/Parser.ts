@@ -56,7 +56,7 @@ export class Parser {
     }
 
     private _doParse() : Statement[] {
-        var statements:Statement[] = new Array();
+        const statements:Statement[] = [];
 
         while(!this.endOfTokenStream()) {
             statements.push(this.declaration());
@@ -70,9 +70,9 @@ export class Parser {
     }
 
     private match(...tokenTypes:TokenType[]) : boolean {
-        var _this = this;
+        const _this = this;
 
-        for(var i = 0; i < tokenTypes.length; i++) {
+        for(let i = 0; i < tokenTypes.length; i++) {
             if (_this.check(tokenTypes[i])) {
                 _this.advance();
                 return true;
@@ -82,14 +82,14 @@ export class Parser {
         return false;
     }
 
-    private check(tokenType:TokenType, skip:number = 0) : boolean
+    private check(tokenType:TokenType, skip = 0) : boolean
     {
         if (this.endOfTokenStream()) return false;
 
         return (this.peek(skip).type == tokenType);
     }
 
-    private peek(skip:number = 0) : Token {
+    private peek(skip = 0) : Token {
         return (this._tokens as Token[])[this._currentTokenIndex + skip];
     }
 
@@ -125,8 +125,8 @@ export class Parser {
 
     private varDeclaration() : Statement {
 
-        var name = this.consume(TokenType.IDENTIFIER, "Expected variable name");
-        var initializerExpr:Expression|undefined = undefined;
+        const name = this.consume(TokenType.IDENTIFIER, "Expected variable name");
+        let initializerExpr:Expression|undefined = undefined;
 
         if (this.match(TokenType.EQUAL))
         {
@@ -140,8 +140,8 @@ export class Parser {
 
     private functionDeclaration() {
        
-        var functionName =  this.consume(TokenType.IDENTIFIER, "Expected function name");
-        var functionParams:Token[] = new Array();
+        const functionName =  this.consume(TokenType.IDENTIFIER, "Expected function name");
+        const functionParams:Token[] = [];
 
         this.consume(TokenType.LEFT_BRACKET, "Expected (");
         
@@ -159,16 +159,16 @@ export class Parser {
         this.consume(TokenType.RIGHT_BRACKET, "Expected )");
         this.consume(TokenType.LEFT_BRACE, "Expected {");
         
-        var functionBody = this.block();
+        const functionBody = this.block();
 
         return new FunctionStatement(functionName, functionParams, functionBody);
     }
 
     private classDeclaration() {
        
-        var className = this.consume(TokenType.IDENTIFIER, "Expected function name");
-        var superclassName:any = null;
-        var functions:FunctionStatement[] = new Array<FunctionStatement>();
+        const className = this.consume(TokenType.IDENTIFIER, "Expected function name");
+        let superclassName:any = null;
+        const functions:FunctionStatement[] = new Array<FunctionStatement>();
 
         if (this.match(TokenType.COLON)) {
             superclassName = this.consume(TokenType.IDENTIFIER, "Expected superclass name");
@@ -179,7 +179,7 @@ export class Parser {
         while (!this.check(TokenType.RIGHT_BRACE) && !this.endOfTokenStream()) {
         
             if (this.check(TokenType.IDENTIFIER) && this.check(TokenType.LEFT_BRACKET, 1)) {
-                var classFn = this.functionDeclaration();
+                const classFn = this.functionDeclaration();
 
                 functions.push(classFn);
             }
@@ -212,13 +212,13 @@ export class Parser {
     }
 
     private printStatement() : PrintStatement {
-        var expr:Expression = this.expression();
+        const expr:Expression = this.expression();
         this.consume(TokenType.SEMICOLON, "Expected ;");
         return new PrintStatement(expr);
     }
 
     private throwStatement() : ThrowStatement {
-        var expr:Expression = this.expression();
+        const expr:Expression = this.expression();
         this.consume(TokenType.SEMICOLON, "Expected ;");
         return new ThrowStatement(expr);
     }
@@ -229,7 +229,7 @@ export class Parser {
             return new ReturnStatement(undefined); // Could be literal undefined.
         }
         else {
-            var expr = this.expression();
+            const expr = this.expression();
             this.consume(TokenType.SEMICOLON, "Expected ;");
             return new ReturnStatement(expr);
         }
@@ -262,7 +262,7 @@ export class Parser {
 
     private block() : BlockStatement
     {
-        var stmts:Statement[] = new Array();
+        const stmts:Statement[] = [];
 
         while (!this.check(TokenType.RIGHT_BRACE) && !this.endOfTokenStream()) {
             stmts.push(this.declaration());
@@ -277,15 +277,15 @@ export class Parser {
 
         this.consume(TokenType.LEFT_BRACKET, "Expected (");
 
-        var expr = this.expression();
+        const expr = this.expression();
 
         this.consume(TokenType.RIGHT_BRACKET, "Expected )");
 
-        var stmt = this.statement();
+        const stmt = this.statement();
 
         if (this.match(TokenType.ELSE)) {
 
-            var then = this.statement();
+            const then = this.statement();
 
             return new IfStatement(expr, stmt, then);
         }
@@ -298,11 +298,11 @@ export class Parser {
 
         this.consume(TokenType.LEFT_BRACKET, "Expected (");
 
-        var expr = this.expression();
+        const expr = this.expression();
 
         this.consume(TokenType.RIGHT_BRACKET, "Expected )");
 
-        var stmt = this.statement();
+        const stmt = this.statement();
 
         return new WhileStatement(expr, stmt);
     }
@@ -361,7 +361,7 @@ export class Parser {
             initialiser = this.expressionStatement();
         }
 
-        var condition:any = null; // Expression
+        let condition:Expression;
 
         if (!this.check(TokenType.SEMICOLON))
         {
@@ -374,7 +374,7 @@ export class Parser {
 
         this.consume(TokenType.SEMICOLON, "Expected ;");
 
-        var increment:any = null; // Expression
+        let increment:Expression|undefined; // Expression
 
         if (!this.check(TokenType.RIGHT_BRACKET))
         {
@@ -383,13 +383,11 @@ export class Parser {
 
         this.consume(TokenType.RIGHT_BRACKET, "Expected )");
 
-        var body = this.statement();
+        let body = this.statement();
 
         if (increment != null)
         {
-            var innerStmts:Statement[];
-
-            innerStmts = [body, new ExpressionStatement(increment)];
+            const innerStmts:Statement[] = [body, new ExpressionStatement(increment)];
 
             body = new BlockStatement(innerStmts);
         }
