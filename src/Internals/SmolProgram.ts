@@ -5,12 +5,12 @@ import { SmolVariableType } from "./SmolVariableTypes/SmolVariableType";
 
 export class SmolProgram
 {
-    constants:SmolVariableType[] = new Array<SmolVariableType>();
+    constants:SmolVariableType[] = [];
     code_sections:ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
-    function_table:SmolFunction[] = new Array<SmolFunction>();
+    function_table:SmolFunction[] = [];
 
     decompile() {
-        var p = '';
+        let p = '';
 
         p += `.constants\n`;
         this.constants.forEach((c,n) => {

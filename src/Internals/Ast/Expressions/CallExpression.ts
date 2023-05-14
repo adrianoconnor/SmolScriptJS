@@ -8,9 +8,9 @@ export class CallExpression implements Expression {
 
     callee:Expression;
     args:Expression[];
-    useObjectRef:Boolean;
+    useObjectRef:boolean;
 
-    constructor(callee:Expression, args:Expression[], useObjectRef:Boolean) {
+    constructor(callee:Expression, args:Expression[], useObjectRef:boolean) {
         this.callee = callee;
         this.args = args;
         this.useObjectRef = useObjectRef;

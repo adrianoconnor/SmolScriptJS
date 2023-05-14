@@ -6,11 +6,6 @@ export class BreakStatement implements Statement {
         return "Break";
     }
 
-
-    constructor() {
-
-    }
-
     accept(visitor:any) {
         return visitor.visitBreakStatement(this);
     }

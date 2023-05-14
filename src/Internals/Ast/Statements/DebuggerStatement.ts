@@ -6,11 +6,6 @@ export class DebuggerStatement implements Statement {
         return "Debugger";
     }
 
-
-    constructor() {
-
-    }
-
     accept(visitor:any) {
         return visitor.visitDebuggerStatement(this);
     }

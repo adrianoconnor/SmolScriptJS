@@ -58,7 +58,7 @@ export class Scanner {
             this.scanToken();
         }
 
-        this._tokens.push(new Token(TokenType.EOF, "", null, this._currentLine));
+        this._tokens.push(new Token(TokenType.EOF, "", undefined, this._currentLine));
 
         return this._tokens;
     }
@@ -483,10 +483,10 @@ export class Scanner {
     }
 
     private addToken(tokenType:TokenType) : void {
-        this.addTokenWithLiteral(tokenType, null);
+        this.addTokenWithLiteral(tokenType);
     }
 
-    private addTokenWithLiteral(tokenType:TokenType, literal:unknown) : void {
+    private addTokenWithLiteral(tokenType:TokenType, literal:string|undefined = undefined) : void {
         const lexeme = this._source.substring(this._startOfToken, this._currentPos);
 
         this._tokens.push(new Token(tokenType, lexeme, literal, this._currentLine));

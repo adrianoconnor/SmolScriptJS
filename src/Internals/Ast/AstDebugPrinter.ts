@@ -10,7 +10,6 @@ import { CallExpression } from "./Expressions/CallExpression";
 import { LogicalExpression } from "./Expressions/LogicalExpression";
 import { UnaryExpression } from "./Expressions/UnaryExpression";
 import { BlockStatement } from "./Statements/BlockStatement";
-import { BreakStatement } from "./Statements/BreakStatement";
 import { FunctionStatement } from "./Statements/FunctionStatement";
 import { ReturnStatement } from "./Statements/ReturnStatement";
 import { IfStatement } from "./Statements/IfStatement";
@@ -19,8 +18,6 @@ import { Statement } from "./Statements/Statement";
 import { Scanner } from "../Scanner";
 import { Parser } from "../Parser";
 import { FunctionExpression } from "./Expressions/FunctionExpression";
-import { ContinueStatement } from "./Statements/ContinueStatement";
-import { DebuggerStatement } from "./Statements/DebuggerStatement";
 import { ClassStatement } from "./Statements/ClassStatement";
 import { ThrowStatement } from "./Statements/ThrowStatement";
 import { TryStatement } from "./Statements/TryStatement";
@@ -34,7 +31,7 @@ import { TernaryExpression } from "./Expressions/TernaryExpression";
 
 export class AstDebugPrinter {
 
-    _indent:number = 0;
+    _indent = 0;
 
     private indent() : string {
         this._indent++;
@@ -68,13 +65,11 @@ export class AstDebugPrinter {
         const i = this.indent();
         let rt = '';
 
-        let _this = this;
-
         rt += `${i}[block]\n`;
 
-        stmt.statements.forEach(function(x) 
+        stmt.statements.forEach((x) =>
         { 
-            rt += x.accept(_this);
+            rt += x.accept(this);
         });
 
         rt += `${i}[/block]\n`;
@@ -84,7 +79,9 @@ export class AstDebugPrinter {
         return rt; 
     }
 
-    private visitBreakStatement(stmt:BreakStatement) {
+    // Break, continue and debug can receive their stmt objects, but they don't use them and ununsed
+    // vars are an eslint error so they aren't declared.
+    private visitBreakStatement() {
         const i = this.indent();
         let rt = '';
 
@@ -98,16 +95,15 @@ export class AstDebugPrinter {
 
         const i = this.indent();
         let rt = '';
-        const t = this;
 
         rt += `${i}[class name=${stmt.className}]\n`;
         const i2 = this.indent();
-        stmt.functions.forEach(function(f, n) {
+        stmt.functions.forEach((f) => {
             rt += `${i2}[classFunction name=${f.name.lexeme}]\n`;
-            f.parameters.forEach(function(p, n2) {
+            f.parameters.forEach((p, n2) => {
                 rt += `${i2}  param ${n2}: ${p.lexeme}\n`;
             });
-            rt += f.functionBody.accept(t);
+            rt += f.functionBody.accept(this);
             rt += `${i2}[/classFunction]\n`;            
         });
         this.outdent();
@@ -117,7 +113,7 @@ export class AstDebugPrinter {
         return rt;
     }
 
-    private visitContinueStatement(stmt:ContinueStatement) {
+    private visitContinueStatement() {
         const i = this.indent();
         let rt = '';
 
@@ -127,7 +123,7 @@ export class AstDebugPrinter {
         return rt;
     }
 
-    private visitDebuggerStatement(stmt:DebuggerStatement) {
+    private visitDebuggerStatement() {
         const i = this.indent();
         let rt = '';
 

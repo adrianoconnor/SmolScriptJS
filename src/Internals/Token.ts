@@ -4,10 +4,10 @@ export class Token
 {
     public type: TokenType;
     public lexeme: string;
-    public literal: any;
+    public literal: string|undefined;
     public line: number;
 
-    constructor(type:TokenType, lexeme:string, literal:any, line:number)
+    constructor(type:TokenType, lexeme:string, literal:string|undefined, line:number)
     {
         this.type = type;
         this.lexeme = lexeme;

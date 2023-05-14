@@ -14,7 +14,7 @@ export class Environment {
         this._variables[name] = value;
     }
 
-    public assign(name:string, value:SmolVariableType, isThis:boolean = false) {
+    public assign(name:string, value:SmolVariableType, isThis = false) {
         if (this._variables[name] != undefined) {
             this._variables[name] = value;
         }

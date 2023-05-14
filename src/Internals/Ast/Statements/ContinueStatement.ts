@@ -6,11 +6,6 @@ export class ContinueStatement implements Statement {
         return "Continue";
     }
 
-
-    constructor() {
-
-    }
-
     accept(visitor:any) {
         return visitor.visitContinueStatement(this);
     }

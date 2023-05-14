@@ -28,19 +28,21 @@ enum RunMode
 export class SmolVM {
 
     program:SmolProgram;
-    code_section:number = 0;
-    pc:number = 0;
-    runMode:RunMode = RunMode.Paused;
-    stack:SmolStackType[] = new Array<SmolStackType>();
-    jmplocs:number[] = new Array<number>();
+    code_section = 0;
+    pc = 0;
+    runMode = RunMode.Paused;
+    stack:SmolStackType[] = [];
+    jmplocs:number[] = [];
 
-    globalEnv:Environment = new Environment();
+    globalEnv = new Environment();
     environment:Environment = this.globalEnv;
     staticTypes:{ [name:string] : any } = {};
 
+    classMethodRegEx = new RegExp("@([A-Za-z]+)[.]([A-Za-z]+)");
+
     constructor(source:string)
     {    
-        let compiler = new Compiler();
+        const compiler = new Compiler();
 
         this.program = compiler.Compile(source);
 
@@ -53,7 +55,7 @@ export class SmolVM {
     }
 
     static Init(source:string):SmolVM {
-        let vm = SmolVM.Compile(source);
+        const vm = SmolVM.Compile(source);
         vm.run();
         return vm;
     }
@@ -69,13 +71,13 @@ export class SmolVM {
         // in the instructions for that section so we can jump
         // if we need to.
 
-        for (let i:number = 0; i < this.program.code_sections.length; i++)
+        for (let i = 0; i < this.program.code_sections.length; i++)
         {
             // Not sure if this will hold up, might be too simplistic
 
-            for (let j:number = 0; j < this.program.code_sections[i].length; j++)
+            for (let j = 0; j < this.program.code_sections[i].length; j++)
             {
-                let instr = this.program.code_sections[i][j];
+                const instr = this.program.code_sections[i][j];
 
                 if (instr.opcode == OpCode.LABEL)
                 {
@@ -105,7 +107,7 @@ export class SmolVM {
         this.debugFunc = debugFunc;
     }
 
-    debug(str:String):void {
+    debug(str:string):void {
         if (this.debugFunc != undefined) this.debugFunc(str);
     }
     
@@ -119,7 +121,7 @@ export class SmolVM {
 
         while (true)
         {        
-            var instr = this.program.code_sections[this.code_section][this.pc++];
+            const instr = this.program.code_sections[this.code_section][this.pc++];
             
             //this.debug(OpCode[instr.opcode]);
             //this.debug(this.stack.length.toString());
@@ -142,7 +144,7 @@ export class SmolVM {
 
                     case OpCode.CALL:
                         {
-                            var untypedCallData = this.stack.pop();
+                            const untypedCallData = this.stack.pop();
 
                             if (untypedCallData instanceof SmolNativeFunctionResult)
                             {
@@ -151,11 +153,11 @@ export class SmolVM {
                                 break;
                             }
 
-                            let callData = untypedCallData as SmolFunction;
+                            const callData = untypedCallData as SmolFunction;
 
                             // First create the env for our function
 
-                            var env = new Environment(this.globalEnv);
+                            let env = new Environment(this.globalEnv);
 
                             if (instr.operand2 as boolean)
                             {
@@ -169,7 +171,7 @@ export class SmolVM {
 
                             // Next pop args off the stack. Op1 is number of args.                    
 
-                            let paramValues:SmolVariableType[] = new Array<SmolVariableType>();
+                            const paramValues:SmolVariableType[] = new Array<SmolVariableType>();
 
                             for (let i = 0; i < (instr.operand1 as number); i++)
                             {
@@ -194,7 +196,7 @@ export class SmolVM {
 
                             // Store our current program/vm state so we can restor
 
-                            var state = new SmolCallSiteSaveState(
+                            const state = new SmolCallSiteSaveState(
                                 this.code_section,
                                 this.pc,
                                 this.environment,
@@ -217,8 +219,8 @@ export class SmolVM {
 
                     case OpCode.ADD:
                         {
-                            let right = this.stack.pop() as SmolVariableType;
-                            let left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             if (left instanceof SmolNumber && right instanceof SmolNumber) {
                                 this.stack.push(new SmolNumber(left.getValue() + right.getValue()));
@@ -232,8 +234,8 @@ export class SmolVM {
 
                     case OpCode.SUB:
                         {
-                            var right = this.stack.pop() as SmolVariableType;
-                            var left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             this.stack.push(new SmolNumber(left.getValue() - right.getValue()));
 
@@ -242,8 +244,8 @@ export class SmolVM {
 
                     case OpCode.MUL:
                         {
-                            var right = this.stack.pop() as SmolVariableType;
-                            var left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             this.stack.push(new SmolNumber(left.getValue() * right.getValue()));
 
@@ -252,8 +254,8 @@ export class SmolVM {
 
                     case OpCode.DIV:
                         {
-                            var right = this.stack.pop() as SmolVariableType;
-                            var left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             this.stack.push(new SmolNumber(left.getValue() / right.getValue()));
 
@@ -262,8 +264,8 @@ export class SmolVM {
 
                     case OpCode.REM:
                         {
-                            var right = this.stack.pop() as SmolVariableType;
-                            var left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             this.stack.push(new SmolNumber(left.getValue() % right.getValue()));
 
@@ -272,8 +274,8 @@ export class SmolVM {
 
                     case OpCode.POW:
                         {
-                            var right = this.stack.pop() as SmolVariableType;
-                            var left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             this.stack.push(new SmolNumber(left.getValue() ** right.getValue()));
 
@@ -283,8 +285,8 @@ export class SmolVM {
 
                     case OpCode.EQL:
                         {
-                            var right = this.stack.pop() as SmolVariableType;
-                            var left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             this.stack.push(new SmolBool(left.equals(right)));
 
@@ -293,8 +295,8 @@ export class SmolVM {
 
                     case OpCode.NEQ:
                         {
-                            var right = this.stack.pop() as SmolVariableType;
-                            var left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             this.stack.push(new SmolBool(!left.equals(right)));
 
@@ -303,8 +305,8 @@ export class SmolVM {
 
                     case OpCode.GT:
                         {
-                            var right = this.stack.pop() as SmolVariableType;
-                            var left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             this.stack.push(new SmolBool(left.getValue() > right.getValue()));
 
@@ -313,8 +315,8 @@ export class SmolVM {
 
                     case OpCode.LT:
                         {
-                            var right = this.stack.pop() as SmolVariableType;
-                            var left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             this.stack.push(new SmolBool(left.getValue() < right.getValue()));
 
@@ -323,8 +325,8 @@ export class SmolVM {
 
                     case OpCode.GTE:
                         {
-                            var right = this.stack.pop() as SmolVariableType;
-                            var left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             this.stack.push(new SmolBool(left.getValue() >= right.getValue()));
 
@@ -333,8 +335,8 @@ export class SmolVM {
 
                     case OpCode.LTE:
                         {
-                            var right = this.stack.pop() as SmolVariableType;
-                            var left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             this.stack.push(new SmolBool(left.getValue() <= right.getValue()));
 
@@ -344,8 +346,8 @@ export class SmolVM {
 Don't need this right now :)
                     case OpCode.BITWISE_OR:
                         {
-                            var right = this.stack.pop() as SmolVariableType;
-                            var left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             stack.Push(left | right);
 
@@ -354,8 +356,8 @@ Don't need this right now :)
 
                     case OpCode.BITWISE_AND:
                         {
-                            var right = this.stack.pop() as SmolVariableType;
-                            var left = this.stack.pop() as SmolVariableType;
+                            const right = this.stack.pop() as SmolVariableType;
+                            const left = this.stack.pop() as SmolVariableType;
 
                             stack.Push(left & right);
 
@@ -363,55 +365,56 @@ Don't need this right now :)
                         }
 */
                     case OpCode.EOF:
-
-                        //debug($"Done, stack size = {stack.Count}");
-                        this.runMode = RunMode.Done;
-                        return;
+                        {
+                            //debug($"Done, stack size = {stack.Count}");
+                            this.runMode = RunMode.Done;
+                            return;
+                        }
 
                     case OpCode.RETURN:
-
-                        // Return to the previous code section, putting
-                        // a return value on the stack and restoring the PC
-
-                        // Top value on the stack is the return value
-
-                        let return_value = this.stack.pop();
-
-                        // Next value should be the original pre-call state that we saved
-
-                        let _savedCallState = this.stack.pop();
-
-                        if (!(_savedCallState instanceof SmolCallSiteSaveState))
                         {
-                            throw new Error("Tried to return but found something unexecpted on the stack");
+                            // Return to the previous code section, putting
+                            // a return value on the stack and restoring the PC
+
+                            // Top value on the stack is the return value
+
+                            const return_value = this.stack.pop();
+
+                            // Next value should be the original pre-call state that we saved
+
+                            const _savedCallState = this.stack.pop();
+
+                            if (!(_savedCallState instanceof SmolCallSiteSaveState))
+                            {
+                                throw new Error("Tried to return but found something unexecpted on the stack");
+                            }
+
+                            const savedCallState = _savedCallState as SmolCallSiteSaveState;
+
+                            this.environment = savedCallState.previous_env;
+                            this.pc = savedCallState.pc;
+                            this.code_section = savedCallState.code_section;
+
+                            // Return value needs to go back on the stack
+                            this.stack.push(return_value == undefined ? new SmolUndefined() : return_value);
+
+                            if (savedCallState.call_is_extern)
+                            {
+                                // Not sure what to do about return value here
+
+                                this.runMode = RunMode.Paused;
+                                return; // Don't like this, error prone
+                            }
+
+                            break;
                         }
-
-                        let savedCallState:SmolCallSiteSaveState = _savedCallState as SmolCallSiteSaveState;
-
-                        this.environment = savedCallState.previous_env;
-                        this.pc = savedCallState.pc;
-                        this.code_section = savedCallState.code_section;
-
-                        // Return value needs to go back on the stack
-                        this.stack.push(return_value == undefined ? new SmolUndefined() : return_value);
-
-                        if (savedCallState.call_is_extern)
-                        {
-                            // Not sure what to do about return value here
-
-                            this.runMode = RunMode.Paused;
-                            return; // Don't like this, error prone
-                        }
-
-                        break;
-
                     case OpCode.DECLARE:
                         this.environment.define(instr.operand1 as string, new SmolUndefined());
                         break;
 
                     case OpCode.STORE:
                         {
-                            var name = instr.operand1 as string;
+                            let name = instr.operand1 as string;
 
                             if (name == "@IndexerSet")
                             {
@@ -422,16 +425,16 @@ Don't need this right now :)
                                 name = (this.stack.pop() as SmolVariableType).getValue();
                             }
 
-                            let value = this.stack.pop() as SmolVariableType; // Hopefully always true...
+                            const value = this.stack.pop() as SmolVariableType; // Hopefully always true...
                             
                             let env_in_context = this.environment;
-                            let isPropertySetter:boolean = false;
+                            let isPropertySetter = false;
 
                             if (instr.operand2 != undefined && (instr.operand2 as boolean))
                             {
                                 //console.log(this.stack);
 
-                                var objRef = this.stack.pop();
+                                const objRef = this.stack.pop();
 
                                 isPropertySetter = true;
 
@@ -460,9 +463,9 @@ Don't need this right now :)
                     case OpCode.FETCH:
                         {
                             // Could be a variable or a function
-                            var name = instr.operand1 as string;
+                            let name = instr.operand1 as string;
 
-                            var env_in_context = this.environment;
+                            let env_in_context = this.environment;
 
                             if (name == "@IndexerGet")
                             {
@@ -474,8 +477,8 @@ Don't need this right now :)
                             if (instr.operand2 != null && (instr.operand2 as boolean))
                             {
 
-                                var objRef = this.stack.pop();
-                                var peek_instr = this.program.code_sections[this.code_section][this.pc];
+                                const objRef = this.stack.pop();
+                                const peek_instr = this.program.code_sections[this.code_section][this.pc];
 
                                 if (objRef instanceof SmolObject)
                                 {
@@ -490,13 +493,13 @@ Don't need this right now :)
                                 {                                
                                     if (objRef instanceof ISmolNativeCallable)
                                     {
-                                        var isFuncCall = (peek_instr.opcode == OpCode.CALL && peek_instr.operand2);
+                                        const isFuncCall = (peek_instr.opcode == OpCode.CALL && peek_instr.operand2);
 
                                         if (isFuncCall)
                                         {
                                             // We need to get some arguments
 
-                                           let paramValues = new Array<SmolVariableType>();
+                                            const paramValues = new Array<SmolVariableType>();
 
                                             for (let i = 0; i < (peek_instr.operand1 as number); i++)
                                             {
@@ -516,22 +519,22 @@ Don't need this right now :)
                                         break;
                                     }
                                     else if (objRef instanceof SmolNativeFunctionResult)
-                                    {
-                                        var classMethodRegEx = new RegExp("\@([A-Za-z]+)[\.]([A-Za-z]+)");
-
-                                        if (classMethodRegEx.test(name))
+                                    {                                    
+                                        if (this.classMethodRegEx.test(name))
                                         {
-                                            var rexResult = classMethodRegEx.exec(name);
+                                            const rexResult = this.classMethodRegEx.exec(name);
 
                                             if (rexResult == null || rexResult!.groups == null) {
                                                 throw new Error("class method name regex failed");
                                             }
 
-                                            let parameters:any[] = new Array<any>();
+                                            // TODO: Document why this is any and why the first
+                                            // value is the regex second group match
+                                            const parameters:any[] = [];
 
                                             parameters.push(rexResult.groups[2]);
 
-                                            var functionArgs = new Array<SmolVariableType>();
+                                            const functionArgs = new Array<SmolVariableType>();
 
                                             if (name != "@Object.constructor")
                                             {
@@ -550,7 +553,7 @@ Don't need this right now :)
                                             this.stack.pop();
 
                                             // Put our actual new object on after calling the ctor:                                            
-                                            var r = this.staticTypes[rexResult.groups[1]]["StaticCall"](parameters) as SmolVariableType;
+                                            const r = this.staticTypes[rexResult.groups[1]]["StaticCall"](parameters) as SmolVariableType;
                                             
                                             if (name == "@Object.constructor")
                                             {
@@ -575,7 +578,7 @@ Don't need this right now :)
                                 }                    
                             }
 
-                            var fetchedValue = env_in_context.tryGet(name);
+                            let fetchedValue = env_in_context.tryGet(name);
 
                             if (fetchedValue instanceof SmolFunction)
                             {
@@ -590,7 +593,7 @@ Don't need this right now :)
                             }
                             else
                             {
-                                var fn = this.program.function_table.find(f => f.global_function_name == name);
+                                const fn = this.program.function_table.find(f => f.global_function_name == name);
                                 
                                 if (fn != undefined)
                                 {
@@ -607,7 +610,7 @@ Don't need this right now :)
 
                     case OpCode.JMPFALSE:
                         {
-                            var value = (this.stack.pop() as SmolVariableType);
+                            const value = (this.stack.pop() as SmolVariableType);
 
                             if (value.getValue() == false) // .isFalsey())
                             {
@@ -618,17 +621,17 @@ Don't need this right now :)
                         }
 
                     case OpCode.JMPTRUE:
-
-                        //.IsTruthy())
-                        var value = (this.stack.pop() as SmolVariableType);
-
-                        if (value.getValue() == true) // .isFalsey())
                         {
-                            this.pc = this.jmplocs[instr.operand1 as number];
-                        }                         
+                            //.IsTruthy())
+                            const value = this.stack.pop() as SmolVariableType;
 
-                        break;
+                            if (value.getValue() == true) // .isFalsey())
+                            {
+                                this.pc = this.jmplocs[instr.operand1 as number];
+                            }                         
 
+                            break;
+                        }
 
                     case OpCode.JMP:
                         this.pc = this.jmplocs[instr.operand1 as number];
@@ -724,7 +727,7 @@ Don't need this right now :)
 
                         while (this.stack.length > 0)
                         {
-                            var next = this.stack.pop();
+                            const next = this.stack.pop();
 
                             if (next instanceof SmolLoopMarker)
                             {
@@ -744,59 +747,61 @@ Don't need this right now :)
                         break;
 
                     case OpCode.CREATE_OBJECT:
-
-                        // Create a new environment and store it as an instance/ref variable
-                        // For now we'll just have it 'inherit' the global env, but scope is
-                        // a thing we need to think about, but I'll work out how JS does it
-                        // first and try and do the same (I think class hierarchies all share
-                        // a single env?!
-
-                        var class_name = instr.operand1 as string;
-
-                        if (this.staticTypes[class_name] != undefined)
                         {
-                            this.stack.push(new SmolNativeFunctionResult());
+                            // Create a new environment and store it as an instance/ref variable
+                            // For now we'll just have it 'inherit' the global env, but scope is
+                            // a thing we need to think about, but I'll work out how JS does it
+                            // first and try and do the same (I think class hierarchies all share
+                            // a single env?!
+
+                            const class_name = instr.operand1 as string;
+
+                            if (this.staticTypes[class_name] != undefined)
+                            {
+                                this.stack.push(new SmolNativeFunctionResult());
+                                break;
+                            }
+
+                            const obj_environment = new Environment(this.globalEnv);
+                            
+                            this.program.function_table.filter((el) => el.global_function_name.startsWith(`@${class_name}.`)).forEach(classFunc => {
+                                                        
+                                const funcName = classFunc.global_function_name.substring(class_name.length + 2);
+
+                                obj_environment.define(funcName, new SmolFunction(
+                                    classFunc.global_function_name,
+                                    classFunc.code_section,
+                                    classFunc.arity,
+                                    classFunc.param_variable_names
+                                ));
+
+                            });
+
+                            this.stack.push(new SmolObject(obj_environment, class_name));
+
+                            obj_environment.define("this", (this.stack.peek() as SmolVariableType));
+
                             break;
                         }
 
-                        var obj_environment = new Environment(this.globalEnv);
-                        
-                        this.program.function_table.filter((el) => el.global_function_name.startsWith(`@${class_name}.`)).forEach(classFunc => {
-                                                    
-                            var funcName = classFunc.global_function_name.substring(class_name.length + 2);
-
-                            obj_environment.define(funcName, new SmolFunction(
-                                classFunc.global_function_name,
-                                classFunc.code_section,
-                                classFunc.arity,
-                                classFunc.param_variable_names
-                            ));
-
-                        });
-
-                        this.stack.push(new SmolObject(obj_environment, class_name));
-
-                        obj_environment.define("this", (this.stack.peek() as SmolVariableType));
-
-                        break;
-
                     case OpCode.DUPLICATE_VALUE:
+                        {
+                            const skip = instr.operand1 != undefined ? (instr.operand1 as number) : 0;
 
-                        let skip:number = instr.operand1 != undefined ? (instr.operand1 as number) : 0;
+                            const itemToDuplicate = this.stack[this.stack.length - 1 - skip];
 
-                        var itemToDuplicate = this.stack[this.stack.length - 1 - skip];
+                            this.stack.push(itemToDuplicate);
 
-                        this.stack.push(itemToDuplicate);
-
-                        break;
-
+                            break;
+                        }
                     case OpCode.PRINT:
+                        {
+                            const valueToPrint = this.stack.pop() as SmolVariableType;
 
-                        var whatevs = this.stack.pop();
+                            console.log(valueToPrint.getValue());
 
-                        console.log(whatevs);
-
-                        break;
+                            break;
+                        }
 
                     default:
                         throw new Error(`You forgot to handle an opcode: ${instr.opcode}`);
@@ -805,17 +810,17 @@ Don't need this right now :)
             catch (e) // SmolThrown
             {
                 let handled = false;
-                let thrownObject = this.stack.pop() as SmolVariableType;
+                const thrownObject = this.stack.pop() as SmolVariableType;
 
                 while (this.stack.length > 0)
                 {
-                    var next = this.stack.pop();
+                    const next = this.stack.pop();
 
                     if (next instanceof SmolTryRegionSaveState)
                     {
                         // We found the start of a try section, restore our state and jump to the exception handler location
 
-                        let tryState = next as SmolTryRegionSaveState;
+                        const tryState = next as SmolTryRegionSaveState;
 
                         this.code_section = tryState.code_section;
                         this.pc = tryState.jump_exception;
