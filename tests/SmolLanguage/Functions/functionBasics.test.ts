@@ -1,36 +1,28 @@
 import { describe, expect, test } from '@jest/globals';
 import { AstDebugPrinter } from '../../../src/Internals/Ast/AstDebugPrinter';
-import { Compiler } from '../../../src/Internals/Compiler';
 import { SmolVM } from '../../../src/SmolVM';
-import { Scanner } from '../../../src/Internals/Scanner';
-import { Token } from '../../../src/Internals/Token';
-import { TokenType } from '../../../src/Internals/TokenType';
 
 describe('Function Basics', () => {
   test('Declare and Call Simple Function', () => {
-    let source = `
+    const source = `
     function test(a, b) {
         return a + b * 10;
     }
     
     var b = test(5, 2);
-
     var s = '1234';
-
     var l = s.length;
 
     `;
 
-    var vm = new SmolVM(source);
+    const vm = SmolVM.Init(source);
 
-    vm.run();
-
-    expect(vm.globalEnv.tryGet('b')!.getValue()!).toBe(25);
-    expect(vm.globalEnv.tryGet('l')!.getValue()!).toBe(4);
+    expect(vm.getGlobalVar('b')).toBe(25);
+    expect(vm.getGlobalVar('l')).toBe(4);
   }),
 
   test('Declare and Call Simple Function Expression as a Varable', () => {
-    let source = `
+    const source = `
     var f = function(a, b) {
         return a + b * 10;
     };
@@ -38,17 +30,17 @@ describe('Function Basics', () => {
     var b = f(5, 2);
     `;
 
-    var vm = new SmolVM(source);
+    const vm = new SmolVM(source);
 
     vm.run();
 
-    var x = vm.globalEnv.tryGet('b');
+    const x = vm.globalEnv.tryGet('b');
 
     expect(x!.getValue()).toBe(25);
   }),
   
   test('Declare and Call Simple Function - Generate AST', () => {
-    let source = `
+    const source = `
     function test(a) {
         return a + 10;
     }
@@ -56,7 +48,7 @@ describe('Function Basics', () => {
     var b = test(5);
     `;
 
-    var ast = AstDebugPrinter.parse(source);
+    const ast = AstDebugPrinter.parse(source);
 
     expect(ast).toBe(`[function name=test]
   param 0: a
@@ -70,7 +62,7 @@ describe('Function Basics', () => {
 }),
 
 test('Declare class etc', () => {
-  let source = `
+  const source = `
   class testClass {
     constructor() {
       this.x = 5;
@@ -85,18 +77,8 @@ var c = new testClass();
 
 var a = c.getTest();
   `;
-/*
-  var t = Scanner.tokenize(source);
 
-  var s = '';
-  t.forEach((x) => {
-    s += `${TokenType[x.type]} ${x.literal}\n`;
-  })
-
-  console.log(s);
-*/
-
-  var vm = SmolVM.Init(source);
+  const vm = SmolVM.Init(source);
   
   expect(vm.getGlobalVar('a')).toBe(5);
 });

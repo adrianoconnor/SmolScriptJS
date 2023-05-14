@@ -4,9 +4,9 @@ import { SmolNumber } from '../../../src/Internals/SmolVariableTypes/SmolNumber'
 describe('SmolInteral VariableTypes', () => {
   test('SmolNumber Equality', () => {
 
-    var n1 = new SmolNumber(1);
-    var n2 = new SmolNumber(1);
-    var n3 = new SmolNumber(2);
+    const n1 = new SmolNumber(1);
+    const n2 = new SmolNumber(1);
+    const n3 = new SmolNumber(2);
         
     expect(n1.equals(n2)).toBeTruthy(); // This is using our own equality method on the base type
     expect(n1.equals(n3)).toBeFalsy();

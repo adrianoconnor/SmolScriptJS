@@ -4,11 +4,11 @@ import { SmolVM } from '../../../src/SmolVM';
 describe('SmolInteral BinaryExpression Compilation', () => {
   test('Simple Tests', () => {
 
-    let source = `
+    const source = `
     var a = (10 + 5) * 2;
     `;
 
-    var vm = SmolVM.Init(source);
+    const vm = SmolVM.Init(source);
 
     expect(vm.getGlobalVar('a')).toBe(30);
     expect(vm.getGlobalVar('b')).toBeUndefined();    

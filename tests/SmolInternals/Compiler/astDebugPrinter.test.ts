@@ -1,7 +1,4 @@
 import { describe, expect, test } from '@jest/globals';
-import { SmolVM } from '../../../src/SmolVM';
-import { Scanner } from '../../../src/Internals/Scanner';
-import { Parser } from '../../../src/Internals/Parser';
 import { AstDebugPrinter } from '../../../src/Internals/Ast/AstDebugPrinter';
 
 describe('SmolInteral AstDebugPrint', () => {

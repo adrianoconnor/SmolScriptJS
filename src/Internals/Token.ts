@@ -17,6 +17,6 @@ export class Token
 
     toString(): string
     {
-        return `Token: ${this.type}, ${this.lexeme}, ${this.literal}`;
+        return `Token: ${TokenType[this.type]}, ${this.lexeme}, ${this.literal}`;
     }
 }
