@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Statement } from "./Statement";
 
 export class BreakStatement implements Statement {

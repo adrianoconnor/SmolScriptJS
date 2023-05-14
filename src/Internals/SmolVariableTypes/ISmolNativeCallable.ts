@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { SmolVariableType } from "./SmolVariableType";
 
 export abstract class ISmolNativeCallable extends SmolVariableType {

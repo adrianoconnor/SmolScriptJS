@@ -166,7 +166,7 @@ export class Parser {
     private classDeclaration() {
        
         const className = this.consume(TokenType.IDENTIFIER, "Expected function name");
-        let superclassName:any = null;
+        let superclassName:Token|undefined = undefined;
         const functions:FunctionStatement[] = new Array<FunctionStatement>();
 
         if (this.match(TokenType.COLON)) {

@@ -36,6 +36,9 @@ export class SmolVM {
 
     globalEnv = new Environment();
     environment:Environment = this.globalEnv;
+    // We're using any because we need to be able to call arbitrary functions on the type -- we might be able
+    // to wrap this up in an interface.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     staticTypes:{ [name:string] : any } = {};
 
     classMethodRegEx = new RegExp("@([A-Za-z]+)[.]([A-Za-z]+)");
@@ -60,6 +63,8 @@ export class SmolVM {
         return vm;
     }
 
+    // I have no idea how I could do this without any -- it really can return any type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getGlobalVar(varName:string):any {
         return this.globalEnv.tryGet(varName)?.getValue() ?? undefined;
     }
@@ -101,9 +106,11 @@ export class SmolVM {
         return this.program.decompile();
     }
 
-    private debugFunc:Function|undefined = undefined;
+    // I have no idea how I could do this without Function, it's needed
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private debugFunc:((str:string) => void)|undefined = undefined;
 
-    onDebugPrint(debugFunc:Function):void {
+    onDebugPrint(debugFunc:(str:string) => void): void {
         this.debugFunc = debugFunc;
     }
 
@@ -119,7 +126,7 @@ export class SmolVM {
     {
         this.runMode = newRunMode;
 
-        while (true)
+        while (this.runMode == RunMode.Run || this.runMode == RunMode.Step)
         {        
             const instr = this.program.code_sections[this.code_section][this.pc++];
             
@@ -444,7 +451,7 @@ Don't need this right now :)
                                 }
                                 else if (objRef instanceof ISmolNativeCallable)
                                 {
-                                    (objRef as ISmolNativeCallable).setProp(name!, value);
+                                    (objRef as ISmolNativeCallable).setProp(name, value);
                                     break;
                                 }
                                 else
@@ -453,7 +460,7 @@ Don't need this right now :)
                                 }
                             }
 
-                            env_in_context.assign(name!, value, isPropertySetter);
+                            env_in_context.assign(name, value, isPropertySetter);
 
                             this.debug(`              [Saved ${value}]`);
 
@@ -506,7 +513,7 @@ Don't need this right now :)
                                                 paramValues.push(this.stack.pop() as SmolVariableType);
                                             }
 
-                                            this.stack.push((objRef as ISmolNativeCallable).nativeCall(name, paramValues)!);
+                                            this.stack.push((objRef as ISmolNativeCallable).nativeCall(name, paramValues));
                                             this.stack.push(new SmolNativeFunctionResult()); // Call will use this to see that the call is already done.
                                         }
                                         else
@@ -524,12 +531,13 @@ Don't need this right now :)
                                         {
                                             const rexResult = this.classMethodRegEx.exec(name);
 
-                                            if (rexResult == null || rexResult!.groups == null) {
+                                            if (rexResult == null || rexResult.groups == null) {
                                                 throw new Error("class method name regex failed");
                                             }
 
                                             // TODO: Document why this is any and why the first
                                             // value is the regex second group match
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                             const parameters:any[] = [];
 
                                             parameters.push(rexResult.groups[2]);

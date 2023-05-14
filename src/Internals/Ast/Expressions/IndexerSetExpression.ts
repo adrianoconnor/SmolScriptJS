@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Expression } from "./Expression";
 
 export class IndexerSetExpression implements Expression {

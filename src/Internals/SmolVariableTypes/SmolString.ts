@@ -21,8 +21,8 @@ export class SmolString extends ISmolNativeCallable {
         return `(SmolString) ${this._value}`;
     }
 
-    setProp(name:string, value:any): void {
-
+    setProp(name:string): void {
+        throw new Error(`Property setting ${name} does not apply to String`);
     }
 
     getProp(name:string): SmolVariableType {
@@ -33,7 +33,7 @@ export class SmolString extends ISmolNativeCallable {
         throw new Error(`Can't get property ${name} on SmolString`);
     }
 
-    nativeCall(funcName:string, parameters:SmolVariableType[]) : SmolVariableType {
+    nativeCall(/*funcName:string, parameters:SmolVariableType[]*/) : SmolVariableType {
 
         throw new Error();
     }

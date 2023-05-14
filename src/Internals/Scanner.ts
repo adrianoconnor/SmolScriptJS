@@ -1,7 +1,6 @@
 import { TokenType } from "./TokenType";
 import { Token } from "./Token";
 import { ScannerError } from "./ScannerError";
-import { Expression } from "./Ast/Expressions/Expression";
 
 export class Scanner {
 

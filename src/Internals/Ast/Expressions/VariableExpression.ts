@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Expression } from "./Expression";
 import { Token } from "../../Token";
 import { TokenType } from "../../TokenType";

@@ -340,11 +340,11 @@ export class AstDebugPrinter {
         return (`(${expr.op.lexeme} ${expr.left.accept(this)} ${expr.right.accept(this)})`);
     }
 
-    private visitNewInstance(expr:NewInstanceExpression) : string {
+    private visitNewInstanceExpression(expr:NewInstanceExpression) : string {
         return (`(new ${expr.className.lexeme} with ${expr.ctorArgs.length} args in ctor)`);
     }
 
-    private visitObjectInitializer(expr:ObjectInitializerExpression) : string {
+    private visitObjectInitializerExpression(expr:ObjectInitializerExpression) : string {
         return (`(initialize ${expr.name.lexeme} value:${expr.value.accept(this)})`);
     }
 

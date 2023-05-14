@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Statement } from "./Statement";
 import { Token } from "../../Token";
 import {FunctionStatement} from "./FunctionStatement";

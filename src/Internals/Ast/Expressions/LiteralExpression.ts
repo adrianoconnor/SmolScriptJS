@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { SmolVariableType } from "../../SmolVariableTypes/SmolVariableType";
 import { Expression } from "./Expression";
 
