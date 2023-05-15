@@ -1,0 +1,18 @@
+/*
+Description: Test that native methods on String work as expected
+
+This test shows how to call the .length property on String, which is handled by native code
+in the object class that defines the type.
+
+Steps:
+- Run
+- Expect global l to be number 11
+- Expect global s to be string Test String
+- Expect global z to be undefined
+*/
+
+var s = "Test String";
+var l = s.length;
+//var p = s.indexOf('String');
+var x = t * 2; // Why doesn't this throw?! /* */ // **//
+//var r = s.replace('Test', 'Replace');

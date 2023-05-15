@@ -1,19 +1,86 @@
 import { describe, expect, test } from '@jest/globals';
-import { AstDebugPrinter } from '../src/Internals/Ast/AstDebugPrinter';
-import { Compiler } from '../src/Internals/Compiler';
 import { SmolVM } from '../src/SmolVM';
+import * as fs from 'fs';
+import * as path from 'path';
 
-describe('Scratch Pad', () => {
-  test('Dev', () => {
-    const source = `
-      var s = 'Test String';
-      //print(s.length);
-      //print(s);
-      //s.notReal = 1;
-    `;
+const testFiles:string[] = []; // Keeping a separate array because I can't get keys to work with the dicitonary?!
+const tests: { [fileName:string] : { fileData: string, steps: string[] } } = {};
+const allFiles = fs.readdirSync(path.join(__dirname, './'), { recursive: true })
 
-    const vm = SmolVM.Init(source);
+const regexTestFileHeader = /\/\*(.*?)(Steps:.*?\n)(.*?)\*\//s;
+const regexStepMatcher = /^- (.*?)$/gm;
 
-    expect(vm.getGlobalVar('s')).toBe('Test String');
-  });
+allFiles.forEach((f) => {
+  const fileName = f as string
+
+  if (fileName.endsWith('.test.smol')) {
+
+    const fileData = fs.readFileSync(path.join(__dirname, './', f as string)).toString();
+
+    const testFileHeaderMatch = regexTestFileHeader.exec(fileData);
+
+    if (testFileHeaderMatch != null) {
+
+      const stepsBlock:string = testFileHeaderMatch[3];
+      const matchedSteps = stepsBlock.match(regexStepMatcher);
+
+      if (matchedSteps != null) {
+        const steps = matchedSteps.map<string>((x) => x.toString());
+
+        tests[fileName] = { fileData: fileData, steps: steps };
+
+        testFiles.push(fileName);
+      }
+    }
+  }
+});
+
+const runStepRegex = /- run$/i;
+const expectGlobalNumberRegex = /- expect global (.*?) to be number (\d+(\.{0,1}\d+))/i;
+const expectGlobalStringRegex = /- expect global (.*?) to be string (.*)/i;
+const expectGlobalUndefinedRegex = /- expect global (.*?) to be undefined/i;
+
+describe('Automated Test Suite', () => {
+  test.each(testFiles)('%s', (fileName) => {
+    const test = tests[fileName];
+    const vm = SmolVM.Compile(test.fileData);
+
+    test.steps.forEach((step) => {
+
+      if (step.match(runStepRegex)) {
+        vm.run();
+      }
+      else if (step.match(expectGlobalNumberRegex)) {
+        const m = step.match(expectGlobalNumberRegex);
+
+        if (m == null) {
+          throw new Error(`Could not parse ${step}`);
+        }
+
+        expect(vm.getGlobalVar(m[1])).toBe(Number(m[2]));        
+      }
+      else if (step.match(expectGlobalStringRegex)) {
+        const m = step.match(expectGlobalStringRegex);
+
+        if (m == null) {
+          throw new Error(`Could not parse ${step}`);
+        }
+
+        expect(vm.getGlobalVar(m[1])).toBe(String(m[2]));        
+      }
+      else if (step.match(expectGlobalUndefinedRegex)) {
+        const m = step.match(expectGlobalUndefinedRegex);
+
+        if (m == null) {
+          throw new Error(`Could not parse ${step}`);
+        }
+
+        expect(vm.getGlobalVar(m[1])).toBeUndefined();
+      }
+      else {
+        throw new Error(`Could not parse ${step}`);
+      }
+    });
+
+  })
 });
