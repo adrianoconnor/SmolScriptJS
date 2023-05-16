@@ -1,7 +1,7 @@
 {
-  "name": "smolscript-ts",
-  "version": "1.0.0",
-  "description": "",
+  "name": "smolscript-js",
+  "version": "0.1.0-alpha",
+  "description": "A very smol compiler and vm for a JS like embedded language",
   "main": "index.js",
   "directories": {
     "test": "tests"
@@ -10,8 +10,8 @@
     "test": "jest"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Adrian O'Connor (adrian.oconnor@arctus.co.uk)",
+  "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.21.8",
     "@babel/preset-env": "^7.21.5",
