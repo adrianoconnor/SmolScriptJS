@@ -5,13 +5,17 @@ import * as path from 'path';
 
 const testFiles:string[] = []; // Keeping a separate array because I can't get keys to work with the dicitonary?!
 const tests: { [fileName:string] : { fileData: string, steps: string[] } } = {};
+
+// Recursive is new for node 20 -- that's why we don't auto test on 16/18. We could add something to
+// do the same, but it really is not worth the trouble to me personally right now so I'm leaving it
+// like this and assuming 20+
 const allFiles = fs.readdirSync(path.join(__dirname, '../SmolScriptTests'), { recursive: true })
 
 const regexTestFileHeader = /\/\*(.*?)(Steps:.*?\n)(.*?)\*\//s;
 const regexStepMatcher = /^- (.*?)$/gm;
 
-console.log('Printing contents of SmolScriptTests folder:');
-console.log(allFiles);
+//console.log('Printing contents of SmolScriptTests folder:');
+//console.log(allFiles);
 
 allFiles.forEach((f) => {
   const fileName = f as string
