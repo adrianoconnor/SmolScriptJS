@@ -43,14 +43,7 @@ export class SmolArray extends ISmolNativeCallable {
         if (String(propName).match(/[0-9]+/))
         {
             const index = parseInt(propName);
-/*
-            while (index > this.array.length - 1)
-            {
-                this.array.push(new SmolUndefined());
 
-                index += 1;
-            }
-*/
             this.array[index] = value;
         }
         else

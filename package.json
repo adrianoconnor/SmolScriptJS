@@ -7,7 +7,8 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "tsc --build src && webpack"
   },
   "keywords": [],
   "author": "Adrian O'Connor (adrian.oconnor@arctus.co.uk)",
@@ -24,6 +25,7 @@
     "jest": "^29.5.0",
     "ts-jest": "^29.1.0",
     "typescript": "^5.0.4",
-    "webpack": "^5.82.1"
+    "webpack": "^5.82.1",
+    "webpack-cli": "^5.1.1"
   }
 }

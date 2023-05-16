@@ -350,14 +350,13 @@ export class SmolVM {
 
                             break;
                         }
-/*
-Don't need this right now :)
+
                     case OpCode.BITWISE_OR:
                         {
                             const right = this.stack.pop() as SmolVariableType;
                             const left = this.stack.pop() as SmolVariableType;
 
-                            stack.Push(left | right);
+                            this.stack.push(new SmolNumber(left.getValue() | right.getValue()));
 
                             break;
                         }
@@ -367,11 +366,11 @@ Don't need this right now :)
                             const right = this.stack.pop() as SmolVariableType;
                             const left = this.stack.pop() as SmolVariableType;
 
-                            stack.Push(left & right);
+                            this.stack.push(new SmolNumber(left.getValue() & right.getValue()));
 
                             break;
                         }
-*/
+
                     case OpCode.EOF:
                         {
                             //debug($"Done, stack size = {stack.Count}");

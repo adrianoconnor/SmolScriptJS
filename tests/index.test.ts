@@ -50,6 +50,9 @@ const expectGlobalUndefinedRegex = /- expect global (.*?) to be undefined/i;
 describe('Automated Test Suite', () => {
 
   test.each(testFiles)('%s', (fileName) => {
+
+    console.log(fileName);
+
     const test = tests[fileName];
     const vm = SmolVM.Compile(test.fileData);
 
