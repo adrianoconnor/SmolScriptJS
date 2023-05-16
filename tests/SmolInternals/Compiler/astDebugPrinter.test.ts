@@ -22,7 +22,28 @@ describe('SmolInteral AstDebugPrint', () => {
 
     const ast = AstDebugPrinter.parse(source);
 
-    console.log(ast);
+    expect(ast).toBe(`[function name=f]
+  param 0: x
+  [block]
+    [return expr:(** (var x) (literal (SmolNumber) 2))]
+  [/block]
+[/functionExpression]
+[declare var a initializer:(* (group expr:(+ (literal (SmolNumber) 10) (call (var f) with 1 args))) (literal (SmolNumber) 2))]
+[debugger]
+[class name=Token: IDENTIFIER, c, c]
+  [classFunction name=constructor]
+    [block]
+      [exprStmt (set obj:(var this) name:x value:(literal (SmolNumber) 123))]
+    [/block]
+  [/classFunction]
+  [classFunction name=getX]
+    [block]
+      [return expr:(get obj:(var this) name:x)]
+    [/block]
+  [/classFunction]
+[/class]
+[declare var i initializer:(new c with 0 args in ctor)]
+`);
 
   });
 });
