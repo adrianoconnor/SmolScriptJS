@@ -10,6 +10,9 @@ const allFiles = fs.readdirSync(path.join(__dirname, '../SmolScriptTests'), { re
 const regexTestFileHeader = /\/\*(.*?)(Steps:.*?\n)(.*?)\*\//s;
 const regexStepMatcher = /^- (.*?)$/gm;
 
+console.log('Printing contents of SmolScriptTests folder:');
+console.log(allFiles);
+
 allFiles.forEach((f) => {
   const fileName = f as string
 
