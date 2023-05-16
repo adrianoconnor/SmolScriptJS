@@ -550,7 +550,7 @@ export class Compiler {
 
         chunk.appendChunk(expr.indexerExpr.accept(this));
 
-        chunk.appendInstruction(OpCode.STORE, "@IndexerGet", true);
+        chunk.appendInstruction(OpCode.STORE, "@IndexerSet", true);
         // This is so inefficient, but we need to read the saved value back onto the stack
 
         chunk.appendChunk(expr.obj.accept(this));
@@ -558,7 +558,7 @@ export class Compiler {
         // TODO: This won't even work for indexer++ etc.
         chunk.appendChunk(expr.indexerExpr.accept(this));
 
-        chunk.appendInstruction(OpCode.FETCH, "@IndexerGet", true);
+        chunk.appendInstruction(OpCode.FETCH, "@IndexerSet", true);
 
         return chunk;
     }

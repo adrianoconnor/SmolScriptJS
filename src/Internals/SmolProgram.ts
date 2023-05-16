@@ -25,8 +25,13 @@ export class SmolProgram
             s.forEach((i) => {
                 const op1 = i.operand1 != undefined ? ` ${i.operand1}` : '';
                 const op2 = i.operand2 != undefined ? ` ${i.operand2}` : '';
-                p += `${OpCode[i.opcode]}${op1}${op2}\n`;
-            });    
+                let extraInfo = '';
+                if (i.opcode == OpCode.CONST) {
+                    extraInfo = ` := ${this.constants[i.operand1 as number]}`;
+                }
+                
+                p += `${OpCode[i.opcode]}${op1}${op2}${extraInfo}\n`;
+            });
             
             p += `\n`;
         });

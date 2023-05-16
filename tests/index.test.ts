@@ -41,14 +41,27 @@ const expectGlobalStringRegex = /- expect global (.*?) to be string (.*)/i;
 const expectGlobalUndefinedRegex = /- expect global (.*?) to be undefined/i;
 
 describe('Automated Test Suite', () => {
+
   test.each(testFiles)('%s', (fileName) => {
     const test = tests[fileName];
     const vm = SmolVM.Compile(test.fileData);
 
+    let debugLog = '';
+
+    vm.onDebugPrint = (str) => { debugLog += `${str}\n` };
+    
     test.steps.forEach((step) => {
 
       if (step.match(runStepRegex)) {
-        vm.run();
+        try {
+          vm.run();
+        }
+        catch(e) {
+          console.log(test.fileData);
+          console.log(vm.decompile());
+          console.log(debugLog);
+          throw e;
+        }
       }
       else if (step.match(expectGlobalNumberRegex)) {
         const m = step.match(expectGlobalNumberRegex);

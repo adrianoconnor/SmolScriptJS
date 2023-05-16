@@ -110,7 +110,7 @@ export class SmolVM {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private debugFunc:((str:string) => void)|undefined = undefined;
 
-    onDebugPrint(debugFunc:(str:string) => void): void {
+    set onDebugPrint (debugFunc:(str:string) => void) {
         this.debugFunc = debugFunc;
     }
 
@@ -130,7 +130,7 @@ export class SmolVM {
         {        
             const instr = this.program.code_sections[this.code_section][this.pc++];
             
-            //this.debug(OpCode[instr.opcode]);
+            this.debug(OpCode[instr.opcode]);
             //this.debug(this.stack.length.toString());
             //this.debug(this.stack.map<string>((el) => el.toString()).join(', '));
 
@@ -146,6 +146,7 @@ export class SmolVM {
                         // Load a value from the data section at specified index
                         // and place it on the stack
                         this.stack.push(this.program.constants[instr.operand1 as number]);
+                        this.debug(`              [Loaded Const ${this.program.constants[instr.operand1 as number].toString()}]`);
 
                         break;
 
@@ -423,11 +424,14 @@ Don't need this right now :)
                         {
                             let name = instr.operand1 as string;
 
+                            //console.log(name);
+                            //console.log(this.stack);
+
                             if (name == "@IndexerSet")
                             {
                                 // Special case for square brackets!
 
-                                // Not sure abotu this cast, might need to add an extra check for type
+                                // Not sure about this cast, might need to add an extra check for type
 
                                 name = (this.stack.pop() as SmolVariableType).getValue();
                             }
@@ -462,7 +466,7 @@ Don't need this right now :)
 
                             env_in_context.assign(name, value, isPropertySetter);
 
-                            this.debug(`              [Saved ${value}]`);
+                            this.debug(`              [Saved ${(value as SmolVariableType).toString()}]`);
 
                             break;
                         }
@@ -472,9 +476,12 @@ Don't need this right now :)
                             // Could be a variable or a function
                             let name = instr.operand1 as string;
 
+                            //console.log(name);
+                            //console.log(this.stack);
+
                             let env_in_context = this.environment;
 
-                            if (name == "@IndexerGet")
+                            if (name == "@IndexerGet" || name == "@IndexerSet")
                             {
                                 // Special case for square brackets!
 
@@ -526,23 +533,25 @@ Don't need this right now :)
                                         break;
                                     }
                                     else if (objRef instanceof SmolNativeFunctionResult)
-                                    {                                    
+                                    {                                                                         
                                         if (this.classMethodRegEx.test(name))
                                         {
                                             const rexResult = this.classMethodRegEx.exec(name);
 
-                                            if (rexResult == null || rexResult.groups == null) {
+                                            //console.log(rexResult);
+
+                                            if (rexResult == null) {
                                                 throw new Error("class method name regex failed");
                                             }
 
                                             // TODO: Document why this is any and why the first
                                             // value is the regex second group match
                                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                            const parameters:any[] = [];
+                                            //const parameters:any[] = [rexResult[2]];
 
-                                            parameters.push(rexResult.groups[2]);
+                                            const functionName = rexResult[2] as string;
 
-                                            const functionArgs = new Array<SmolVariableType>();
+                                            const functionArgs:SmolVariableType[] = [];
 
                                             if (name != "@Object.constructor")
                                             {
@@ -550,9 +559,12 @@ Don't need this right now :)
                                                 {
                                                     functionArgs.push(this.stack.pop() as SmolVariableType);
                                                 }
-                                            }
 
-                                            parameters.push(functionArgs);
+                                                if ((peek_instr.operand1 as number) > 0)
+                                                {
+                                                    //parameters.push(functionArgs);
+                                                }
+                                            }
 
                                             // Now we've got rid of the params we can get rid
                                             // of the dummy object that create_object left
@@ -561,7 +573,7 @@ Don't need this right now :)
                                             this.stack.pop();
 
                                             // Put our actual new object on after calling the ctor:                                            
-                                            const r = this.staticTypes[rexResult.groups[1]]["StaticCall"](parameters) as SmolVariableType;
+                                            const r = this.staticTypes[rexResult[1]]["staticCall"](functionName, functionArgs) as SmolVariableType;
                                             
                                             if (name == "@Object.constructor")
                                             {
@@ -597,7 +609,7 @@ Don't need this right now :)
                             {
                                 this.stack.push(fetchedValue as SmolStackType);
 
-                                this.debug(`              [Loaded ${fetchedValue} ${(fetchedValue as SmolVariableType).getValue()}]`);
+                                this.debug(`              [Loaded ${(fetchedValue as SmolVariableType).getValue()}]`);
                             }
                             else
                             {
