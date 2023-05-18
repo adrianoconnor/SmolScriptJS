@@ -3,6 +3,7 @@
     "compilerOptions": {
         "baseUrl": "./",
         "module": "commonjs",
+        "sourceMap": true,
         "experimentalDecorators": true,
         "strictPropertyInitialization": false,
         "isolatedModules": false,

@@ -16,14 +16,7 @@ import { SmolTryRegionSaveState } from "./Internals/SmolStackTypes/SmolTryRegion
 import { SmolLoopMarker } from "./Internals/SmolStackTypes/SmolLoopMarker";
 import { ISmolNativeCallable } from "./Internals/SmolVariableTypes/ISmolNativeCallable";
 import { SmolArray } from "./Internals/SmolVariableTypes/SmolArray";
-
-enum RunMode
-{
-    Run,
-    Paused,
-    Step,
-    Done
-}
+import { RunMode } from "./Internals/RunMode";
 
 export class SmolVM {
 
