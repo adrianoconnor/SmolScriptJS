@@ -12,4 +12,9 @@ export class SmolBool extends SmolVariableType {
     getValue():boolean {
         return this._value;
     }
+
+    toString():string
+    {
+        return `(SmolBool) ${this._value}`;
+    }
 }

@@ -1,4 +1,5 @@
 import { SmolStackType } from "../SmolStackTypes/SmolStackType";
+import { SmolUndefined } from "./SmolUndefined";
 
 export abstract class SmolVariableType extends SmolStackType {
 
@@ -7,6 +8,6 @@ export abstract class SmolVariableType extends SmolStackType {
     abstract getValue():any;
 
     equals(compareTo:SmolVariableType):boolean {
-        return this.getValue() == compareTo.getValue();
+        return (this.getValue() == compareTo.getValue());
     }
 }

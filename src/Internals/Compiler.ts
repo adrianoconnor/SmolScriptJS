@@ -109,10 +109,7 @@ export class Compiler {
     // This is our structure to hold the constants that appear in source and need to be
     // referenced by the program (e.g., numbers, strings, bools). We define some here
     // so that a few common ones always have the same index.
-    private _constants:SmolVariableType[] = [
-        new SmolBool(true),
-        new SmolBool(false)
-    ];
+    private _constants:SmolVariableType[] = [];
 
     private _loopStack:Array<WhileLoop> = new Array<WhileLoop>();
     
@@ -120,11 +117,17 @@ export class Compiler {
     // getting the existing index of the value if we already have it, or inserting and returning
     // the new index 
     ensureConst(value:SmolVariableType) : number {
-        let constIndex = this._constants.indexOf(value);
+
+        let constIndex = -1;
+
+        this._constants.forEach((e, i) => {
+            if (e.equals(value)) {
+                constIndex = i;                
+            }
+        });
 
         if (constIndex == -1) {
-            constIndex = this._constants.length;
-            this._constants[constIndex] = value;
+            constIndex = this._constants.push(value) - 1;
         }
 
         return constIndex;

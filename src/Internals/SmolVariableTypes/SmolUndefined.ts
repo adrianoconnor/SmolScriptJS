@@ -9,4 +9,9 @@ export class SmolUndefined extends SmolVariableType {
     getValue():undefined {
         return undefined;
     }
+
+    toString():string
+    {
+        return `(SmolUndefined)`;
+    }
 }
