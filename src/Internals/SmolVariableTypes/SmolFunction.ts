@@ -19,4 +19,9 @@ export class SmolFunction extends SmolVariableType {
     getValue() {
         return this;
     }
+
+    toString():string
+    {
+        return `(SmolFunction) ${this.global_function_name}`;
+    }
 }

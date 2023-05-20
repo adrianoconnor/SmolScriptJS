@@ -9,4 +9,9 @@ export class SmolNull extends SmolVariableType {
     getValue():null {
         return null;
     }
+
+    toString():string
+    {
+        return `(SmolNull)`;
+    }
 }
