@@ -2,6 +2,7 @@ import { describe, expect, test } from '@jest/globals';
 import { SmolVM } from '../src/SmolVM';
 import * as fs from 'fs';
 import * as path from 'path';
+import { SmolBool } from '../src/Internals/SmolVariableTypes/SmolBool';
 
 const testFiles:string[] = []; // Keeping a separate array because I can't get keys to work with the dicitonary?!
 const tests: { [fileName:string] : { fileData: string, steps: string[] } } = {};
@@ -45,6 +46,7 @@ allFiles.forEach((f) => {
 const runStepRegex = /- run$/i;
 const expectGlobalNumberRegex = /- Expect global (.*?) to be number (\d+(\.{0,1}\d*))/i;
 const expectGlobalStringRegex = /- expect global (.*?) to be string (.*)/i;
+const expectGlobalBoolRegex = /- expect global (.*?) to be boolean (.*)/i;
 const expectGlobalUndefinedRegex = /- expect global (.*?) to be undefined/i;
 
 describe('Automated Test Suite', () => {
@@ -89,7 +91,18 @@ describe('Automated Test Suite', () => {
           throw new Error(`Could not parse ${step}`);
         }
 
-        expect(vm.getGlobalVar(m[1])).toBe(String(m[2]));        
+        expect(vm.getGlobalVar(m[1])).toBe(String(m[2]));  
+      }
+      else if (expectGlobalBoolRegex.test(step)) {
+        const m = step.match(expectGlobalBoolRegex);
+
+        if (m == null) {
+          throw new Error(`Could not parse ${step}`);
+        }
+
+        console.log(m);
+
+        expect(vm.getGlobalVar(m[1])).toBe(Boolean(m[2]));
       }
       else if (expectGlobalUndefinedRegex.test(step)) {
         const m = step.match(expectGlobalUndefinedRegex);

@@ -17,6 +17,7 @@ import { SmolLoopMarker } from "./Internals/SmolStackTypes/SmolLoopMarker";
 import { ISmolNativeCallable } from "./Internals/SmolVariableTypes/ISmolNativeCallable";
 import { SmolArray } from "./Internals/SmolVariableTypes/SmolArray";
 import { RunMode } from "./Internals/RunMode";
+import { SmolRegExp } from "./Internals/SmolVariableTypes/SmolRegExp";
 
 export class SmolVM {
 
@@ -93,6 +94,7 @@ export class SmolVM {
     createStdLib() {
         this.staticTypes['String'] = SmolString;
         this.staticTypes['Array'] = SmolArray;
+        this.staticTypes['RegExp'] = SmolRegExp;
     }
     
     decompile():string {

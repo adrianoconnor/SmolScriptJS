@@ -1,5 +1,4 @@
 import { SmolStackType } from "../SmolStackTypes/SmolStackType";
-import { SmolUndefined } from "./SmolUndefined";
 
 export abstract class SmolVariableType extends SmolStackType {
 

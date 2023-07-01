@@ -2,7 +2,6 @@ import { SmolVariableType } from "./SmolVariableType";
 import { ISmolNativeCallable } from "./ISmolNativeCallable";
 import { SmolNumber } from "./SmolNumber";
 import { SmolUndefined } from "./SmolUndefined";
-import { SmolString } from "./SmolString";
 
 export class SmolArray extends ISmolNativeCallable {
     

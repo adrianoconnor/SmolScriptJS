@@ -1,5 +1,10 @@
 const path = require('path');
 
+/*
+npm run build
+npx webpack --config webpack.config.js --mode production
+*/
+
 module.exports = {
   entry: {
     SmolVM: './build/SmolVM.js'
