@@ -2,7 +2,6 @@ import { describe, expect, test } from '@jest/globals';
 import { SmolVM } from '../src/SmolVM';
 import * as fs from 'fs';
 import * as path from 'path';
-import { SmolBool } from '../src/Internals/SmolVariableTypes/SmolBool';
 
 const testFiles:string[] = []; // Keeping a separate array because I can't get keys to work with the dicitonary?!
 const tests: { [fileName:string] : { fileData: string, steps: string[] } } = {};

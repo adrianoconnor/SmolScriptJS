@@ -1,5 +1,6 @@
 import { ISmolNativeCallable } from "./ISmolNativeCallable";
 import { SmolNumber } from "./SmolNumber";
+import { SmolRegExp } from "./SmolRegExp";
 import { SmolVariableType } from "./SmolVariableType";
 
 export class SmolString extends ISmolNativeCallable {
@@ -33,7 +34,13 @@ export class SmolString extends ISmolNativeCallable {
         throw new Error(`Can't get property ${name} on SmolString`);
     }
 
-    nativeCall(/*funcName:string, parameters:SmolVariableType[]*/) : SmolVariableType {
+    nativeCall(funcName:string, parameters:SmolVariableType[]) : SmolVariableType {
+
+        if (funcName === "search") {
+            const regex = parameters[0] as SmolRegExp;
+
+            return new SmolNumber(this._value.search(regex._regex));
+        }
 
         throw new Error();
     }
