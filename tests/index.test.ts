@@ -101,7 +101,7 @@ describe('Automated Test Suite', () => {
 
         console.log(m);
 
-        expect(vm.getGlobalVar(m[1])).toBe(Boolean(m[2]));
+        expect(vm.getGlobalVar(m[1])).toBe(m[2].toLowerCase() == 'true');
       }
       else if (expectGlobalUndefinedRegex.test(step)) {
         const m = step.match(expectGlobalUndefinedRegex);
