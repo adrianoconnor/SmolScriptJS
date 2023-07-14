@@ -51,7 +51,7 @@ declare global {
   
   if (!Array.prototype.appendChunk) {
     Array.prototype.appendChunk = function<ByteCodeInstruction>(this: ByteCodeInstruction[], elem: ByteCodeInstruction[]|ByteCodeInstruction):ByteCodeInstruction[] {
-        if (elem instanceof Array<ByteCodeInstruction>) {
+        if (Array.isArray(elem)) {
             (elem as ByteCodeInstruction[]).forEach(element => {
                 this.push(element);
             });
