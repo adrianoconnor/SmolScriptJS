@@ -14,9 +14,6 @@ const allFiles = fs.readdirSync(path.join(__dirname, '../SmolScriptTests'), { re
 const regexTestFileHeader = /\/\*(.*?)(Steps:.*?\n)(.*?)\*\//s;
 const regexStepMatcher = /^- (.*?)$/gm;
 
-//console.log('Printing contents of SmolScriptTests folder:');
-//console.log(allFiles);
-
 allFiles.forEach((f) => {
   const fileName = f as string
 
@@ -51,8 +48,6 @@ const expectGlobalUndefinedRegex = /- expect global (.*?) to be undefined/i;
 describe('Automated Test Suite', () => {
 
   test.each(testFiles)('%s', (fileName) => {
-
-    console.log(fileName);
 
     const test = tests[fileName];
     const vm = SmolVM.Compile(test.fileData);
@@ -98,8 +93,6 @@ describe('Automated Test Suite', () => {
         if (m == null) {
           throw new Error(`Could not parse ${step}`);
         }
-
-        console.log(m);
 
         expect(vm.getGlobalVar(m[1])).toBe(m[2].toLowerCase() == 'true');
       }

@@ -203,6 +203,10 @@ export class Scanner {
                         else
                         {
                             c = this.nextChar();
+
+                            if (c == '\n') {
+                                this._currentLine++;
+                            }
                         }
                     }
 
