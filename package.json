@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "jest",
+    "test": "jest ./tests",
     "build": "tsc --build src && webpack"
   },
   "keywords": [],
