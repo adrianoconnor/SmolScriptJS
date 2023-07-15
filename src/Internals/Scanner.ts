@@ -407,11 +407,7 @@ export class Scanner {
 
         const quoteChar = '`';
         let extractedString = '';
-        //let hasProducedAtLeastOneToken = false;
-
-        // Todo: Currently only difference between this and the regular string
-        // parser func is that it allows multi-lines. Need to bring over the rest
-        // of the impl from .net
+        let hasProducedAtLeastOneToken = false;
 
         while(this.peek() != quoteChar && !this.endOfFile())
         { 
@@ -424,7 +420,7 @@ export class Scanner {
             {
                 const next = this.peek(1);
 
-                if (next == '\'' || next == '"' || next == '\\')
+                if (next == '\'' || next == '"' || next == '\\' || next == '{')
                 {
                     this.nextChar();
                     extractedString += this.nextChar();
@@ -454,21 +450,108 @@ export class Scanner {
             }
             else
             {
-                extractedString += this.nextChar();
+                if (this.peek() == '$' && this.peek(1) == '{')
+                {
+                    // We've just entered the ${} section, so whatever we've got so far, create
+                    // a string token and add it to the stream, and then start a new string part
+
+                    if (extractedString.length > 0)
+                    {
+                        this.addTokenWithLiteral(TokenType.STRING, extractedString);
+                        extractedString = '';
+                        hasProducedAtLeastOneToken = true;
+                    }
+
+                    // Now we'll loop through collecting whatever is inside the ${}
+
+                    this.nextChar();
+                    this.nextChar();
+
+                    let embeddedExpr = '';
+
+                    let inEmbeddedString = false;
+                    let embeddedStringChar = null; // Was char
+
+                    while ((this.peek() != '}' || inEmbeddedString) && !this.endOfFile())
+                    {
+                        // Bug here, ${"}"} will currently not do so well
+
+                        if ((embeddedStringChar == null && (this.peek() == '\'' || this.peek() == '"'))
+                                || embeddedStringChar != null && this.peek() == embeddedStringChar) // Also `
+                        {
+                            embeddedStringChar = this.peek();
+                            inEmbeddedString = !inEmbeddedString;
+                        }
+
+                        embeddedExpr += this.nextChar();
+                    }
+
+                    this.nextChar();
+
+                    if (embeddedExpr.length > 0)
+                    {
+                        // We've just extracted the contents inside the ${}.
+                        // Now we create a new scanner and pass it that string and
+                        // get back tokens. We will wrap those in parens and, if we've already
+                        // generated at least one token so far, we insert a + to concat them.
+
+                        if (hasProducedAtLeastOneToken)
+                        {
+                            // There is actually a potential bug here... I think
+                            // `${a}${b}` might actually print the result of a+b if they're numbers.
+
+                            this.addToken(TokenType.PLUS);
+                        }
+
+                        const embeddedScanner = new Scanner(embeddedExpr);
+
+                        const embeddedTokens:Token[] = embeddedScanner.scanTokens();
+
+                        //TODO: Handle errors from embedded scanner
+
+                        this.addToken(TokenType.LEFT_BRACKET);
+
+                        for (const t of embeddedTokens)
+                        {
+                            if (t.type == TokenType.EOF)
+                            {
+                                break;
+                            }
+
+                            this._tokens.push(t);
+                        }
+
+                        this.addToken(TokenType.RIGHT_BRACKET);
+
+                        hasProducedAtLeastOneToken = true;
+                    }
+                }
+                else
+                {
+                    extractedString += this.nextChar();
+                }
+
+                //extractedString += this.nextChar();
             } 
         }
 
-        if (this.endOfFile()) {
-            //console.log("Unterminated string");
+        if (this.endOfFile())
+        {
             throw new Error("Unterminated string");
         }
 
-        // Consume the final "
+        // Consume the closing `
         this.nextChar();
 
-        //var extractedString = this._source.substring(this._startOfToken + 1, this._currentPos - 1);
-        
-        this.addTokenWithLiteral(TokenType.STRING, extractedString);
+        if (extractedString.length > 0 || !hasProducedAtLeastOneToken) // If we haven't produced a token yet, even if it's an empty string, we still need that string token
+        {
+            if (hasProducedAtLeastOneToken)
+            {
+                this.addToken(TokenType.PLUS);
+            }
+
+            this.addTokenWithLiteral(TokenType.STRING, extractedString);
+        }
     }
 
     private processIdentifier() : void {
