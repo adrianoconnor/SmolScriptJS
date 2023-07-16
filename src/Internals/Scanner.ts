@@ -104,7 +104,7 @@ export class Scanner {
                 }
                 break;
             case '+':
-                if (this.matchNext('-'))
+                if (this.matchNext('+'))
                 {
                     if (this._tokens.length > 0 && this._tokens[this._tokens.length - 1].type == TokenType.IDENTIFIER)
                     {
@@ -530,8 +530,6 @@ export class Scanner {
                 {
                     extractedString += this.nextChar();
                 }
-
-                //extractedString += this.nextChar();
             } 
         }
 

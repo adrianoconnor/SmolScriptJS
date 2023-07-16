@@ -21,8 +21,6 @@ describe('SmolInteral BinaryExpression Compilation', () => {
     const c = new Compiler();
     const prog = c.Compile(source);
 
-    //console.log(prog.constants);
-
     expect(prog.constants.length).toBe(5);
   });
 });

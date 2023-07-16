@@ -98,9 +98,9 @@ export class Parser {
         return this.previous();
     }
 
-    private previous() : Token
+    private previous(skip = 0) : Token
     {
-        return (this._tokens as Token[])[this._currentTokenIndex - 1];
+        return (this._tokens as Token[])[this._currentTokenIndex - 1 - (skip * 1)];
     }
 
     private consume(tokenType:TokenType, errorIfNotFound:string ) : Token
@@ -778,11 +778,37 @@ export class Parser {
             return new LiteralExpression(new SmolString(this.previous().literal as string));
         }
 
-        if (this.match(TokenType.IDENTIFIER))
+        if (this.match(TokenType.PREFIX_INCREMENT))
         {
-            return new VariableExpression(this.previous(), undefined);
+            if (this.match(TokenType.IDENTIFIER))
+            {
+                return new VariableExpression(this.previous(), TokenType.PREFIX_INCREMENT);
+            }
         }
 
+        if (this.match(TokenType.PREFIX_DECREMENT))
+        {
+            if (this.match(TokenType.IDENTIFIER))
+            {
+                return new VariableExpression(this.previous(), TokenType.PREFIX_DECREMENT);
+            }
+        }
+
+        if (this.match(TokenType.IDENTIFIER))
+        {
+            if (this.match(TokenType.POSTFIX_INCREMENT))
+            {
+                return new VariableExpression(this.previous(1), TokenType.POSTFIX_INCREMENT);
+            }
+            else if (this.match(TokenType.POSTFIX_DECREMENT))
+            {
+                return new VariableExpression(this.previous(1), TokenType.POSTFIX_DECREMENT);
+            }
+            else
+            {
+                return new VariableExpression(this.previous(), undefined);
+            }
+        }
 
         if (this.match(TokenType.NEW))
         {

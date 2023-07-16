@@ -802,9 +802,9 @@ export class Compiler {
 
                 chunk.appendInstruction(OpCode.ADD);
 
-                chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
-
                 chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
+
+                chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
             }
 
             if (expr.prepostfixOp == TokenType.PREFIX_DECREMENT)
@@ -813,9 +813,9 @@ export class Compiler {
 
                 chunk.appendInstruction(OpCode.SUB);
 
-                chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
-
                 chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
+
+                chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
             }
         }
 
