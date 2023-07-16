@@ -41,6 +41,17 @@ export class SmolString extends ISmolNativeCallable {
 
             return new SmolNumber(this._value.search(regex._regex));
         }
+        else if (funcName === "substring") {
+            const p1 = parameters[0] as SmolNumber;
+            
+            if (parameters.length == 1){
+                return new SmolString(this._value.substring(p1._value));
+            }
+            else {
+                const p2 = parameters[1] as SmolNumber;            
+                return new SmolString(this._value.substring(p1._value, p2._value));
+            }
+        }
 
         throw new Error();
     }
