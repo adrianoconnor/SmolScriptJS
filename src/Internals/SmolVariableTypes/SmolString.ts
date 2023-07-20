@@ -27,8 +27,9 @@ export class SmolString extends ISmolNativeCallable {
     }
 
     getProp(name:string): SmolVariableType {
-        if (name === "length") {
-            return new SmolNumber(this._value.length);
+        if (name == "length") {
+            //throw new Error(this._value.toString().length);
+            return new SmolNumber(this._value.toString().length);
         }
 
         throw new Error(`Can't get property ${name} on SmolString`);
@@ -44,7 +45,7 @@ export class SmolString extends ISmolNativeCallable {
         else if (funcName === "substring") {
             const p1 = parameters[0] as SmolNumber;
             
-            if (parameters.length == 1){
+            if (parameters.length == 1) {
                 return new SmolString(this._value.substring(p1._value));
             }
             else {
@@ -52,7 +53,31 @@ export class SmolString extends ISmolNativeCallable {
                 return new SmolString(this._value.substring(p1._value, p2._value));
             }
         }
+        else if (funcName === "indexOf") {
+            const p1 = parameters[0] as SmolString;
+            
+            return new SmolNumber(this._value.indexOf(p1._value));
+        }
 
-        throw new Error();
+        throw new Error(`String does not have function '${funcName}'`);
+    }
+
+    static staticCall(funcName:string , parameters:SmolVariableType[]): SmolVariableType
+    {
+        switch (funcName)
+        {
+            case "constructor":
+                {
+                    if (parameters.length == 1) {
+                        return new SmolString((parameters[0] as SmolString)._value);
+                    }
+                    else {
+                        return new SmolString('');
+                    }
+                }
+
+            default:
+                throw new Error(`Object class cannot handle static function ${funcName}`);
+        }
     }
 }

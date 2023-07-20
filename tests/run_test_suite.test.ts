@@ -85,7 +85,7 @@ describe('Automated Test Suite', () => {
           throw new Error(`Could not parse ${step}`);
         }
 
-        expect(vm.getGlobalVar(m[1])).toBe(String(m[2]));  
+        expect(vm.getGlobalVar(m[1]).toString()).toBe(String(m[2]));  
       }
       else if (expectGlobalBoolRegex.test(step)) {
         const m = step.match(expectGlobalBoolRegex);

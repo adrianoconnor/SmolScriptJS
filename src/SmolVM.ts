@@ -474,7 +474,10 @@ export class SmolVM {
                             //console.log(this.stack);
 
                             let env_in_context = this.environment;
-
+                            
+                            // WARNING -- Difference heere between .net and ts versions and I can't remember why .net was changed :(
+                            // TODO: Check why the difference and fix... 
+                            )
                             if (name == "@IndexerGet" || name == "@IndexerSet")
                             {
                                 // Special case for square brackets!
