@@ -2,8 +2,8 @@ import { describe, expect, test } from '@jest/globals';
 import { Token } from '../../../src/Internals/Token'
 import { Scanner } from '../../../src/Internals/Scanner'
 
-describe('SmolInteral VariableTypes', () => {
-  test('SmolNumber Equality', () => {
+describe('SmolInteral Token line and char pos', () => {
+  test('Single Line Test 1', () => {
 
     const source = `var a = 1;`
     const tokens = Scanner.tokenize(source);
@@ -37,5 +37,48 @@ describe('SmolInteral VariableTypes', () => {
 
     expect(tokens[5].line).toBe(1);
     expect(tokens[5].col).toBe(10);
-});
+  });
+
+  test('Multiline Test 1', () => {
+
+    const source = `var a = 1;
+
+function x() {
+    a = a + 1;
+}
+`
+    const tokens = Scanner.tokenize(source);
+
+    expect(tokens.length).toBe(18); // This is comparing object instances, which are not the same
+    
+    // Now check detail of the literal 'x'
+    expect(tokens[6].line).toBe(3);
+    expect(tokens[6].col).toBe(9);
+    expect(tokens[6].start_pos).toBe(21);
+    expect(tokens[6].end_pos).toBe(22);    
+  });
+
+  test('Multiline Test 2', () => {
+
+    const source = `var a = 1;
+
+/*
+Multiline comment
+*/
+
+function fnName() {
+    a = a + 1;
+}
+`
+    const tokens = Scanner.tokenize(source);
+
+    expect(tokens.length).toBe(18); // This is comparing object instances, which are not the same
+    
+    // Now check detail of the literal 'x'
+    expect(tokens[6].line).toBe(7);
+    expect(tokens[6].col).toBe(9);
+    expect(tokens[6].start_pos).toBe(46);
+    expect(tokens[6].end_pos).toBe(52);
+  });
+
 });

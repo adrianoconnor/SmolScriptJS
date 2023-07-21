@@ -447,8 +447,9 @@ export class Parser {
 
         if (this.match(TokenType.PLUS_EQUALS))
         {
+            const originalToken = this.previous();
             const value:Expression = this.assignment();
-            const additionExpr = new BinaryExpression(expr, new Token(TokenType.PLUS, "+=", undefined, 0), value);
+            const additionExpr = new BinaryExpression(expr, new Token(TokenType.PLUS, "+=", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
 
             if (expr instanceof VariableExpression) {
                 const name = (expr as VariableExpression).name;
@@ -468,8 +469,9 @@ export class Parser {
 
         if (this.match(TokenType.MINUS_EQUALS))
         {
+            const originalToken = this.previous();
             const value:Expression = this.assignment();
-            const subtractExpr = new BinaryExpression(expr, new Token(TokenType.MINUS, "-=", undefined, 0), value);
+            const subtractExpr = new BinaryExpression(expr, new Token(TokenType.MINUS, "-=", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
 
             if (expr instanceof VariableExpression) {
                 const name = (expr as VariableExpression).name;
@@ -489,8 +491,9 @@ export class Parser {
 
         if (this.match(TokenType.DIVIDE_EQUALS))
         {
+            const originalToken = this.previous();
             const value:Expression = this.assignment();
-            const divideExpr = new BinaryExpression(expr, new Token(TokenType.DIVIDE, "/=", undefined, 0), value);
+            const divideExpr = new BinaryExpression(expr, new Token(TokenType.DIVIDE, "/=", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
 
             if (expr instanceof VariableExpression) {
                 const name = (expr as VariableExpression).name;
@@ -510,8 +513,9 @@ export class Parser {
 
         if (this.match(TokenType.MULTIPLY_EQUALS))
         {
+            const originalToken = this.previous();
             const value:Expression = this.assignment();
-            const multiplyExpr = new BinaryExpression(expr, new Token(TokenType.MULTIPLY, "*=", undefined, 0), value);
+            const multiplyExpr = new BinaryExpression(expr, new Token(TokenType.MULTIPLY, "*=", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
 
             if (expr instanceof VariableExpression) {
                 const name = (expr as VariableExpression).name;
@@ -531,8 +535,9 @@ export class Parser {
 
         if (this.match(TokenType.POW_EQUALS))
         {
+            const originalToken = this.previous();
             const value:Expression = this.assignment();
-            const powExpr = new BinaryExpression(expr, new Token(TokenType.POW, "**=", undefined, 0), value);
+            const powExpr = new BinaryExpression(expr, new Token(TokenType.POW, "**=", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
 
             if (expr instanceof VariableExpression) {
                 const name = (expr as VariableExpression).name;
@@ -830,7 +835,8 @@ export class Parser {
 
         if (this.match(TokenType.LEFT_SQUARE_BRACKET))
         {
-            const className = new Token(TokenType.IDENTIFIER, "Array", undefined, this.peek().line);
+            const originalToken = this.previous();
+            const className = new Token(TokenType.IDENTIFIER, "Array", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos);
             
             const args = new Array<Expression>();
 
@@ -846,7 +852,8 @@ export class Parser {
 
         if (this.match(TokenType.LEFT_BRACE))
         {
-            const className = new Token(TokenType.IDENTIFIER, "Object", undefined, this.peek().line);
+            const originalToken = this.previous();
+            const className = new Token(TokenType.IDENTIFIER, "Object", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos);
 
             const args = new Array<Expression>();
 
