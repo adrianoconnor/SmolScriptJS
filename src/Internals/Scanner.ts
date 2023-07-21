@@ -7,8 +7,10 @@ export class Scanner {
     _source: string;
 
     _currentPos = 0;
+    _previous = 0;
     _startOfToken = 0;
     _currentLine = 1;
+    _currentLineStartIndex = 0;
 
     _tokens: Token[] = [];
     _errors: ScannerError[] = [];
@@ -57,7 +59,7 @@ export class Scanner {
             this.scanToken();
         }
 
-        this._tokens.push(new Token(TokenType.EOF, "", undefined, this._currentLine));
+        this._tokens.push(new Token(TokenType.EOF, "", undefined, this._currentLine, this._currentPos, this._currentPos, this._currentPos));
 
         return this._tokens;
     }
@@ -206,6 +208,7 @@ export class Scanner {
 
                             if (c == '\n') {
                                 this._currentLine++;
+                                this._currentLineStartIndex = this._currentPos;
                             }
                         }
                     }
@@ -247,6 +250,7 @@ export class Scanner {
                 break;
 
             case ' ':
+                this._previous = this._currentPos;
             case '\r':
             case '\t':
                 // Ignore whitespace
@@ -254,6 +258,7 @@ export class Scanner {
 
             case '\n':
                 this._currentLine++;
+                this._currentLineStartIndex = this._currentPos;
                 break;
 
             case '"':
@@ -348,6 +353,7 @@ export class Scanner {
             if (this.matchNext('\n')) // Peek() == '\n')
             {
                 this._currentLine++;
+                this._currentLineStartIndex = this._currentPos;
                 //_errors.Add(new ScannerError(_line, "Unexpected Line break in string"));
                 throw new Error("Unexpected Line break in string");
             }
@@ -414,6 +420,7 @@ export class Scanner {
             if (this.peek() == '\n')
             {
                 this._currentLine++;
+                this._currentLineStartIndex = this._currentPos;
             }
 
             if (this.peek() == '\\')
@@ -573,7 +580,8 @@ export class Scanner {
     private addTokenWithLiteral(tokenType:TokenType, literal:string|undefined = undefined) : void {
         const lexeme = this._source.substring(this._startOfToken, this._currentPos);
 
-        this._tokens.push(new Token(tokenType, lexeme, literal, this._currentLine));
+        this._tokens.push(new Token(tokenType, lexeme, literal, this._currentLine, this._previous - this._currentLineStartIndex, this._previous, this._currentPos));
+        this._previous = this._currentPos;
     }
 
 }
