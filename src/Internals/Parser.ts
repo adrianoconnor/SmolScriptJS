@@ -105,6 +105,10 @@ export class Parser {
     {
         if (this.check(tokenType)) return this.advance();
 
+        if (tokenType == TokenType.SEMICOLON && (this._tokens as Token[])[this._currentTokenIndex - 1].followed_by_line_break) {
+            return new Token(TokenType.SEMICOLON, "", "", -1, -1, -1, -1);
+        }
+
         throw new Error('ERROR IN PARSER: ' + errorIfNotFound + ' but got ' + this.peek().lexeme + ' [line: ' + this.previous().line.toString() + ']');
     }
 
@@ -129,7 +133,14 @@ export class Parser {
             initializerExpr = this.expression();
         }
 
-        this.consume(TokenType.SEMICOLON, "Expected ;");
+        if (this.peek().type != TokenType.SEMICOLON)
+        {
+            // What?
+        }
+        else 
+        {
+            this.consume(TokenType.SEMICOLON, "Expected ;");
+        }
 
         const lastTokenIndex = this._currentTokenIndex - 2;
 

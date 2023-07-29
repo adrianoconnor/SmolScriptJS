@@ -11,6 +11,8 @@ export class Token
     public start_pos: number;
     public end_pos: number;
 
+    public followed_by_line_break: boolean;
+
     constructor(type:TokenType, lexeme:string, literal:string|undefined,
                 line:number, col:number, start_pos:number, end_pos:number)
     {
@@ -21,6 +23,7 @@ export class Token
         this.col = col;
         this.start_pos = start_pos;
         this.end_pos = end_pos;
+        this.followed_by_line_break = false;
     }
 
     toString(): string

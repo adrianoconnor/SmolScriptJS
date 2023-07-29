@@ -257,8 +257,14 @@ export class Scanner {
                 break;
 
             case '\n':
+                //this._tokens.push(new Token(TokenType.NEWLINE, "", "", this._currentLine, -1, -1, -1))
                 this._currentLine++;
                 this._currentLineStartIndex = this._currentPos;
+
+                if (this._tokens.length > 0) {
+                    this._tokens[this._tokens.length - 1].followed_by_line_break = true;
+                }
+                
                 break;
 
             case '"':
