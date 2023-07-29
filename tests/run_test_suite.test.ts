@@ -40,30 +40,45 @@ allFiles.forEach((f) => {
 });
 
 const runStepRegex = /- run$/i;
-const expectGlobalNumberRegex = /- Expect global (.*?) to be number (\d+(\.{0,1}\d*))/i;
+const expectGlobalNumberRegex = /- expect global (.*?) to be number (\d+(\.{0,1}\d*))/i;
 const expectGlobalStringRegex = /- expect global (.*?) to be string (.*)/i;
 const expectGlobalBoolRegex = /- expect global (.*?) to be boolean (.*)/i;
 const expectGlobalUndefinedRegex = /- expect global (.*?) to be undefined/i;
+const repeatWithoutSemicolonsRegex = /- /i;
 
 describe('Automated Test Suite', () => {
 
   test.each(testFiles)('%s', (fileName) => {
 
-    const test = tests[fileName];
-    const vm = SmolVM.Compile(test.fileData);
+    runTest(fileName, false);
+    runTest(fileName, true);
+
+  })
+});
+
+function runTest(fileName:string, removeSemicolons:boolean = false) {
+    const currentTest = tests[fileName];
+
+    let source = currentTest.fileData;
+
+    if (removeSemicolons) {
+      source = source.replace(/(?<!(for\(.*?;.*?)|for\(.*?);/g, '') // This won't work for a 'for' statement followed by a statement on the same line (it'll just leave the following ;'s there)
+    }
+
+    const vm = SmolVM.Compile(source);
 
     let debugLog = '';
 
     vm.onDebugPrint = (str) => { debugLog += `${str}\n` };
     
-    test.steps.forEach((step) => {
+    currentTest.steps.forEach((step) => {
 
       if (runStepRegex.test(step)) {
         try {
           vm.run();
         }
         catch(e) {
-          console.log(test.fileData);
+          console.log(source);
           console.log(vm.decompile());
           console.log(debugLog);
           throw e;
@@ -75,6 +90,8 @@ describe('Automated Test Suite', () => {
         if (m == null) {
           throw new Error(`Could not parse ${step}`);
         }
+
+      
 
         expect(vm.getGlobalVar(m[1])).toBe(Number(m[2]));        
       }
@@ -105,10 +122,8 @@ describe('Automated Test Suite', () => {
 
         expect(vm.getGlobalVar(m[1])).toBeUndefined();
       }
-      else {
+      else {        
         throw new Error(`Could not parse ${step}`);
       }
     });
-
-  })
-});
+}

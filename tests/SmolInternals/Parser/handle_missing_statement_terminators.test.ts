@@ -16,24 +16,53 @@ describe('SmolInteral Parser', () => {
       return y
     }
 
-    // This won't work:
     function moof() { return y }
 
     function e() {
-      // return // This currently won't work
+      return
+      return // This is pointless, but we're just testing a specific scenario
     }
     
     e()
 
     z += moo()
+    var yy
+    yy = moof()`;
+
+    //Using this for dev tests :) 
+    //const tokens = Scanner.tokenize(source);
+    //const stmts = Parser.parse(tokens);
+
+    //console.log(tokens);
+
+    const vm = SmolVM.Init(source);
+
+    expect(vm.getGlobalVar("z")).toBe(3);  
+    expect(vm.getGlobalVar("yy")).toBe(2); 
+  });
+
+  test('Handle missing ; -- prefix operator edge case', () => {
+
+    const source = `
+    var a = 10
+    var b = --a
+    
+    ++a
+    --a
+    --a
+    --a
+    ++b
     `;
 
     //Using this for dev tests :) 
     //const tokens = Scanner.tokenize(source);
     //const stmts = Parser.parse(tokens);
 
+    //console.log(tokens);
+
     const vm = SmolVM.Init(source);
 
-    expect(vm.getGlobalVar("z")).toBe(3);  
+    expect(vm.getGlobalVar("a")).toBe(7);  
+    expect(vm.getGlobalVar("b")).toBe(10);
   });
 });

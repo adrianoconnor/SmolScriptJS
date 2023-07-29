@@ -57,7 +57,11 @@ export class Parser {
         const statements:Statement[] = [];
 
         while(!this.endOfTokenStream()) {
-            statements.push(this.declaration());
+            var d = this.declaration();
+
+            //console.log(d);
+            statements.push(d);
+            //statements.push(this.declaration());
         }
 
         return statements;
@@ -107,15 +111,16 @@ export class Parser {
 
         // If we expected a ; but got a newline, we just wave it through
         if (tokenType == TokenType.SEMICOLON && (this._tokens as Token[])[this._currentTokenIndex - 1].followed_by_line_break) {
+            // We need to return a token, so we'll make a fake semicolon
             return new Token(TokenType.SEMICOLON, "", "", -1, -1, -1, -1);
         }
 
         // If we expected a ; but got a }, we also wave that through
-        if (tokenType == TokenType.SEMICOLON && this.check(TokenType.RIGHT_BRACE)) {
+        if (tokenType == TokenType.SEMICOLON && (this.check(TokenType.RIGHT_BRACE) || this.peek().type == TokenType.EOF)) {
             return new Token(TokenType.SEMICOLON, "", "", -1, -1, -1, -1);
         }
 
-        throw new Error('ERROR IN PARSER: ' + errorIfNotFound + ' but got ' + this.peek().lexeme + ' [line: ' + this.previous().line.toString() + ']');
+        throw new Error('ERROR IN PARSER: ' + errorIfNotFound + ' but got ' + TokenType[this.peek().type] + ' [line: ' + this.previous().line.toString() + ']');
     }
 
     private declaration() : Statement {
@@ -244,7 +249,10 @@ export class Parser {
     }
 
     private returnStatement() : ReturnStatement {
-        if (this.peek().type == TokenType.SEMICOLON) {
+        if (this.peek().type == TokenType.SEMICOLON 
+                || this.peek().type == TokenType.RIGHT_BRACE
+                || this.previous().followed_by_line_break) {
+                                        
             this.consume(TokenType.SEMICOLON, "Expected ;");
             return new ReturnStatement(undefined); // Could be literal undefined.
         }

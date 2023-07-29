@@ -87,7 +87,8 @@ export class Scanner {
             case '-':
                 if (this.matchNext('-'))
                 {
-                    if (this._tokens.length > 0 && this._tokens[this._tokens.length - 1].type == TokenType.IDENTIFIER)
+                    if (this._tokens.length > 0 && this._tokens[this._tokens.length - 1].type == TokenType.IDENTIFIER
+                        && this._tokens[this._tokens.length - 1].followed_by_line_break == false)
                     {
                         this.addToken(TokenType.POSTFIX_DECREMENT);
                     }
@@ -108,7 +109,8 @@ export class Scanner {
             case '+':
                 if (this.matchNext('+'))
                 {
-                    if (this._tokens.length > 0 && this._tokens[this._tokens.length - 1].type == TokenType.IDENTIFIER)
+                    if (this._tokens.length > 0 && this._tokens[this._tokens.length - 1].type == TokenType.IDENTIFIER
+                        && this._tokens[this._tokens.length - 1].followed_by_line_break == false)
                     {
                         this.addToken(TokenType.POSTFIX_INCREMENT);
                     }
