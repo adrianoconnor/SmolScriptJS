@@ -5,6 +5,9 @@ import { Expression } from "../Expressions/Expression";
 
 export class VarStatement implements Statement {
 
+    firstTokenIndex:number|undefined;
+    lastTokenIndex:number|undefined;
+
     getStatementType() : string {
         return "Var";
     }

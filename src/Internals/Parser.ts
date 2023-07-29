@@ -46,8 +46,6 @@ export class Parser {
     private constructor(tokens:Token[]) {
         this._tokens = tokens;
         this._currentTokenIndex = 0;
-
-        
     }
 
     static parse(tokens:Token[]) : Statement[] {
@@ -121,6 +119,8 @@ export class Parser {
 
     private varDeclaration() : Statement {
 
+        const firstTokenIndex = this._currentTokenIndex - 1;
+
         const name = this.consume(TokenType.IDENTIFIER, "Expected variable name");
         let initializerExpr:Expression|undefined = undefined;
 
@@ -131,7 +131,14 @@ export class Parser {
 
         this.consume(TokenType.SEMICOLON, "Expected ;");
 
-        return new VarStatement(name, initializerExpr);
+        const lastTokenIndex = this._currentTokenIndex - 2;
+
+        const stmt = new VarStatement(name, initializerExpr);
+
+        stmt.firstTokenIndex = firstTokenIndex;
+        stmt.lastTokenIndex = lastTokenIndex;
+
+        return stmt;
     }
 
     private functionDeclaration() {
@@ -400,9 +407,21 @@ export class Parser {
 
 
     private expressionStatement() : ExpressionStatement {
+        
+        const firstTokenIndex = this._currentTokenIndex;
+
         const expr:Expression = this.expression();
         this.consume(TokenType.SEMICOLON, "Expected ;");
-        return new ExpressionStatement(expr);
+
+        const lastTokenIndex = this._currentTokenIndex - 2;
+
+        const stmt = new ExpressionStatement(expr);
+
+        stmt.firstTokenIndex = firstTokenIndex;
+        stmt.lastTokenIndex = lastTokenIndex;
+
+        return stmt;
+
     }
 
     private expression() : Expression {
