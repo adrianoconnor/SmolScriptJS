@@ -4,7 +4,7 @@
 
 # SmolScript
 
-SmolScript is a JS-like language that runs inside a tiny stack based VM. It is designed to be relatively easy to implement in other languages (there is also a .net version), but each version is going to be different because we use the host language's features very heavily (e.g., we are totally dependent on the .net implementation of strings, regexes, serialization routines, networking, JSON etc). This choice allows SmolScript itself be *very* smol.
+SmolScript is a JS-like language that runs inside a tiny stack based VM. It is designed to be relatively easy to implement in other languages (there is also a .net version), but each version is going to be different because we use the host language's features very heavily (e.g., we are totally dependent on the javascript host's implementation of strings, regexes, serialization routines, networking, JSON etc). This choice allows SmolScript itself be *very* smol.
 
 A demo website (that runs the type script version in the browser) is coming soon-ish, but it's not ready yet -- it will let you visualise the compiled program along with the VM internal state and we're quite exicited about it :)
 
@@ -22,7 +22,7 @@ What is built so far:
 
 * A working 'byte-code' compiler (including hand rolled scanner and parser) that supports most of the basic language features you'd expect in a tiny Javascript-like language
 * A stack-based Virtual Machine that supports break points and step through and a small degree of observability (with more to come)
-* An easy way to expose custom functions from .net using lambdas to wrap the native code (no need for adding new types/interfaces) that automatically deal with type coercion
+* An easy way to expose custom functions from js using simple closures to wrap the native code (no need for adding new types/interfaces) that automatically deal with type coercion
 * A test suite that I think almost covers the entire language -- we've built this in a way that the test files can be shared across all smol implementations (but I'm still moving stuff from the early .net development unit tests to the shared suite so that's not complete)
 
 The byte-code compiler does not produce byte-code at all, all of the instructions are actually objects in the host language, but it doesn't matter because it doesn't generate binaries, they're just an intermediate step.
