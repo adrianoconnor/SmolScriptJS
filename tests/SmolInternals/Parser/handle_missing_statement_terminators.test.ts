@@ -16,6 +16,9 @@ describe('SmolInteral Parser', () => {
       return y
     }
 
+    // This won't work:
+    function moof() { return y }
+
     function e() {
       // return // This currently won't work
     }

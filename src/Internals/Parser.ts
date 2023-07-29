@@ -105,7 +105,13 @@ export class Parser {
     {
         if (this.check(tokenType)) return this.advance();
 
+        // If we expected a ; but got a newline, we just wave it through
         if (tokenType == TokenType.SEMICOLON && (this._tokens as Token[])[this._currentTokenIndex - 1].followed_by_line_break) {
+            return new Token(TokenType.SEMICOLON, "", "", -1, -1, -1, -1);
+        }
+
+        // If we expected a ; but got a }, we also wave that through
+        if (tokenType == TokenType.SEMICOLON && this.check(TokenType.RIGHT_BRACE)) {
             return new Token(TokenType.SEMICOLON, "", "", -1, -1, -1, -1);
         }
 
