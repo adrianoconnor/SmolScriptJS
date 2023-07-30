@@ -65,4 +65,19 @@ describe('SmolInteral Parser', () => {
     expect(vm.getGlobalVar("a")).toBe(7);  
     expect(vm.getGlobalVar("b")).toBe(10);
   });
+
+  test('Expect line break in string to fail', () => {
+
+    const source = `var a = 'test
+123';`;
+
+    //Using this for dev tests :) 
+    //const tokens = Scanner.tokenize(source);
+    //const stmts = Parser.parse(tokens);
+
+    //console.log(tokens);
+
+    expect(() => SmolVM.Init(source)).toThrow();
+
+  });
 });

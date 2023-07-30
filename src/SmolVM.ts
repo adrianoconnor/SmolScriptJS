@@ -18,6 +18,7 @@ import { ISmolNativeCallable } from "./Internals/SmolVariableTypes/ISmolNativeCa
 import { SmolArray } from "./Internals/SmolVariableTypes/SmolArray";
 import { RunMode } from "./Internals/RunMode";
 import { SmolRegExp } from "./Internals/SmolVariableTypes/SmolRegExp";
+import { SmolVariableCreator } from "./Internals/SmolVariableTypes/SmolVariableCreator";
 
 export class SmolVM {
 
@@ -99,6 +100,73 @@ export class SmolVM {
     
     decompile():string {
         return this.program.decompile();
+    }
+
+    call(functionName:string, ...args: undefined[]) : undefined {
+        if (this.runMode != RunMode.Done)
+        {
+            throw new Error("Init() should be used before calling a function, to ensure the vm state is prepared");
+        }
+
+        // Let the VM know that it's ok to proceed from wherever the PC was pointing next
+        this.runMode = RunMode.Paused;
+
+        // Store the current state. This doesn't matter too much, because it shouldn't really
+        // be runnable after we're done, but it doesn't hurt to do this.
+        var state = new SmolCallSiteSaveState(
+            this.code_section,
+            this.pc,
+            this.environment,
+            true
+        );
+
+        // Create an environment for the function
+        var env = new Environment(this.globalEnv);
+        this.environment = env;
+
+        var fnIndex = -1;
+
+        for(var i = 0; i <  this.program.function_table.length; i++) {
+            if (this.program.function_table[i].global_function_name == functionName) {
+                fnIndex = i;
+                break;
+            }
+        }
+
+        if (i == -1) {
+            throw new Error(`Could not find a function named '${functionName}'`);
+        }
+
+        var fn = this.program.function_table[i];
+
+
+        // Prime the new environment with variables for
+        // the parameters in the function declaration (actual number
+        // passed might be different)
+
+        for (var i = 0; i < fn.arity; i++)
+        {
+            if (args.length > i)
+            {
+                env.define(fn.param_variable_names[i], SmolVariableCreator.create(args[i]));
+            }
+            else
+            {
+                env.define(fn.param_variable_names[i], new SmolUndefined());
+            }
+        }
+
+
+        this.stack.push(state!);
+
+        this.pc = 0;
+        this.code_section = fn.code_section;
+
+        this.run();
+
+        var returnValue = this.stack.pop();
+
+        return (returnValue as SmolVariableType).getValue();
     }
 
     // I have no idea how I could do this without Function, it's needed
