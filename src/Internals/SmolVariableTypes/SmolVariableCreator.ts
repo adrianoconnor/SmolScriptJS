@@ -14,16 +14,12 @@ export class SmolVariableCreator {
         }
         else
         {
-            var tryCastValue = value as SmolVariableType;
-
-            if (tryCastValue != null)
+            if (value instanceof SmolVariableType)
             {
-                return tryCastValue;
+                return value;
             }
             else
             {
-                var t = value.GetType();
-
                 if (typeof value == "string")
                 {
                     return new SmolString(value as string);

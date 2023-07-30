@@ -102,6 +102,37 @@ export class SmolVM {
         return this.program.decompile();
     }
 
+    private externalMethods:{ [string: string] : Function } = {};
+    
+    registerMethod(methodName:string, closure:Function) {
+        // console.log(`type = ${typeof closure}`); // function
+
+        this.externalMethods[methodName] = closure;
+    }
+
+    callExternalMethod(methodName:string, numberOfPassedArgs:number) {
+
+        let methodArgs:any[] = [];
+
+        for (var i = 0; i < numberOfPassedArgs; i++)
+        {        
+            var value = this.stack.pop() as SmolVariableType;
+
+            methodArgs.push(value.getValue());
+        }
+
+        var returnValue = this.externalMethods[methodName].apply(null, methodArgs);
+
+        if (typeof returnValue == "undefined")
+        {
+            return new SmolUndefined();
+        }
+        else
+        {
+            return SmolVariableCreator.create(returnValue);
+        }
+    }
+
     call(functionName:string, ...args: undefined[]) : undefined {
         if (this.runMode != RunMode.Done)
         {
@@ -679,12 +710,17 @@ export class SmolVM {
                             {
                                 const fn = this.program.function_table.find(f => f.global_function_name == name);
                                 
-                                if (fn != undefined)
-                                {
+                                if (fn != undefined) {
                                     this.stack.push(fn);
                                 }
-                                else
-                                {
+                                else if (this.externalMethods[name] != undefined) {
+                                    const peek_instr = this.program.code_sections[this.code_section][this.pc];
+
+                                    this.stack.push(this.callExternalMethod(name, peek_instr.operand1 as number));
+
+                                    this.stack.push(new SmolNativeFunctionResult());
+                                }
+                                else {
                                     this.stack.push(new SmolUndefined());
                                 }
                             }
