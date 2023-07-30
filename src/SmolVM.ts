@@ -133,7 +133,7 @@ export class SmolVM {
         }
     }
 
-    call(functionName:string, ...args: undefined[]) : undefined {
+    call(functionName:string, ...args: any[]) : undefined {
         if (this.runMode != RunMode.Done)
         {
             throw new Error("Init() should be used before calling a function, to ensure the vm state is prepared");
