@@ -31,4 +31,22 @@ describe('Smol Interop Basics', () => {
 
     expect(r).toBe(4);
   })
+
+  test('Call smol method before vm has initialised', () => {
+
+    const source = `
+    var y = 2;
+    
+    function moo(z) {
+      return y * z;
+    }`;
+
+    const vm = SmolVM.Compile(source);
+
+    expect(() => { 
+      
+      var r = vm.call('moo', 2, 'x'); 
+
+    }).toThrowError('Init() should be used before calling a function, to ensure the vm state is prepared');
+  })
 });
