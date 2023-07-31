@@ -38,49 +38,7 @@ import { SmolBool } from "./SmolVariableTypes/SmolBool";
 import { TokenType } from "./TokenType";
 import { SmolUndefined } from "./SmolVariableTypes/SmolUndefined";
 import { SmolNumber } from "./SmolVariableTypes/SmolNumber";
-
-declare global {
-    // We do a lot of work with arrays/collections, so these convenience methods/extensions
-    // help us keeep our code a little bit tidier
-    interface Array<T> {
-        appendChunk(elem: T):T;
-        appendInstruction(opcode:OpCode, operand1?:unknown, operand2?:unknown):T;
-        peek():T;
-    }
-  }
-  
-  if (!Array.prototype.appendChunk) {
-    Array.prototype.appendChunk = function<ByteCodeInstruction>(this: ByteCodeInstruction[], elem: ByteCodeInstruction[]|ByteCodeInstruction):ByteCodeInstruction[] {
-        if (Array.isArray(elem)) {
-            (elem as ByteCodeInstruction[]).forEach(element => {
-                this.push(element);
-            });
-        }
-        else if (elem instanceof ByteCodeInstruction) {
-            this.push(elem as ByteCodeInstruction);
-        }
-        else {
-            throw new Error(`Can't append ${elem} to chunk`);
-        }
-
-        return this;
-    }
-  }
-
-  if (!Array.prototype.appendInstruction) {
-    Array.prototype.appendInstruction = function<ByteCodeInstruction>(this: ByteCodeInstruction[], opcode:OpCode, operand1?:unknown, operand2?:unknown):ByteCodeInstruction[] {
-        const instr = new ByteCodeInstruction(opcode, operand1, operand2);
-        this.push(instr as ByteCodeInstruction);
-        return this;
-    }
-  }
-
-  // This allows us to quickly access the last item of an array when we're using it as a stack
-  if (!Array.prototype.peek) {
-    Array.prototype.peek = function<T>(this: T[]):T {
-        return this[this.length - 1];
-    }
-  }
+import "./ArrayExtensions";
 
 class WhileLoop {
     startOfLoop:number;
@@ -152,6 +110,7 @@ export class Compiler {
         program.code_sections.push(mainChunk);
         this._function_bodies.forEach((b) => program.code_sections.push(b));
         program.function_table = this._function_table;
+        program.tokens = t;
 
         return program;
     }
@@ -366,6 +325,8 @@ export class Compiler {
             chunk.appendChunk(stmt.initializerExpression.accept(this));
             chunk.appendInstruction(OpCode.STORE, stmt.name.lexeme);
         }
+
+        chunk.mapTokens(stmt.firstTokenIndex, stmt.lastTokenIndex);
 
         return chunk;
     }

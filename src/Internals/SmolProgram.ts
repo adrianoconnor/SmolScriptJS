@@ -2,12 +2,14 @@ import { ByteCodeInstruction } from "./ByteCodeInstruction";
 import { OpCode } from "./OpCode";
 import { SmolFunction } from "./SmolVariableTypes/SmolFunction";
 import { SmolVariableType } from "./SmolVariableTypes/SmolVariableType";
+import { Token } from "./Token";
 
 export class SmolProgram
 {
     constants:SmolVariableType[] = [];
     code_sections:ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
     function_table:SmolFunction[] = [];
+    tokens:Token[] = [];
 
     decompile() {
         let p = '';

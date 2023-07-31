@@ -21,6 +21,8 @@ export class ByteCodeInstruction {
         this.operand1 = operand1;
         this.operand2 = operand2;
         this.isStatementEndpoint = false;
+        this.token_map_start_index = undefined;
+        this.token_map_end_index = undefined;        
     }
 
     toString():string {
