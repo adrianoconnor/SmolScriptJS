@@ -216,6 +216,10 @@ export class SmolVM {
         this._run(RunMode.Run);
     }
 
+    step():void {
+        this._run(RunMode.Step);
+    }
+
     _run(newRunMode:RunMode)
     {
         this.runMode = newRunMode;
@@ -575,7 +579,7 @@ export class SmolVM {
                             let env_in_context = this.environment;
                             
                             // WARNING -- Difference heere between .net and ts versions and I can't remember why .net was changed :(
-                            // TODO: Check why the difference and fix...                            
+                            // TODO: Check why the difference and fix...           
                             if (name == "@IndexerGet" || name == "@IndexerSet")
                             {
                                 // Special case for square brackets!
@@ -991,13 +995,13 @@ export class SmolVM {
             }
             */
 
-            /*if (this.stack.Count > _MaxStackSize) throw new Exception("Stack overflow");
+            //if (this.stack.Count > _MaxStackSize) throw new Exception("Stack overflow");
 
-            if (this.runMode == RunMode.Step && instr.StepCheckpoint == true)
+            if (this.runMode == RunMode.Step && instr.isStatementEndpoint == true)
             {
                 this.runMode = RunMode.Paused;
                 return;
-            }*/
+            }
         }
     }
 }

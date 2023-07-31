@@ -5,9 +5,10 @@ export class Token
     public type: TokenType;
     public lexeme: string;
     public literal: string|undefined;
+
     public line: number;
     public col: number;
-    
+
     public start_pos: number;
     public end_pos: number;
 

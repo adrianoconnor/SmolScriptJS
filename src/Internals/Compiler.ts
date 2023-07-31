@@ -142,6 +142,7 @@ export class Compiler {
 
         for(let i = 0; i < p.length; i++) {
             mainChunk.appendChunk(p[i].accept(this));
+            mainChunk[mainChunk.length - 1].isStatementEndpoint = true;
         }
 
         mainChunk.appendInstruction(OpCode.EOF);
@@ -166,9 +167,16 @@ export class Compiler {
 
         chunk.appendInstruction(OpCode.ENTER_SCOPE);
 
+        let blockIsEmpty = true;
+
         stmt.statements.forEach((blockStmt:Statement) => {
             chunk.appendChunk(blockStmt.accept(this));
+            blockIsEmpty = false;
         });
+
+        if (!blockIsEmpty) {
+            chunk[chunk.length - 1].isStatementEndpoint = true;
+        }
 
         chunk.appendInstruction(OpCode.LEAVE_SCOPE);
 
