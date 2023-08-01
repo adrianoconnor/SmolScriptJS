@@ -67,6 +67,9 @@ function runTest(fileName:string, removeSemicolons:boolean = false) {
 
     const vm = SmolVM.Compile(source);
 
+    vm.maxCycles = 300000;
+    vm.maxStackSize = 1000;
+
     let debugLog = '';
 
     vm.onDebugPrint = (str) => { debugLog += `${str}\n` };

@@ -10,4 +10,6 @@ export class BreakStatement implements Statement {
     accept(visitor:any) {
         return visitor.visitBreakStatement(this);
     }
+
+    tokenIndex:number|undefined;
 }

@@ -39,6 +39,9 @@ import { TokenType } from "./TokenType";
 import { SmolUndefined } from "./SmolVariableTypes/SmolUndefined";
 import { SmolNumber } from "./SmolVariableTypes/SmolNumber";
 import "./ArrayExtensions";
+import { ContinueStatement } from "./Ast/Statements/ContinueStatement";
+import { DebuggerStatement } from "./Ast/Statements/DebuggerStatement";
+import { BreakStatement } from "./Ast/Statements/BreakStatement";
 
 class WhileLoop {
     startOfLoop:number;
@@ -79,7 +82,7 @@ export class Compiler {
         let constIndex = -1;
 
         this._constants.forEach((e, i) => {
-            if (e.equals(value)) {
+            if (e.getValue() === value.getValue()) { // e.equals(value)) {
                 constIndex = i;                
             }
         });
@@ -145,8 +148,14 @@ export class Compiler {
         return chunk;
     }
 
-    private visitBreakStatement() : ByteCodeInstruction {        
-        return new ByteCodeInstruction(OpCode.LOOP_EXIT, this._loopStack.peek().startOfLoop);
+    private visitBreakStatement(stmt:BreakStatement) : ByteCodeInstruction[] {        
+        const chunk = this.createChunk();
+
+        chunk.appendInstruction(OpCode.LOOP_EXIT, this._loopStack.peek().endOfLoop);
+        chunk[0].isStatementStartpoint = true;
+        chunk.mapTokens(stmt.tokenIndex, stmt.tokenIndex);
+        
+        return chunk;
     }
 
     private visitClassStatement(stmt:ClassStatement) : ByteCodeInstruction {
@@ -182,20 +191,24 @@ export class Compiler {
         return new ByteCodeInstruction(OpCode.NOP);
     }
 
-    private visitContinueStatement() : ByteCodeInstruction[] {
+    private visitContinueStatement(stmt:ContinueStatement) : ByteCodeInstruction[] {
 
         const chunk = this.createChunk();
 
         chunk.appendInstruction(OpCode.LOOP_EXIT, this._loopStack.peek().startOfLoop);
-
+        chunk[0].isStatementStartpoint = true;
+        chunk.mapTokens(stmt.tokenIndex, stmt.tokenIndex);
+        
         return chunk;
     }
 
-    private visitDebuggerStatement() : ByteCodeInstruction[] {
+    private visitDebuggerStatement(stmt:DebuggerStatement) : ByteCodeInstruction[] {
 
         const chunk = this.createChunk();
 
         chunk.appendInstruction(OpCode.DEBUGGER);
+        chunk[0].isStatementStartpoint = true;
+        chunk.mapTokens(stmt.tokenIndex, stmt.tokenIndex);
 
         return chunk;
     }
@@ -254,10 +267,18 @@ export class Compiler {
         chunk.appendInstruction(OpCode.JMPFALSE, notTrueLabel);
 
         const thenChunk = stmt.thenStatement.accept(this);
-        thenChunk.mapTokens(stmt.thenFirstTokenIndex, stmt.thenLastTokenIndex);
-        if (stmt.thenStatement.getStatementType() != "Block") {        
-            (thenChunk[0] as ByteCodeInstruction).isStatementStartpoint = true;
-        }        
+        
+        if (thenChunk instanceof Array) {
+            thenChunk.mapTokens(stmt.thenFirstTokenIndex, stmt.thenLastTokenIndex);
+            if (stmt.thenStatement.getStatementType() != "Block") {        
+                (thenChunk[0] as ByteCodeInstruction).isStatementStartpoint = true;
+            }
+        }
+        else {
+            (thenChunk as ByteCodeInstruction).token_map_start_index = stmt.thenFirstTokenIndex;
+            (thenChunk as ByteCodeInstruction).token_map_end_index = stmt.thenLastTokenIndex;
+        }
+  
         chunk.appendChunk(thenChunk);
 
         if (stmt.elseStatement == undefined)
@@ -276,10 +297,7 @@ export class Compiler {
             chunk.appendInstruction(OpCode.LABEL, skipElseLabel);
         }
 
-        // I think we could move this to the end of the visitor and
-        // maybe get a slightly better result, but not completely sure
         chunk.mapTokens(stmt.exprFirstTokenIndex, stmt.exprLastTokenIndex);
-
 
         return chunk;
     }

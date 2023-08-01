@@ -10,4 +10,6 @@ export class DebuggerStatement implements Statement {
     accept(visitor:any) {
         return visitor.visitDebuggerStatement(this);
     }
+
+    tokenIndex:number|undefined;
 }

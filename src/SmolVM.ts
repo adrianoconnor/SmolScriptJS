@@ -28,6 +28,8 @@ export class SmolVM {
     runMode = RunMode.Paused;
     stack:SmolStackType[] = [];
     jmplocs:number[] = [];
+    maxStackSize = -1;
+    maxCycles = -1;
 
     globalEnv = new Environment();
     environment:Environment = this.globalEnv;
@@ -224,6 +226,7 @@ export class SmolVM {
     {
         this.runMode = newRunMode;
         let hasExecutedAtLeastOnce = false; // Used to ensure Step-through trips after at least one instruction is executed
+        let consumedCycles = 0;
 
         while (this.runMode == RunMode.Run || this.runMode == RunMode.Step)
         {        
@@ -483,7 +486,7 @@ export class SmolVM {
 
                     case OpCode.EOF:
                         {
-                            //debug($"Done, stack size = {stack.Count}");
+                            //console.log(`Done, stack size = ${this.stack.length}, consumed cycles = ${consumedCycles}`);
                             this.runMode = RunMode.Done;
                             return;
                         }
@@ -1007,9 +1010,13 @@ export class SmolVM {
             }
             */
 
-            //if (this.stack.Count > _MaxStackSize) throw new Exception("Stack overflow");
+            if (this.maxStackSize > -1 && this.stack.length > this.maxStackSize) throw new Error("Stack overflow");
 
             hasExecutedAtLeastOnce = true;
+
+            consumedCycles += 1;
+
+            if (this.maxCycles > -1 && consumedCycles > this.maxCycles) throw new Error("Too many cycles");
         }
     }
 }

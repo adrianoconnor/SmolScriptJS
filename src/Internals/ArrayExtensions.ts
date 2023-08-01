@@ -51,7 +51,7 @@ if (!Array.prototype.peek) {
 if (!Array.prototype.mapTokens) {
     Array.prototype.mapTokens = function <ByteCodeInstruction>(this: ByteCodeInstruction[],
         first_token_index: number | undefined, last_token_index: number | undefined): ByteCodeInstruction[] {
-        
+
         for(var element of (this as any[])) {
             if (element.token_map_start_index == undefined) {
                 element.token_map_start_index = first_token_index;

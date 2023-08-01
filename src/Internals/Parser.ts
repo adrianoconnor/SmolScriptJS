@@ -259,24 +259,42 @@ export class Parser {
 
         // Todo: add checks for while loop
 
+        const tokenIndex = this._currentTokenIndex - 1;
+
         this.consume(TokenType.SEMICOLON, "Expected ;");
-        return new BreakStatement();
+        
+        var stmt = new BreakStatement();
+        stmt.tokenIndex = tokenIndex;
+
+        return stmt;
     }
 
     private continueStatement() : ContinueStatement {
 
         // Todo: add checks for while loop
 
+        const tokenIndex = this._currentTokenIndex - 1;
+
         this.consume(TokenType.SEMICOLON, "Expected ;");
-        return new ContinueStatement();
+
+        var stmt = new ContinueStatement();
+        stmt.tokenIndex = tokenIndex;
+
+        return stmt;
     }
 
     private debuggerStatement() : DebuggerStatement {
 
         // Todo: add checks for while loop
 
+        const tokenIndex = this._currentTokenIndex - 1;
+        
         this.consume(TokenType.SEMICOLON, "Expected ;");
-        return new DebuggerStatement();
+
+        var stmt = new DebuggerStatement();
+        stmt.tokenIndex = tokenIndex;
+
+        return stmt;
     }
 
 

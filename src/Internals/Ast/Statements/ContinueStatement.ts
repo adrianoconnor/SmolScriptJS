@@ -10,4 +10,6 @@ export class ContinueStatement implements Statement {
     accept(visitor:any) {
         return visitor.visitContinueStatement(this);
     }
+
+    tokenIndex:number|undefined;
 }

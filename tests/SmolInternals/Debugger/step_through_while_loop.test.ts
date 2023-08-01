@@ -22,10 +22,21 @@ describe('Smol Debug Step-through While Loop', () => {
     while(y < 10)
       y++;
 
-    while ( y>0 ) {
+    while ( y>2 ) { // Weird formatting just to check it carries over correctly
       y = y - 1;
       var z = 0;
     }
+
+    while(true) {
+      y = y - 1;
+      if (y == 0)
+        break;
+      else
+        continue;
+      y = 0;
+    }
+
+    var t = 0;
     `;
 
     // If you put an empty block {} inside the while, it breaks this test completely
@@ -49,14 +60,33 @@ describe('Smol Debug Step-through While Loop', () => {
     }
     vm.step();
     expect(vm.getGlobalVar('y')).toBe(++y);
-    expect(getPendingInstr(vm)).toBe('while ( y>0 )');
-    while(y > 0) {
+    expect(getPendingInstr(vm)).toBe('while ( y>2 )');
+    while(y > 2) {
       vm.step();
       expect(vm.getGlobalVar('y')).toBe(y--);
       expect(getPendingInstr(vm)).toBe('y = y - 1');
       vm.step();
       expect(getPendingInstr(vm)).toBe('var z = 0');
     }
+
+    vm.step();
+    expect(getPendingInstr(vm)).toBe('while(true)');
+    vm.step();
+    expect(getPendingInstr(vm)).toBe('y = y - 1');
+    vm.step();
+    expect(vm.getGlobalVar('y')).toBe(1);
+    expect(getPendingInstr(vm)).toBe('if (y == 0)');
+    vm.step();
+    expect(getPendingInstr(vm)).toBe('continue');
+    vm.step();
+    expect(getPendingInstr(vm)).toBe('y = y - 1');
+    vm.step();
+    expect(vm.getGlobalVar('y')).toBe(0);
+    expect(getPendingInstr(vm)).toBe('if (y == 0)');
+    vm.step();
+    expect(getPendingInstr(vm)).toBe('break');
+    vm.step();
+    expect(getPendingInstr(vm)).toBe('var t = 0');
   })
 
 });
