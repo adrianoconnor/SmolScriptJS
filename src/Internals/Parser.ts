@@ -305,11 +305,11 @@ export class Parser {
 
         const exprLastTokenIndex = this._currentTokenIndex - 1;
 
-        const thenFirstTokenIndex = this._currentTokenIndex - 1;
+        const thenFirstTokenIndex = this._currentTokenIndex;
 
         const stmt = this.statement();
 
-        const thenLastTokenIndex = this._currentTokenIndex - 1;
+        const thenLastTokenIndex = this._currentTokenIndex - 1; // TODO: Semi-colon check
 
         var elseStmt:Statement|undefined;
 
@@ -328,15 +328,30 @@ export class Parser {
 
     private whileStatement() : Statement {
 
+        const exprFirstTokenIndex = this._currentTokenIndex - 1;
+
         this.consume(TokenType.LEFT_BRACKET, "Expected (");
 
         const expr = this.expression();
 
         this.consume(TokenType.RIGHT_BRACKET, "Expected )");
 
+        const exprLastTokenIndex = this._currentTokenIndex - 1;
+
+        const stmtFirstTokenIndex = this._currentTokenIndex;
+
         const stmt = this.statement();
 
-        return new WhileStatement(expr, stmt);
+        const stmtLastTokenIndex = this._currentTokenIndex - 1; // TODO: Check what ; does to this!
+
+        const whileStmt = new WhileStatement(expr, stmt);
+
+        whileStmt.exprFirstTokenIndex = exprFirstTokenIndex;
+        whileStmt.exprLastTokenIndex = exprLastTokenIndex;
+        whileStmt.stmtFirstTokenIndex = stmtFirstTokenIndex;
+        whileStmt.stmtLastTokenIndex = stmtLastTokenIndex;
+
+        return whileStmt;
     }
 
     private tryStatement() : TryStatement {

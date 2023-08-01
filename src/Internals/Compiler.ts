@@ -358,11 +358,16 @@ export class Compiler {
         chunk.appendInstruction(OpCode.LABEL, startOfLoop);
         chunk.appendChunk(stmt.whileCondition.accept(this));
         chunk.appendInstruction(OpCode.JMPFALSE, endOfLoop);
-        chunk.appendChunk(stmt.executeStatement.accept(this));
+
+        const stmtChunk = stmt.executeStatement.accept(this);
+        stmtChunk.mapTokens(stmt.stmtFirstTokenIndex, stmt.stmtLastTokenIndex);
+        chunk.appendChunk(stmtChunk);
+
         chunk.appendInstruction(OpCode.JMP, startOfLoop);
         chunk.appendInstruction(OpCode.LABEL, endOfLoop);
         chunk.appendInstruction(OpCode.LOOP_END);
 
+        chunk.mapTokens(stmt.exprFirstTokenIndex, stmt.exprLastTokenIndex);
         this._loopStack.pop();
 
         return chunk;

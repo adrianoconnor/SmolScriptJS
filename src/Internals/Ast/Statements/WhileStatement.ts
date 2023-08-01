@@ -19,4 +19,9 @@ export class WhileStatement implements Statement {
     accept(visitor:any) {
         return visitor.visitWhileStatement(this);
     }
+
+    exprFirstTokenIndex:number|undefined;
+    exprLastTokenIndex:number|undefined;
+    stmtFirstTokenIndex:number|undefined;
+    stmtLastTokenIndex:number|undefined;
 }
