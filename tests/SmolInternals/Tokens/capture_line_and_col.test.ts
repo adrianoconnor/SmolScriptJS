@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
-import { Token } from '../../../src/Internals/Token'
 import { Scanner } from '../../../src/Internals/Scanner'
+import { TokenType } from '../../../src/Internals/TokenType';
 
 describe('SmolInteral Token line and char pos', () => {
   test('Single Line Test 1', () => {
@@ -72,13 +72,15 @@ function fnName() {
 `
     const tokens = Scanner.tokenize(source);
 
-    expect(tokens.length).toBe(18); // This is comparing object instances, which are not the same
+    expect(tokens.length).toBe(18);
     
-    // Now check detail of the literal 'x'
+    // Now check detail of the literal 'fnName'
     expect(tokens[6].line).toBe(7);
     expect(tokens[6].col).toBe(9);
     expect(tokens[6].start_pos).toBe(46);
     expect(tokens[6].end_pos).toBe(52);
+    expect(tokens[6].lexeme).toBe('fnName');
+    expect(tokens[6].type).toBe(TokenType.IDENTIFIER);
   });
 
 });

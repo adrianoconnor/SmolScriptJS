@@ -10,6 +10,7 @@ export class SmolProgram
     code_sections:ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
     function_table:SmolFunction[] = [];
     tokens:Token[] = [];
+    source:string|undefined;
 
     decompile() {
         let p = '';
@@ -25,15 +26,25 @@ export class SmolProgram
 
             p += `.code_section_${n}\n`;
             s.forEach((i) => {
+
+                if (i.isStatementStartpoint) {
+                    p += '* ';
+                }
+                else {
+                    p += '  ';
+                }
+
                 const op1 = i.operand1 != undefined ? ` ${i.operand1}` : '';
                 const op2 = i.operand2 != undefined ? ` ${i.operand2}` : '';
 
                 if (i.opcode == OpCode.CONST) {
-                    p += `${OpCode[i.opcode]} [${i.operand1}] ${this.constants[i.operand1 as number]}\n`;
+                    p += `${OpCode[i.opcode]} [${i.operand1}] ${this.constants[i.operand1 as number]}`;
                 }
                 else {
-                    p += `${OpCode[i.opcode]}${op1}${op2}\n`;
+                    p += `${OpCode[i.opcode]}${op1}${op2}`;
                 }
+
+                p += '\n';
             });
             
             p += `\n`;

@@ -144,16 +144,8 @@ export class Parser {
             initializerExpr = this.expression();
         }
 
-        if (this.peek().type != TokenType.SEMICOLON)
-        {
-            // What?
-        }
-        else 
-        {
-            this.consume(TokenType.SEMICOLON, "Expected ;");
-        }
-
-        const lastTokenIndex = this._currentTokenIndex - 2;
+        const skip = this.consume(TokenType.SEMICOLON, "Expected ;").start_pos == -1 ? 1 : 2;
+        const lastTokenIndex = this._currentTokenIndex - skip;
 
         const stmt = new VarStatement(name, initializerExpr);
 
@@ -303,23 +295,35 @@ export class Parser {
 
     private ifStatement() : Statement {
 
+        const exprFirstTokenIndex = this._currentTokenIndex - 1;
+
         this.consume(TokenType.LEFT_BRACKET, "Expected (");
 
         const expr = this.expression();
 
         this.consume(TokenType.RIGHT_BRACKET, "Expected )");
 
+        const exprLastTokenIndex = this._currentTokenIndex - 1;
+
+        const thenFirstTokenIndex = this._currentTokenIndex - 1;
+
         const stmt = this.statement();
 
+        const thenLastTokenIndex = this._currentTokenIndex - 1;
+
+        var elseStmt:Statement|undefined;
+
         if (this.match(TokenType.ELSE)) {
-
-            const then = this.statement();
-
-            return new IfStatement(expr, stmt, then);
+            elseStmt = this.statement();   
         }
-        else {
-            return new IfStatement(expr, stmt, undefined);
-        }
+
+        const ifStmt = new IfStatement(expr, stmt, elseStmt);
+    
+        ifStmt.exprFirstTokenIndex = exprFirstTokenIndex;
+        ifStmt.exprLastTokenIndex = exprLastTokenIndex;   
+        ifStmt.thenFirstTokenIndex = thenFirstTokenIndex;
+        ifStmt.thenLastTokenIndex = thenLastTokenIndex;
+        return ifStmt;
     }
 
     private whileStatement() : Statement {
@@ -436,9 +440,9 @@ export class Parser {
         const firstTokenIndex = this._currentTokenIndex;
 
         const expr:Expression = this.expression();
-        this.consume(TokenType.SEMICOLON, "Expected ;");
 
-        const lastTokenIndex = this._currentTokenIndex - 2;
+        const skip = this.consume(TokenType.SEMICOLON, "Expected ;").start_pos == -1 ? 1 : 2;
+        const lastTokenIndex = this._currentTokenIndex - skip;
 
         const stmt = new ExpressionStatement(expr);
 

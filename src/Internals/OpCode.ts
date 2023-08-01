@@ -56,6 +56,7 @@ export enum OpCode {
     PRINT, // op1: NA, op2: NA
     DEBUGGER,
 
+    START,
     EOF
 
 }

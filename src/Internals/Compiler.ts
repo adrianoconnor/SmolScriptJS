@@ -97,10 +97,15 @@ export class Compiler {
         const p = Parser.parse(t);
 
         const mainChunk = this.createChunk();
-
+        mainChunk.appendInstruction(OpCode.START); // This NOP is here so if the user starts the program with step, it will immediately hit this and show the first real statement as the next/first instruction to execute
+        mainChunk[0].isStatementStartpoint = true;
+        
         for(let i = 0; i < p.length; i++) {
+            const checkPoint = mainChunk.length;
+
             mainChunk.appendChunk(p[i].accept(this));
-            mainChunk[mainChunk.length - 1].isStatementEndpoint = true;
+
+            mainChunk[checkPoint].isStatementStartpoint = true;
         }
 
         mainChunk.appendInstruction(OpCode.EOF);
@@ -111,6 +116,7 @@ export class Compiler {
         this._function_bodies.forEach((b) => program.code_sections.push(b));
         program.function_table = this._function_table;
         program.tokens = t;
+        program.source = source;
 
         return program;
     }
@@ -126,16 +132,13 @@ export class Compiler {
 
         chunk.appendInstruction(OpCode.ENTER_SCOPE);
 
-        let blockIsEmpty = true;
-
         stmt.statements.forEach((blockStmt:Statement) => {
-            chunk.appendChunk(blockStmt.accept(this));
-            blockIsEmpty = false;
-        });
+            
+            const c = blockStmt.accept(this);
+            c[0].isStatementStartpoint = true;
+            chunk.appendChunk(c);
 
-        if (!blockIsEmpty) {
-            chunk[chunk.length - 1].isStatementEndpoint = true;
-        }
+        });
 
         chunk.appendInstruction(OpCode.LEAVE_SCOPE);
 
@@ -204,6 +207,9 @@ export class Compiler {
         chunk.appendChunk(stmt.expression.accept(this));
         chunk.appendInstruction(OpCode.POP_AND_DISCARD);
 
+        chunk[0].isStatementStartpoint = true;
+        chunk.mapTokens(stmt.firstTokenIndex, stmt.lastTokenIndex);
+
         return chunk;
     }
     
@@ -245,10 +251,14 @@ export class Compiler {
         const notTrueLabel = this.reserveLabelId();
 
         chunk.appendChunk(stmt.expression.accept(this));
-
         chunk.appendInstruction(OpCode.JMPFALSE, notTrueLabel);
 
-        chunk.appendChunk(stmt.thenStatement.accept(this));
+        const thenChunk = stmt.thenStatement.accept(this);
+        thenChunk.mapTokens(stmt.thenFirstTokenIndex, stmt.thenLastTokenIndex);
+        if (stmt.thenStatement.getStatementType() != "Block") {        
+            (thenChunk[0] as ByteCodeInstruction).isStatementStartpoint = true;
+        }        
+        chunk.appendChunk(thenChunk);
 
         if (stmt.elseStatement == undefined)
         {
@@ -259,13 +269,17 @@ export class Compiler {
             const skipElseLabel = this.reserveLabelId();
             
             chunk.appendInstruction(OpCode.JMP, skipElseLabel);
-
             chunk.appendInstruction(OpCode.LABEL, notTrueLabel);
 
             chunk.appendChunk(stmt.elseStatement.accept(this));
 
             chunk.appendInstruction(OpCode.LABEL, skipElseLabel);
         }
+
+        // I think we could move this to the end of the visitor and
+        // maybe get a slightly better result, but not completely sure
+        chunk.mapTokens(stmt.exprFirstTokenIndex, stmt.exprLastTokenIndex);
+
 
         return chunk;
     }

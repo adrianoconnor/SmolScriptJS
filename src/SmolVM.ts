@@ -223,9 +223,20 @@ export class SmolVM {
     _run(newRunMode:RunMode)
     {
         this.runMode = newRunMode;
+        let hasExecutedAtLeastOnce = false; // Used to ensure Step-through trips after at least one instruction is executed
 
         while (this.runMode == RunMode.Run || this.runMode == RunMode.Step)
         {        
+            // Peek at the next instruction to execute and see if it's a step break point
+            if (this.runMode == RunMode.Step
+                    && this.program.code_sections[this.code_section][this.pc].isStatementStartpoint
+                    && hasExecutedAtLeastOnce)
+            {
+                this.runMode = RunMode.Paused;
+                return;
+            }
+
+            // Fetch the next instruciton and advance the program counter
             const instr = this.program.code_sections[this.code_section][this.pc++];
             
             this.debug(OpCode[instr.opcode]);
@@ -237,6 +248,7 @@ export class SmolVM {
                 switch (instr.opcode)
                 {
                     case OpCode.NOP:
+                    case OpCode.START:
                         // Just skip over this instruction, no-op
                         break;
 
@@ -997,11 +1009,7 @@ export class SmolVM {
 
             //if (this.stack.Count > _MaxStackSize) throw new Exception("Stack overflow");
 
-            if (this.runMode == RunMode.Step && instr.isStatementEndpoint == true)
-            {
-                this.runMode = RunMode.Paused;
-                return;
-            }
+            hasExecutedAtLeastOnce = true;
         }
     }
 }

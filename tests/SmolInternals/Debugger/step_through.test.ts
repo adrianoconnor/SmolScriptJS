@@ -4,9 +4,116 @@ import { RunMode } from '../../../src/Internals/RunMode';
 import { TokenType } from '../../../src/Internals/TokenType';
 import { OpCode } from '../../../src/Internals/OpCode';
 
-describe('Smol Denug Basics', () => {
+describe('Smol Debug Basics', () => {
 
-  test('debug step through', () => {
+  test('debug step through of var assignment', () => {
+
+    const source = `
+    debugger;
+    var y = 2;
+    moo(2);
+    moo(2);
+    var z = y / 2;
+    function moo(z) {
+      y = y * z;
+    }`;
+
+    const vm = SmolVM.Compile(source);
+
+    vm.run();
+    // we hit the debugger here   
+    expect(vm.getGlobalVar('y')).toBeUndefined;
+    vm.step(); // var y = 2 executed
+    expect(vm.getGlobalVar('y')).toBe(2);
+    vm.step() // moo(2) executed
+    vm.step(); // y = y * z (in function) executed
+    expect(vm.getGlobalVar('y')).toBe(4);
+    vm.step() // moo(2) executed
+    vm.step(); // y = y * z (in function) executed
+    expect(vm.getGlobalVar('y')).toBe(8);
+    vm.step(); // var z = y / 2; executed
+    expect(vm.getGlobalVar('z')).toBe(4);
+  })
+
+  test('debug step through if statement', () => {
+
+    const source = `
+    var y = 2;
+    var x = 0;
+    if (y == 2) {
+      x = 1;
+    }
+    else {
+      x = 2;
+    }
+    x = 3;`;
+
+    const vm = SmolVM.Compile(source);
+
+    //console.log(vm.program.decompile());
+
+    vm.step(); // Step into the program
+    expect(vm.getGlobalVar('y')).toBeUndefined();
+    expect(getPendingInstr(vm)).toBe('var y = 2');
+    vm.step(); // var y = 2
+    expect(vm.getGlobalVar('y')).toBe(2);
+    vm.step(); // var x = 0
+    expect(vm.getGlobalVar('x')).toBe(0);
+    expect(getPendingInstr(vm)).toBe('if (y == 2)');
+    vm.step(); // if (y == 2)
+    expect(vm.getGlobalVar('x')).toBe(0);
+    expect(getPendingInstr(vm)).toBe('x = 1');
+    vm.step(); // x = 1 (inside if)
+    expect(vm.getGlobalVar('x')).toBe(1);
+    vm.step(); // x = 3
+    expect(vm.getGlobalVar('x')).toBe(3);
+  })
+
+
+  test('debug step through if statement no semicolons', () => {
+
+    const source = `
+    var y = 2
+    var x = 0
+    if (y == 2) {
+      x = 1
+    }
+    else {
+      x = 2
+    }
+    x = 3`;
+
+    const vm = SmolVM.Compile(source);
+
+    //console.log(vm.program.decompile());
+
+    vm.step(); // Step into the program
+    expect(vm.getGlobalVar('y')).toBeUndefined();
+    expect(getPendingInstr(vm)).toBe('var y = 2');
+    vm.step(); // var y = 2
+    expect(vm.getGlobalVar('y')).toBe(2);
+    vm.step(); // var x = 0
+    expect(vm.getGlobalVar('x')).toBe(0);
+    expect(getPendingInstr(vm)).toBe('if (y == 2)');
+    vm.step(); // if (y == 2)
+    expect(vm.getGlobalVar('x')).toBe(0);
+    expect(getPendingInstr(vm)).toBe('x = 1');
+    vm.step(); // x = 1 (inside if)
+    expect(vm.getGlobalVar('x')).toBe(1);
+    vm.step(); // x = 3
+    expect(vm.getGlobalVar('x')).toBe(3);
+  })
+
+  function getPendingInstr(vm:SmolVM) : string {
+    let pending_instr = vm.program.code_sections[vm.code_section][vm.pc];
+
+    let pending_instr_first_token = vm.program.tokens[pending_instr.token_map_start_index as number];
+    let pending_instr_last_token = vm.program.tokens[pending_instr.token_map_end_index as number];
+
+    return vm.program.source!.substring(pending_instr_first_token.start_pos, pending_instr_last_token.end_pos);
+  }
+
+  test('debug step through of var assignment with source mapping', () => {
 
     const source = `
     debugger;
@@ -52,35 +159,49 @@ describe('Smol Denug Basics', () => {
 
     expect(pending_instr_first_token.col).toBe(4);
     expect(pending_instr_last_token.col).toBe(12);
-    
+
     expect(pending_instr_first_token.start_pos).toBe(19);
     expect(pending_instr_last_token.end_pos).toBe(28);
 
+    expect(source.substring(pending_instr_first_token.start_pos, pending_instr_last_token.end_pos)).toBe('var y = 2');
+
     expect(vm.getGlobalVar('y')).toBeUndefined;
-
     vm.step(); // var y = 2 executed
-
     expect(vm.getGlobalVar('y')).toBe(2);
-
     // expect current active code to be line 12, inside the function body! This is not yet implemented
-
     vm.step() // moo(2) executed
-
     vm.step(); // y = y * z (in function) executed
-
     // expect current active code to be line 12, inside the function body! This is not yet implemented
-
     expect(vm.getGlobalVar('y')).toBe(4);
-
     vm.step() // moo(2) executed
-
     vm.step(); // y = y * z (in function) executed
-
     expect(vm.getGlobalVar('y')).toBe(8);
-
     vm.step(); // var z = y / 2; executed
-
     expect(vm.getGlobalVar('z')).toBe(4);
 
   })
+
+
+
+  test('debug step through of if statement without block', () => {
+
+    const source = `
+    var y = 2;
+    var x = 0;
+    debugger;
+    if (y == 2)
+      x = 1;
+    else 
+      x = 2;   
+    `;
+
+    const vm = SmolVM.Compile(source);
+
+    vm.run();
+    expect(vm.getGlobalVar('x')).toBe(0);
+    vm.step();
+    expect(vm.getGlobalVar('x')).toBe(0);
+    vm.step();
+    expect(vm.getGlobalVar('x')).toBe(1);
+  });
 });

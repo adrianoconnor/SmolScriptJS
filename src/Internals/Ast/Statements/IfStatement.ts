@@ -21,4 +21,13 @@ export class IfStatement implements Statement {
     accept(visitor:any) {
         return visitor.visitIfStatement(this);
     }
+
+    // For source mapping
+
+    exprFirstTokenIndex:number|undefined;
+    exprLastTokenIndex:number|undefined;
+    thenFirstTokenIndex:number|undefined;
+    thenLastTokenIndex:number|undefined;
+    elseFirstTokenIndex:number|undefined;
+    elseLastTokenIndex:number|undefined;
 }

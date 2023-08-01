@@ -10,7 +10,7 @@ export class ByteCodeInstruction {
 
     // This flag tells us that we're at the end of a single Statement, so this is where
     // the debugger would naturally step to if we're stepping through our program
-    isStatementEndpoint:boolean;
+    isStatementStartpoint:boolean;
 
     // These attributes are used for mapping back to the original source code
     token_map_start_index:number|undefined;
@@ -20,9 +20,7 @@ export class ByteCodeInstruction {
         this.opcode = opcode;
         this.operand1 = operand1;
         this.operand2 = operand2;
-        this.isStatementEndpoint = false;
-        this.token_map_start_index = undefined;
-        this.token_map_end_index = undefined;        
+        this.isStatementStartpoint = false;   
     }
 
     toString():string {
