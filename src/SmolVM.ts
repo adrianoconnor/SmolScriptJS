@@ -95,6 +95,7 @@ export class SmolVM {
     }
 
     createStdLib() {
+        this.staticTypes['Object'] = SmolObject;
         this.staticTypes['String'] = SmolString;
         this.staticTypes['Array'] = SmolArray;
         this.staticTypes['RegExp'] = SmolRegExp;

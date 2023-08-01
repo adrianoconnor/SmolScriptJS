@@ -676,7 +676,7 @@ export class Compiler {
         return chunk;
     }
 
-    private visitObjectInitializer(expr:ObjectInitializerExpression) : ByteCodeInstruction[] {
+    private visitObjectInitializerExpression(expr:ObjectInitializerExpression) : ByteCodeInstruction[] {
         
         const chunk = this.createChunk();
 
