@@ -288,7 +288,7 @@ export class Parser {
         // Todo: add checks for while loop
 
         const tokenIndex = this._currentTokenIndex - 1;
-        
+
         this.consume(TokenType.SEMICOLON, "Expected ;");
 
         var stmt = new DebuggerStatement();
@@ -505,6 +505,8 @@ export class Parser {
         
         const expr = this.functionExpression();
 
+        // TODO: Refactor this junk...
+
         if (this.match(TokenType.EQUAL))
         {
             //var equals:Token = this.previous();
@@ -587,6 +589,28 @@ export class Parser {
             else if (expr instanceof IndexerGetExpression) {
                 const getIndexerExpr = expr as IndexerGetExpression;
                 return new IndexerSetExpression(getIndexerExpr.obj, getIndexerExpr.indexerExpr, divideExpr);
+            }
+
+            throw new Error("Invalid assignment target");
+        }
+
+        if (this.match(TokenType.REMAINDER_EQUALS))
+        {
+            const originalToken = this.previous();
+            const value:Expression = this.assignment();
+            const remainderExpr = new BinaryExpression(expr, new Token(TokenType.REMAINDER, "%=", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
+
+            if (expr instanceof VariableExpression) {
+                const name = (expr as VariableExpression).name;
+                return new AssignExpression(name, remainderExpr);
+            }
+            else if (expr instanceof GetExpression) {            
+                const getExpr = expr as GetExpression;
+                return new SetExpression(getExpr.obj, getExpr.name, remainderExpr);
+            }
+            else if (expr instanceof IndexerGetExpression) {
+                const getIndexerExpr = expr as IndexerGetExpression;
+                return new IndexerSetExpression(getIndexerExpr.obj, getIndexerExpr.indexerExpr, remainderExpr);
             }
 
             throw new Error("Invalid assignment target");

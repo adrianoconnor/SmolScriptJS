@@ -228,7 +228,14 @@ export class Scanner {
                 }
                 break;
             case '%':
-                this.addToken(TokenType.REMAINDER);
+                if (this.matchNext('='))
+                {
+                    this.addToken(TokenType.REMAINDER_EQUALS);
+                }
+                else
+                {
+                    this.addToken(TokenType.REMAINDER);
+                }
                 break;
             case '&':
                 if (this.matchNext('&'))
