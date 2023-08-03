@@ -44,4 +44,23 @@ describe('Smol Dev Tests', () => {
     expect(vm.getGlobalVar('f')).toBe(6765);*/
   })
 
+  test('break and continue', () => {
+
+    const source = `
+    var a = new String(b); // Should raise error undefined
+    `;
+
+    let debugLog = '';
+
+    const vm = SmolVM.Compile(source);
+
+    //console.log(vm.program.decompile());
+/*
+    vm.onDebugPrint = (str) => { debugLog += `${str}\n` };
+    vm.maxCycles = 1000000;
+    vm.maxStackSize = 10000;
+    vm.run();
+    expect(vm.getGlobalVar('f')).toBe(6765);*/
+  })
+
 });

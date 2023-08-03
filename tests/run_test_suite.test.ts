@@ -40,7 +40,7 @@ allFiles.forEach((f) => {
 });
 
 const runStepRegex = /- run$/i;
-const expectGlobalNumberRegex = /- expect global (.*?) to be number (\d+(\.{0,1}\d*))/i;
+const expectGlobalNumberRegex = /- expect global (.*?) to be number (-{0,1}\d+(\.{0,1}\d*))/i;
 const expectGlobalStringRegex = /- expect global (.*?) to be string (.*)/i;
 const expectGlobalBoolRegex = /- expect global (.*?) to be boolean (.*)/i;
 const expectGlobalUndefinedRegex = /- expect global (.*?) to be undefined/i;
@@ -94,8 +94,6 @@ function runTest(fileName:string, removeSemicolons:boolean = false) {
           throw new Error(`Could not parse ${step}`);
         }
 
-      
-
         expect(vm.getGlobalVar(m[1])).toBe(Number(m[2]));        
       }
       else if (expectGlobalStringRegex.test(step)) {
@@ -104,8 +102,15 @@ function runTest(fileName:string, removeSemicolons:boolean = false) {
         if (m == null) {
           throw new Error(`Could not parse ${step}`);
         }
-
-        expect(vm.getGlobalVar(m[1]).toString()).toBe(String(m[2]));
+        
+        try {
+          expect(vm.getGlobalVar(m[1]).toString()).toBe(String(m[2]));                
+        }
+        catch(e)
+        {
+          console.log(`Failed checking value of ${m[1]} in test ${fileName}`);
+          throw e;
+        }
       }
       else if (expectGlobalBoolRegex.test(step)) {
         const m = step.match(expectGlobalBoolRegex);
