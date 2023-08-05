@@ -374,6 +374,7 @@ export class Parser {
 
     private tryStatement() : TryStatement {
 
+
         this.consume(TokenType.LEFT_BRACE, "Expected {");
         const tryBody:BlockStatement = this.block();
         let catchBody:BlockStatement|undefined = undefined;

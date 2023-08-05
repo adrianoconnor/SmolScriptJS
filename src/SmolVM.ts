@@ -19,8 +19,14 @@ import { SmolArray } from "./Internals/SmolVariableTypes/SmolArray";
 import { RunMode } from "./Internals/RunMode";
 import { SmolRegExp } from "./Internals/SmolVariableTypes/SmolRegExp";
 import { SmolVariableCreator } from "./Internals/SmolVariableTypes/SmolVariableCreator";
+import { SmolError } from "./Internals/SmolVariableTypes/SmolError";
+
+class SmolThrown extends Error {
+
+}
 
 export class SmolVM {
+
 
     program:SmolProgram;
     code_section = 0;
@@ -810,46 +816,46 @@ export class SmolVM {
                         break;
 
                     case OpCode.TRY:
-/*
-                        SmolVariableType? exception = null;
 
-                        if (instr.operand2 != null && (bool)instr.operand2)
+                        let exception:SmolVariableType|undefined;
+
+                        if (instr.operand2 != undefined && (instr.operand2 as boolean))
                         {
                             // This is a special flag for the try instruction that tells us to
                             // take the exception that's already on the stack and leave it at the
                             // top after creating the try checkpoint.
 
-                            exception = (SmolVariableType)stack.Pop();
+                            exception = this.stack.pop() as SmolVariableType;
                         }
 
-                        stack.Push(new SmolTryRegionSaveState(
-                                code_section: this.code_section,
-                                PC: this.PC,
-                                this_env: this.environment,
-                                jump_exception: jmplocs[(int)instr.operand1!]
+                        this.stack.push(new SmolTryRegionSaveState(
+                                this.code_section,
+                                this.pc,
+                                this.environment,
+                                this.jmplocs[instr.operand1 as number]
                             )
                         );
 
-                        if (exception != null)
+                        if (exception != undefined)
                         {
-                            stack.Push(exception!);
+                            this.stack.push(exception);
                         }
-*/
+
                         break;
 
                     case OpCode.THROW:
-                        /*
-                        if (instr.operand1 as bool? ?? false) // This flag means the user provided an object to throw, and it's already on the stack
+                        
+                        if (instr.operand1 as boolean) // This flag means the user provided an object to throw, and it's already on the stack
                         {
-                            throw new SmolThrown(); // SmolRuntimeException("");
+                            throw new SmolThrown(""); // SmolRuntimeException("");
                         }
                         else
                         {
                             //stack.Push(new SmolValue()
 
-                            throw new SmolThrown();  // throw new SmolRuntimeException();
+                            throw new SmolThrown("");  // throw new SmolRuntimeException();
                         }
-                        */
+                        
                        break;
 
                     case OpCode.LOOP_START:
@@ -950,7 +956,14 @@ export class SmolVM {
             catch (e) // SmolThrown
             {
                 let handled = false;
-                const thrownObject = this.stack.pop() as SmolVariableType;
+                let throwObject:SmolVariableType = new SmolError((e as Error).message);
+                
+                if (e instanceof SmolThrown) {
+                    const thrownObject = this.stack.pop() as SmolVariableType;
+                    throwObject = thrownObject;
+                }
+
+                console.log(this.stack);
 
                 while (this.stack.length > 0)
                 {
@@ -966,7 +979,7 @@ export class SmolVM {
                         this.pc = tryState.jump_exception;
                         this.environment = tryState.this_env;
 
-                        this.stack.push(thrownObject);
+                        this.stack.push(throwObject);
 
                         handled = true;
                         break;
@@ -975,41 +988,10 @@ export class SmolVM {
 
                 if (!handled)
                 {
-                    throw e //SmolRuntimeException(e.Message);
+                    throw e; //new Error((e as Error).message); // SmolRuntimeException(e.Message);
                 }
 
-            }/*
-            catch (Exception e) // (SmolRuntimeException e)
-            {
-                bool handled = false;
-              
-                while (stack.Any())
-                {
-                    var next = stack.Pop();
-
-                    if (next.GetType() == typeof(SmolTryRegionSaveState))
-                    {
-                        // We found the start of a try section, restore our state and jump to the exception handler location
-
-                        var state = (SmolTryRegionSaveState)next;
-
-                        this.code_section = state.code_section;
-                        this.PC = state.jump_exception;
-                        this.environment = state.this_env;
-
-                        stack.Push(new SmolError(e.Message));
-
-                        handled = true;
-                        break;
-                    }
-                }
-
-                if (!handled)
-                {
-                    throw new SmolRuntimeException(e.Message, e);
-                }
             }
-            */
 
             if (this.maxStackSize > -1 && this.stack.length > this.maxStackSize) throw new Error("Stack overflow");
 

@@ -332,9 +332,101 @@ export class Compiler {
 
     private visitTryStatement(stmt:TryStatement) : ByteCodeInstruction[] {
 
-        // TODO: !!!!!!!
+        const chunk = this.createChunk();
 
-        return this.createChunk();
+        const exceptionLabel = this.reserveLabelId();
+        const finallyLabel = this.reserveLabelId();
+        const finallyWithExceptionLabel = this.reserveLabelId();
+
+        // This will create a try 'checkpoint' in the vm. If we hit an exception the
+        // vm will rewind the stack back to this instruction and jump to the catch/finally.
+        chunk.appendInstruction(OpCode.TRY, exceptionLabel, false);
+
+        // If an exception happens inside the body, it will rewind the stack to the try that just went on
+        // and that tells us where to jump to
+
+        chunk.appendChunk(stmt.tryBody.accept(this));
+
+        // If there was no exception, we need to get rid of that try checkpoint that's on the stack, we aren't
+        // going back there even if there's an exception in the finally
+
+        chunk.appendInstruction(OpCode.POP_AND_DISCARD);
+
+        // Now execute the finally
+
+        chunk.appendInstruction(OpCode.JMP, finallyLabel);
+        chunk.appendInstruction(OpCode.LABEL, exceptionLabel);
+
+        // We're now at the catch part -- even if the user didn't specify one, we'll have a default (of { throw })
+        // We now should have the thrown exception on the stack, so if a throw happens inside the catch that will
+        // be the thing that's thrown.
+
+        chunk.appendInstruction(OpCode.TRY, finallyWithExceptionLabel, true); // True means keep the exception at the top of the stack
+
+        if (stmt.catchBody != null)
+        {
+            if (stmt.exceptionVariableName != null)
+            {
+                chunk.appendInstruction(OpCode.ENTER_SCOPE);
+
+                // Top of stack will be exception so store it in variable name
+
+                chunk.appendInstruction(OpCode.DECLARE, stmt.exceptionVariableName.lexeme);
+                chunk.appendInstruction(OpCode.STORE, stmt.exceptionVariableName.lexeme);
+            }
+            else
+            {
+                // Top of stack is exception, but no variable defined to hold it so get rid of it
+                chunk.appendInstruction(OpCode.POP_AND_DISCARD);
+            }
+
+            chunk.appendChunk(stmt.catchBody.accept(this)); // Might be a throw inside here...
+
+            if (stmt.exceptionVariableName != null)
+            {
+                chunk.appendInstruction(OpCode.LEAVE_SCOPE);
+            }
+        }
+        else
+        {
+            // No catch body is replaced by single instruction to rethrow the exception, which is already on the top of the stack
+
+            chunk.appendInstruction(OpCode.THROW);
+        }
+
+        // If we made it here we got through the catch block without a throw, so we're free to execute the regular
+        // finally and carry on with execution, exception is fully handled.
+
+        // Top of stack has to the try checkpoint, so get rid of it because we aren't going back there
+        chunk.appendInstruction(OpCode.POP_AND_DISCARD);
+        chunk.appendInstruction(OpCode.JMP, finallyLabel);
+        chunk.appendInstruction(OpCode.LABEL, finallyWithExceptionLabel);
+
+        // If we're here then we had a throw inside the catch, so execute the finally and then throw it again.
+        // When we throw this time the try checkpoint has been removed so we'll bubble down the stack to the next
+        // try checkpoint (if there is one -- and panic if not)
+
+        if (stmt.finallyBody != null)
+        {
+            chunk.appendChunk(stmt.finallyBody.accept(this));
+
+            // Instruction to check for unthrown exception and throw it
+        }
+
+        chunk.appendInstruction(OpCode.THROW);
+        chunk.appendInstruction(OpCode.LABEL, finallyLabel);
+
+        if (stmt.finallyBody != null)
+        {
+            chunk.appendChunk(stmt.finallyBody.accept(this));
+
+            // Instruction to check for unthrown exception and throw it
+        }
+
+        // Hopefully that all works. It's mega dependent on the instructions leaving the stack in a pristine state -- no
+        // half finished evaluations or anything. That's definitely going to be a problem.
+
+        return chunk;
     }
 
     private visitThrowStatement(stmt:ThrowStatement) : ByteCodeInstruction[] {
