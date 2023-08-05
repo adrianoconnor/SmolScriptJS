@@ -963,8 +963,6 @@ export class SmolVM {
                     throwObject = thrownObject;
                 }
 
-                console.log(this.stack);
-
                 while (this.stack.length > 0)
                 {
                     const next = this.stack.pop();
