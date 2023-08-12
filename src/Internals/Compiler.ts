@@ -108,10 +108,11 @@ export class Compiler {
 
             mainChunk.appendChunk(p[i].accept(this));
 
-            mainChunk[checkPoint].isStatementStartpoint = true;
+            //mainChunk[checkPoint].isStatementStartpoint = true;
         }
 
         mainChunk.appendInstruction(OpCode.EOF);
+        mainChunk[mainChunk.length - 1].isStatementStartpoint = true;
 
         const program = new SmolProgram();
         program.constants = this._constants;
@@ -133,17 +134,32 @@ export class Compiler {
 
         const chunk = this.createChunk();
 
-        chunk.appendInstruction(OpCode.ENTER_SCOPE);
+        var enterScope = new ByteCodeInstruction(OpCode.ENTER_SCOPE);
+        enterScope.token_map_start_index = stmt.blockStartTokenIndex;
+        enterScope.token_map_end_index = stmt.blockStartTokenIndex;
+        if (stmt.isVirtual == false) {
+            enterScope.isStatementStartpoint = true;
+        }
+
+        chunk.appendChunk(enterScope);
+
 
         stmt.statements.forEach((blockStmt:Statement) => {
             
             const c = blockStmt.accept(this);
-            c[0].isStatementStartpoint = true;
+            //c[0].isStatementStartpoint = true;
             chunk.appendChunk(c);
 
         });
 
-        chunk.appendInstruction(OpCode.LEAVE_SCOPE);
+        var leaveScope = new ByteCodeInstruction(OpCode.LEAVE_SCOPE);
+        leaveScope.token_map_start_index = stmt.blockEndTokenIndex;
+        leaveScope.token_map_end_index = stmt.blockEndTokenIndex;
+        if (stmt.isVirtual == false) {
+            leaveScope.isStatementStartpoint = true;
+        }
+
+        chunk.appendChunk(leaveScope);
 
         return chunk;
     }
@@ -264,6 +280,8 @@ export class Compiler {
         const notTrueLabel = this.reserveLabelId();
 
         chunk.appendChunk(stmt.expression.accept(this));
+        chunk[0].isStatementStartpoint = true;
+
         chunk.appendInstruction(OpCode.JMPFALSE, notTrueLabel);
 
         const thenChunk = stmt.thenStatement.accept(this);
@@ -451,6 +469,7 @@ export class Compiler {
         }
 
         chunk.mapTokens(stmt.firstTokenIndex, stmt.lastTokenIndex);
+        chunk[0].isStatementStartpoint = true;
 
         return chunk;
     }
@@ -466,7 +485,13 @@ export class Compiler {
 
         chunk.appendInstruction(OpCode.LOOP_START);
         chunk.appendInstruction(OpCode.LABEL, startOfLoop);
-        chunk.appendChunk(stmt.whileCondition.accept(this));
+        const whileExpr = stmt.whileCondition.accept(this);
+        if (whileExpr[0] == undefined)
+            whileExpr.isStatementStartpoint = true;
+        else
+           whileExpr[0].isStatementStartpoint = true;
+
+        chunk.appendChunk(whileExpr);
         chunk.appendInstruction(OpCode.JMPFALSE, endOfLoop);
 
         const stmtChunk = stmt.executeStatement.accept(this);
@@ -495,6 +520,8 @@ export class Compiler {
         // This is so inefficient
 
         chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
+
+        chunk[0].isStatementStartpoint = true;
 
         return chunk;
     }

@@ -56,21 +56,33 @@ describe('Smol Debug Step-through While Loop', () => {
     while(y < 9) {
       vm.step();
       expect(vm.getGlobalVar('y')).toBe(++y);
+      expect(getPendingInstr(vm)).toBe('while(y < 10)');
+      vm.step();
       expect(getPendingInstr(vm)).toBe('y++');
     }
     vm.step();
     expect(vm.getGlobalVar('y')).toBe(++y);
+    expect(getPendingInstr(vm)).toBe('while(y < 10)');
+    vm.step();
     expect(getPendingInstr(vm)).toBe('while ( y>2 )');
     while(y > 2) {
+      vm.step();
+      expect(getPendingInstr(vm)).toBe('{');
       vm.step();
       expect(vm.getGlobalVar('y')).toBe(y--);
       expect(getPendingInstr(vm)).toBe('y = y - 1');
       vm.step();
       expect(getPendingInstr(vm)).toBe('var z = 0');
+      vm.step();
+      expect(getPendingInstr(vm)).toBe('}');
+      vm.step();
+      expect(getPendingInstr(vm)).toBe('while ( y>2 )');
     }
 
     vm.step();
     expect(getPendingInstr(vm)).toBe('while(true)');
+    vm.step();
+    expect(getPendingInstr(vm)).toBe('{');
     vm.step();
     expect(getPendingInstr(vm)).toBe('y = y - 1');
     vm.step();
@@ -78,6 +90,10 @@ describe('Smol Debug Step-through While Loop', () => {
     expect(getPendingInstr(vm)).toBe('if (y == 0)');
     vm.step();
     expect(getPendingInstr(vm)).toBe('continue');
+    vm.step();
+    expect(getPendingInstr(vm)).toBe('while(true)');
+    vm.step();
+    expect(getPendingInstr(vm)).toBe('{');
     vm.step();
     expect(getPendingInstr(vm)).toBe('y = y - 1');
     vm.step();

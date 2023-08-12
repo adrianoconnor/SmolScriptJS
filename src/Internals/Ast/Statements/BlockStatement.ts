@@ -8,12 +8,17 @@ export class BlockStatement implements Statement {
     }
 
     statements:Statement[];
+    isVirtual:boolean;
 
-    constructor(statements:Statement[]) {
+    constructor(statements:Statement[], isVirtual = false) {
         this.statements = statements;
+        this.isVirtual = isVirtual;
     }
 
     accept(visitor:any) {
         return visitor.visitBlockStatement(this);
     }
+
+    blockStartTokenIndex:number|undefined;
+    blockEndTokenIndex:number|undefined;
 }

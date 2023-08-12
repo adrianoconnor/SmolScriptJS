@@ -16,7 +16,7 @@ export class SmolArray extends ISmolNativeCallable {
     }
 
     toString() {
-        return `SmolArray (length = ${this.array.length}`;
+        return `(SmolArray, length = ${this.array.length})`;
     }
 
     getProp(propName:string):SmolVariableType

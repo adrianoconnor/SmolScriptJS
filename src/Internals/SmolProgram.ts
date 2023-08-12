@@ -12,12 +12,17 @@ export class SmolProgram
     tokens:Token[] = [];
     source:string|undefined;
 
-    decompile() {
+    decompile(html = false) {
         let p = '';
 
         p += `.constants\n`;
         this.constants.forEach((c,n) => {
-            p += `${n}: ${c.getValue()}\n`;
+            if (html) {
+                p += `${n}: ${c.getValue().toString().replace('<', '&lt;')}\n`;
+            }
+            else {
+                p += `${n}: ${c.getValue()}\n`;
+            }
         });
 
         p += `\n`;
@@ -25,7 +30,11 @@ export class SmolProgram
         this.code_sections.forEach((s,n) => {
 
             p += `.code_section_${n}\n`;
-            s.forEach((i) => {
+            s.forEach((i, idx) => {
+
+                if (html) {
+                    p += `<div id="cs_${n}_${idx}">`;
+                }
 
                 if (i.isStatementStartpoint) {
                     p += '* ';
@@ -38,13 +47,26 @@ export class SmolProgram
                 const op2 = i.operand2 != undefined ? ` ${i.operand2}` : '';
 
                 if (i.opcode == OpCode.CONST) {
-                    p += `${OpCode[i.opcode]} [${i.operand1}] ${this.constants[i.operand1 as number]}`;
+                    
+                    if (html) {
+                        p += `${OpCode[i.opcode]} [${i.operand1}] ${this.constants[i.operand1 as number].toString().replace('<', '&lt;')}`;
+                    }
+                    else {
+                        p += `${OpCode[i.opcode]} [${i.operand1}] ${this.constants[i.operand1 as number]}`;
+                    }                   
                 }
                 else {
                     p += `${OpCode[i.opcode]}${op1}${op2}`;
                 }
 
-                p += '\n';
+                p += ` [${i.token_map_start_index}, ${i.token_map_end_index}]`
+
+                if (html) {
+                    p += `</div>`;
+                }
+                else {
+                    p += '\n';
+                }
             });
             
             p += `\n`;

@@ -34,12 +34,16 @@ describe('Smol Debug Basics', () => {
     expect(vm.getGlobalVar('y')).toBeUndefined;
     vm.step(); // var y = 2 executed
     expect(vm.getGlobalVar('y')).toBe(2);
-    vm.step() // moo(2) executed
+    vm.step(); // moo(2) executed
+    vm.step();
     vm.step(); // y = y * z (in function) executed
     expect(vm.getGlobalVar('y')).toBe(4);
-    vm.step() // moo(2) executed
+    vm.step(); // moo(2) executed
+    vm.step();
     vm.step(); // y = y * z (in function) executed
+    vm.step(); // {
     expect(vm.getGlobalVar('y')).toBe(8);
+    vm.step(); // }
     vm.step(); // var z = y / 2; executed
     expect(vm.getGlobalVar('z')).toBe(4);
   })
@@ -70,10 +74,12 @@ describe('Smol Debug Basics', () => {
     expect(vm.getGlobalVar('x')).toBe(0);
     expect(getPendingInstr(vm)).toBe('if (y == 2)');
     vm.step(); // if (y == 2)
+    vm.step(); // {}
     expect(vm.getGlobalVar('x')).toBe(0);
     expect(getPendingInstr(vm)).toBe('x = 1');
     vm.step(); // x = 1 (inside if)
     expect(vm.getGlobalVar('x')).toBe(1);
+    vm.step(); // }
     vm.step(); // x = 3
     expect(vm.getGlobalVar('x')).toBe(3);
   })
@@ -101,15 +107,20 @@ describe('Smol Debug Basics', () => {
     expect(getPendingInstr(vm)).toBe('var y = 2');
     vm.step(); // var y = 2
     expect(vm.getGlobalVar('y')).toBe(2);
+    expect(getPendingInstr(vm)).toBe('var x = 0');
     vm.step(); // var x = 0
     expect(vm.getGlobalVar('x')).toBe(0);
     expect(getPendingInstr(vm)).toBe('if (y == 2)');
     vm.step(); // if (y == 2)
+    expect(getPendingInstr(vm)).toBe('{');
+    vm.step();
     expect(vm.getGlobalVar('x')).toBe(0);
     expect(getPendingInstr(vm)).toBe('x = 1');
     vm.step(); // x = 1 (inside if)
     expect(vm.getGlobalVar('x')).toBe(1);
     vm.step(); // x = 3
+    expect(getPendingInstr(vm)).toBe('x = 3');
+    vm.step();
     expect(vm.getGlobalVar('x')).toBe(3);
   })
 
@@ -170,18 +181,20 @@ describe('Smol Debug Basics', () => {
     expect(vm.getGlobalVar('y')).toBe(2);
     // expect current active code to be line 12, inside the function body! This is not yet implemented
     vm.step() // moo(2) executed
+    vm.step();
     vm.step(); // y = y * z (in function) executed
     // expect current active code to be line 12, inside the function body! This is not yet implemented
     expect(vm.getGlobalVar('y')).toBe(4);
+    vm.step();
+
     vm.step() // moo(2) executed
     vm.step(); // y = y * z (in function) executed
+    vm.step();
+    vm.step();
     expect(vm.getGlobalVar('y')).toBe(8);
     vm.step(); // var z = y / 2; executed
     expect(vm.getGlobalVar('z')).toBe(4);
-
   })
-
-
 
   test('debug step through of if statement without block', () => {
 

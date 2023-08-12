@@ -300,6 +300,8 @@ export class Parser {
 
     private block() : BlockStatement
     {
+        const blockFirstTokenIndex = this._currentTokenIndex - 1;
+
         const stmts:Statement[] = [];
 
         while (!this.check(TokenType.RIGHT_BRACE) && !this.endOfTokenStream()) {
@@ -307,8 +309,14 @@ export class Parser {
         }
 
         this.consume(TokenType.RIGHT_BRACE, "Expected '}' after block.");
+        
+        const blockLastTokenIndex = this._currentTokenIndex - 1;
 
-        return new BlockStatement(stmts);
+        var blockStmt = new BlockStatement(stmts);
+        blockStmt.blockStartTokenIndex = blockFirstTokenIndex;
+        blockStmt.blockEndTokenIndex = blockLastTokenIndex;
+
+        return blockStmt;
     }
 
     private ifStatement() : Statement {
@@ -428,10 +436,14 @@ export class Parser {
         }
 
         let condition:Expression;
+        let conditionFirstTokenIndex:number|undefined;
+        let conditionLastTokenIndex:number|undefined;
 
         if (!this.check(TokenType.SEMICOLON))
         {
+            conditionFirstTokenIndex = this._currentTokenIndex;
             condition = this.expression();
+            conditionLastTokenIndex = this._currentTokenIndex - 1;
         }
         else
         {
@@ -441,10 +453,15 @@ export class Parser {
         this.consume(TokenType.SEMICOLON, "Expected ;");
 
         let increment:Expression|undefined; // Expression
+        let incrFirstTokenIndex:number|undefined;
+        let incrLastTokenIndex:number|undefined;
+        
 
         if (!this.check(TokenType.RIGHT_BRACKET))
         {
+            incrFirstTokenIndex = this._currentTokenIndex;
             increment = this.expression();
+            incrLastTokenIndex = this._currentTokenIndex - 1;
         }
 
         this.consume(TokenType.RIGHT_BRACKET, "Expected )");
@@ -453,19 +470,26 @@ export class Parser {
 
         if (increment != null)
         {
-            const innerStmts:Statement[] = [body, new ExpressionStatement(increment)];
+            let incrExprStmt = new ExpressionStatement(increment);
+            incrExprStmt.firstTokenIndex = incrFirstTokenIndex;
+            incrExprStmt.lastTokenIndex = incrLastTokenIndex;
+            const innerStmts:Statement[] = [body, incrExprStmt];
 
-            body = new BlockStatement(innerStmts);
+            body = new BlockStatement(innerStmts, true);
         }
 
-        body = new WhileStatement(condition, body);
+        let whileStmt = new WhileStatement(condition, body);
+
+        whileStmt.exprFirstTokenIndex = conditionFirstTokenIndex;
+        whileStmt.exprLastTokenIndex = conditionLastTokenIndex;
 
         if (initialiser != null)
         {               
-            body = new BlockStatement([initialiser, body]);
+            return new BlockStatement([initialiser, whileStmt], true);
         }
-
-        return body;
+        else {
+            return whileStmt;
+        }
     }
 
 

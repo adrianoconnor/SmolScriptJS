@@ -16,6 +16,15 @@ export class SmolObject extends SmolVariableType {
         return this;
     }
 
+    toString() {
+        if (this.class_name != '') {
+            return `(SmolInstance, class_name = ${this.class_name})`;
+        }
+        else {
+            return `(SmolObject)`;
+        }
+    }
+
     getProp(propName:string):SmolVariableType
     {
         switch (propName)
