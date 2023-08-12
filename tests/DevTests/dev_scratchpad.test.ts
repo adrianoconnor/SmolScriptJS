@@ -14,7 +14,7 @@ function getPendingInstr(vm:SmolVM) : string {
   return vm.program.source!.substring(pending_instr_first_token.start_pos, pending_instr_last_token.end_pos);
 }
 
-describe('Smol Dev Tests', () => {
+describe('SmolDevTest', () => {
 
   test('break and continue', () => {
 
@@ -44,17 +44,21 @@ describe('Smol Dev Tests', () => {
     expect(vm.getGlobalVar('f')).toBe(6765);*/
   })
 
-  test('break and continue', () => {
+  test('decomp', () => {
 
     const source = `
-    var a = new String(b); // Should raise error undefined
+    function f(a) {
+      return 1;
+    }
+
+    f(1);
     `;
 
     let debugLog = '';
 
     const vm = SmolVM.Compile(source);
 
-    //console.log(vm.program.decompile());
+    console.log(vm.program.decompile(true));
 /*
     vm.onDebugPrint = (str) => { debugLog += `${str}\n` };
     vm.maxCycles = 1000000;

@@ -54,6 +54,8 @@ export class SmolVM {
 
         this.createStdLib();
         this.buildJumpTable();
+
+        this.runMode = RunMode.Ready;
     }
 
     static Compile(source:string):SmolVM {
@@ -226,7 +228,9 @@ export class SmolVM {
     }
 
     step():void {
-        this._run(RunMode.Step);
+        if (this.runMode == RunMode.Ready || this.runMode == RunMode.Paused) {
+            this._run(RunMode.Step);
+        }
     }
 
     _run(newRunMode:RunMode)
@@ -236,9 +240,15 @@ export class SmolVM {
         let consumedCycles = 0;
 
         while (this.runMode == RunMode.Run || this.runMode == RunMode.Step)
-        {        
-            // Peek at the next instruction to execute and see if it's a step break point
+        {   
             if (this.runMode == RunMode.Step
+                && this.code_section == 0
+                && this.program.code_sections[0].length < (this.pc - 1)) {
+                    this.runMode = RunMode.Done;
+                    return;
+            }     
+            // Peek at the next instruction to execute and see if it's a step break point
+            else if (this.runMode == RunMode.Step
                     && this.program.code_sections[this.code_section][this.pc].isStatementStartpoint
                     && hasExecutedAtLeastOnce)
             {

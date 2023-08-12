@@ -18,7 +18,7 @@ export class SmolProgram
         p += `.constants\n`;
         this.constants.forEach((c,n) => {
             if (html) {
-                p += `${n}: ${c.getValue().toString().replace('<', '&lt;')}\n`;
+                p += `${n}: ${(c.getValue() ?? c).toString().replace('<', '&lt;')}\n`;
             }
             else {
                 p += `${n}: ${c.getValue()}\n`;
