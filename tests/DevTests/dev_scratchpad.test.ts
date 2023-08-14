@@ -58,7 +58,7 @@ describe('SmolDevTest', () => {
 
     const vm = SmolVM.Compile(source);
 
-    console.log(vm.program.decompile(true));
+    console.log(vm.program.decompile(false));
 /*
     vm.onDebugPrint = (str) => { debugLog += `${str}\n` };
     vm.maxCycles = 1000000;

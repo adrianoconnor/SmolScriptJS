@@ -36,7 +36,7 @@ export class SmolProgram
                     p += `<div id="cs_${n}_${idx}">`;
                 }
 
-                if (i.isStatementStartpoint) {
+                if (i.isStatementStartpoint && i.opcode != OpCode.START) {
                     p += '* ';
                 }
                 else {
@@ -55,11 +55,17 @@ export class SmolProgram
                         p += `${OpCode[i.opcode]} [${i.operand1}] ${this.constants[i.operand1 as number]}`;
                     }                   
                 }
+                else if (i.opcode == OpCode.START) {
+                    p += `PROGRAM START`;
+                }
+                else if (i.opcode == OpCode.EOF) {
+                    p += `PROGRAM END`;
+                }
                 else {
                     p += `${OpCode[i.opcode]}${op1}${op2}`;
                 }
 
-                p += ` [${i.token_map_start_index}, ${i.token_map_end_index}]`
+                //p += ` [${i.token_map_start_index}, ${i.token_map_end_index}]`
 
                 if (html) {
                     p += `</div>`;

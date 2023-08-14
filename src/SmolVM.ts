@@ -224,7 +224,13 @@ export class SmolVM {
     }
     
     run():void {
-        this._run(RunMode.Run);
+        if (this.runMode == RunMode.Ready || this.runMode == RunMode.Paused) {
+            this._run(RunMode.Run);
+        }
+    }
+
+    getCurrentRunMode():string {
+        return RunMode[this.runMode];
     }
 
     step():void {
@@ -505,6 +511,7 @@ export class SmolVM {
                         {
                             //console.log(`Done, stack size = ${this.stack.length}, consumed cycles = ${consumedCycles}`);
                             this.runMode = RunMode.Done;
+                            this.pc--;
                             return;
                         }
 
@@ -541,6 +548,12 @@ export class SmolVM {
 
                                 this.runMode = RunMode.Paused;
                                 return; // Don't like this, error prone
+                            }
+
+                            if (this.runMode == RunMode.Step)
+                            {
+                                this.runMode = RunMode.Paused;
+                                return;
                             }
 
                             break;
@@ -813,8 +826,11 @@ export class SmolVM {
 
                     case OpCode.DEBUGGER:
                         {
-                            this.runMode = RunMode.Paused;
-                            return;
+                            if (hasExecutedAtLeastOnce) {
+                                // Don't break if we're starting from a prevoiusly hit break point
+                                this.runMode = RunMode.Paused;
+                                return;
+                            }
                         }
 
                     case OpCode.POP_AND_DISCARD:

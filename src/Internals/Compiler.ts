@@ -344,6 +344,8 @@ export class Compiler {
         }
 
         chunk.appendInstruction(OpCode.RETURN);
+        chunk.mapTokens(stmt.tokenIndex, stmt.exprLastTokenIndex ?? stmt.tokenIndex);
+        chunk[0].isStatementStartpoint = true;
 
         return chunk;
     }

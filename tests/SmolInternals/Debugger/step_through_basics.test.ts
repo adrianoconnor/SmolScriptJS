@@ -42,8 +42,10 @@ describe('Smol Debug Basics', () => {
     vm.step();
     vm.step(); // y = y * z (in function) executed
     vm.step(); // {
+    vm.step();
     expect(vm.getGlobalVar('y')).toBe(8);
     vm.step(); // }
+    vm.step();
     vm.step(); // var z = y / 2; executed
     expect(vm.getGlobalVar('z')).toBe(4);
   })
@@ -192,6 +194,8 @@ describe('Smol Debug Basics', () => {
     vm.step();
     vm.step();
     expect(vm.getGlobalVar('y')).toBe(8);
+    vm.step();
+    vm.step(); 
     vm.step(); // var z = y / 2; executed
     expect(vm.getGlobalVar('z')).toBe(4);
   })

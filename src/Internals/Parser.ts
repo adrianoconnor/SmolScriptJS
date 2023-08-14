@@ -241,17 +241,31 @@ export class Parser {
     }
 
     private returnStatement() : ReturnStatement {
+
+        const tokenIndex = this._currentTokenIndex - 1;
+
         if (this.peek().type == TokenType.SEMICOLON 
                 || this.peek().type == TokenType.RIGHT_BRACE
                 || this.previous().followed_by_line_break) {
                                         
             this.consume(TokenType.SEMICOLON, "Expected ;");
-            return new ReturnStatement(undefined); // Could be literal undefined.
+
+            var returnStmt = new ReturnStatement(undefined);
+            returnStmt.tokenIndex = tokenIndex;
+            return returnStmt;
         }
         else {
+            const exprFirstTokenIndex = this._currentTokenIndex;
             const expr = this.expression();
+            const exprLastTokenIndex = this._currentTokenIndex - 1;
+            
             this.consume(TokenType.SEMICOLON, "Expected ;");
-            return new ReturnStatement(expr);
+
+            var returnStmt = new ReturnStatement(expr);
+            returnStmt.tokenIndex = tokenIndex;
+            returnStmt.exprFirstTokenIndex = exprFirstTokenIndex;
+            returnStmt.exprLastTokenIndex = exprLastTokenIndex;
+            return returnStmt;
         }
     }
 

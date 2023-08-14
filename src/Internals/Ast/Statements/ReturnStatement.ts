@@ -17,4 +17,8 @@ export class ReturnStatement implements Statement {
     accept(visitor:any) {
         return visitor.visitReturnStatement(this);
     }
+
+    tokenIndex:number|undefined;
+    exprFirstTokenIndex:number|undefined;
+    exprLastTokenIndex:number|undefined;
 }
