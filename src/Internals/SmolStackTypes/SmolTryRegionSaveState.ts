@@ -15,4 +15,8 @@ export class SmolTryRegionSaveState extends SmolStackType {
         this.this_env = this_env;
         this.jump_exception = jump_exception;
     }
+
+    toString() {
+        return `(SmolTryRegionSaveState)`;
+    }
 }

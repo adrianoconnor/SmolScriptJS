@@ -9,4 +9,8 @@ export class SmolLoopMarker extends SmolStackType {
         super();
         this.current_env = current_env;
     }
+
+    toString() {
+        return `(SmolLoopMarker)`;
+    }
 }

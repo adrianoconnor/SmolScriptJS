@@ -233,9 +233,9 @@ export class SmolVM {
         return RunMode[this.runMode];
     }
 
-    step():void {
+    step(vmInstrStep = false):void {
         if (this.runMode == RunMode.Ready || this.runMode == RunMode.Paused) {
-            this._run(RunMode.Step);
+            this._run(vmInstrStep ? RunMode.InstructionStep : RunMode.Step);
         }
     }
 
@@ -245,7 +245,7 @@ export class SmolVM {
         let hasExecutedAtLeastOnce = false; // Used to ensure Step-through trips after at least one instruction is executed
         let consumedCycles = 0;
 
-        while (this.runMode == RunMode.Run || this.runMode == RunMode.Step)
+        while (this.runMode == RunMode.Run || this.runMode == RunMode.Step || this.runMode == RunMode.InstructionStep)
         {   
             if (this.runMode == RunMode.Step
                 && this.code_section == 0
@@ -258,6 +258,10 @@ export class SmolVM {
                     && this.program.code_sections[this.code_section][this.pc].isStatementStartpoint
                     && hasExecutedAtLeastOnce)
             {
+                this.runMode = RunMode.Paused;
+                return;
+            }
+            else if (this.runMode == RunMode.InstructionStep && hasExecutedAtLeastOnce) {
                 this.runMode = RunMode.Paused;
                 return;
             }
@@ -831,6 +835,8 @@ export class SmolVM {
                                 this.runMode = RunMode.Paused;
                                 return;
                             }
+
+                            break;
                         }
 
                     case OpCode.POP_AND_DISCARD:

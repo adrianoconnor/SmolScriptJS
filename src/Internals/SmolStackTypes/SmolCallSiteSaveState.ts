@@ -15,4 +15,8 @@ export class SmolCallSiteSaveState extends SmolStackType {
         this.previous_env = previous_env;
         this.call_is_extern = call_is_extern;
     }
+
+    toString() {
+        return `(SmolCallSiteSaveState)`;
+    }
 }

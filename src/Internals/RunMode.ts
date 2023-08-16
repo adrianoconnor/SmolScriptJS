@@ -3,6 +3,7 @@ export enum RunMode
     Ready,
     Run,
     Paused,
-    Step,
+    Step, // Stepinfo
+    InstructionStep,
     Done
 }
