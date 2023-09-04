@@ -14,7 +14,7 @@
   "author": "Adrian O'Connor (adrian.oconnor@arctus.co.uk)",
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.21.8",
+    "@babel/core": "^7.22.15",
     "@babel/preset-env": "^7.21.5",
     "@babel/preset-typescript": "^7.21.5",
     "@types/jest": "^29.5.1",
