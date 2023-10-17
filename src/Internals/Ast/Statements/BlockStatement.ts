@@ -8,11 +8,11 @@ export class BlockStatement implements Statement {
     }
 
     statements:Statement[];
-    isVirtual:boolean;
+    insertedByParser:boolean; // Means it was inserted by the parser to support a scope that is required by convention butnot explicitly given
 
     constructor(statements:Statement[], isVirtual = false) {
         this.statements = statements;
-        this.isVirtual = isVirtual;
+        this.insertedByParser = isVirtual;
     }
 
     accept(visitor:any) {

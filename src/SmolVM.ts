@@ -21,12 +21,12 @@ import { SmolRegExp } from "./Internals/SmolVariableTypes/SmolRegExp";
 import { SmolVariableCreator } from "./Internals/SmolVariableTypes/SmolVariableCreator";
 import { SmolError } from "./Internals/SmolVariableTypes/SmolError";
 
-class SmolThrown extends Error {
-
+class SmolThrownFromInstruction extends Error {
+    // We use native exceptions to throw from both user code and internal operations.
+    // This internal error type lets us our generic error handler know that it was user-thrown 
 }
 
 export class SmolVM {
-
 
     program:SmolProgram;
     code_section = 0;
@@ -876,20 +876,9 @@ export class SmolVM {
                         break;
 
                     case OpCode.THROW:
+                                            
+                        throw new SmolThrownFromInstruction();                 
                         
-                        if (instr.operand1 as boolean) // This flag means the user provided an object to throw, and it's already on the stack
-                        {
-                            throw new SmolThrown(""); // SmolRuntimeException("");
-                        }
-                        else
-                        {
-                            //stack.Push(new SmolValue()
-
-                            throw new SmolThrown("");  // throw new SmolRuntimeException();
-                        }
-                        
-                       break;
-
                     case OpCode.LOOP_START:
 
                         this.stack.push(new SmolLoopMarker(this.environment));
@@ -985,12 +974,12 @@ export class SmolVM {
                         throw new Error(`You forgot to handle an opcode: ${instr.opcode}`);
                 }
             }
-            catch (e) // SmolThrown
+            catch (e)
             {
                 let handled = false;
                 let throwObject:SmolVariableType = new SmolError((e as Error).message);
                 
-                if (e instanceof SmolThrown) {
+                if (e instanceof SmolThrownFromInstruction) {
                     const thrownObject = this.stack.pop() as SmolVariableType;
                     throwObject = thrownObject;
                 }
@@ -1018,7 +1007,7 @@ export class SmolVM {
 
                 if (!handled)
                 {
-                    throw e; //new Error((e as Error).message); // SmolRuntimeException(e.Message);
+                    throw e;
                 }
 
             }

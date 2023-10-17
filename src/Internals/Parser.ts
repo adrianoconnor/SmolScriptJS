@@ -489,7 +489,7 @@ export class Parser {
             incrExprStmt.lastTokenIndex = incrLastTokenIndex;
             const innerStmts:Statement[] = [body, incrExprStmt];
 
-            body = new BlockStatement(innerStmts, true);
+            body = new BlockStatement(innerStmts, true); // true is for 'inserted by parser' on the block statement
         }
 
         let whileStmt = new WhileStatement(condition, body);

@@ -135,11 +135,11 @@ export class Compiler {
         const chunk = this.createChunk();
 
         var enterScope = new ByteCodeInstruction(OpCode.ENTER_SCOPE);
+
         enterScope.token_map_start_index = stmt.blockStartTokenIndex;
         enterScope.token_map_end_index = stmt.blockStartTokenIndex;
-        if (stmt.isVirtual == false) {
-            enterScope.isStatementStartpoint = true;
-        }
+
+        enterScope.isStatementStartpoint = !stmt.insertedByParser; // Only break on this statement if it's directly linked to actual user code
 
         chunk.appendChunk(enterScope);
 
@@ -155,7 +155,7 @@ export class Compiler {
         var leaveScope = new ByteCodeInstruction(OpCode.LEAVE_SCOPE);
         leaveScope.token_map_start_index = stmt.blockEndTokenIndex;
         leaveScope.token_map_end_index = stmt.blockEndTokenIndex;
-        if (stmt.isVirtual == false) {
+        if (stmt.insertedByParser == false) {
             leaveScope.isStatementStartpoint = true;
         }
 

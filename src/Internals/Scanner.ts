@@ -1,6 +1,7 @@
 import { TokenType } from "./TokenType";
 import { Token } from "./Token";
 import { ScannerError } from "./ScannerError";
+import { CompilerError } from "../SmolErrorTypes";
 
 export class Scanner {
 
@@ -265,8 +266,7 @@ export class Scanner {
                 // Ignore whitespace
                 break;
 
-            case '\n':
-                //this._tokens.push(new Token(TokenType.NEWLINE, "", "", this._currentLine, -1, -1, -1))
+            case '\n':                
                 this._currentLine++;
                 this._currentLineStartIndex = this._currentPos;
 
@@ -295,7 +295,7 @@ export class Scanner {
                 }
                 else {
                     console.log(`Unexpected character ${c}`);
-                    throw new Error(`Unexpected character ${c}`);
+                    throw new CompilerError(`Unexpected character ${c} at position ${this._currentPos - this._currentLineStartIndex} on line ${this._currentLine}`);
                 }
         }
     }
@@ -369,8 +369,8 @@ export class Scanner {
             {
                 this._currentLine++;
                 this._currentLineStartIndex = this._currentPos;
-                //_errors.Add(new ScannerError(_line, "Unexpected Line break in string"));
-                throw new Error("Unexpected Line break in string");
+
+                throw new CompilerError(`Unexpected line break in string on line ${this._currentLine - 1}`);
             }
 
             if (this.peek() == '\\')
@@ -412,8 +412,7 @@ export class Scanner {
         }
 
         if (this.endOfFile()) {
-            //console.log("Unterminated string");
-            throw new Error("Unterminated string");
+            throw new CompilerError("Unterminated string");
         }
 
         // Consume the final "

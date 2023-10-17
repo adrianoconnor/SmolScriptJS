@@ -1,9 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
 import { SmolVM } from '../../src/SmolVM';
-import { RunMode } from '../../src/Internals/RunMode';
-import { TokenType } from '../../src/Internals/TokenType';
-import { OpCode } from '../../src/Internals/OpCode';
-import * as fs from 'fs';
 
 function getPendingInstr(vm:SmolVM) : string {
   let pending_instr = vm.program.code_sections[vm.code_section][vm.pc];

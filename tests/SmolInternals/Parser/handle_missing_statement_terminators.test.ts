@@ -1,7 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 import { SmolVM } from '../../../src/SmolVM';
-import { Scanner } from '../../../src/Internals/Scanner';
-import { Parser } from '../../../src/Internals/Parser';
+import { CompilerError } from '../../../src/SmolErrorTypes';
 
 describe('SmolInteral Parser', () => {
   test('Handle missing ;', () => {
@@ -77,7 +76,22 @@ describe('SmolInteral Parser', () => {
 
     //console.log(tokens);
 
-    expect(() => SmolVM.Init(source)).toThrow();
+    const t = () => SmolVM.Init(source);
+
+    expect(t).toThrow(CompilerError);
+    expect(t).toThrow("Unexpected line break in string on line 1");
 
   });
+
+  test('Expect unexpected character to fail', () => {
+
+    const source = `var a = 1;
+    a = ±5;`;
+
+    const t = () => SmolVM.Init(source);
+
+    expect(t).toThrow(CompilerError);
+    expect(t).toThrow("Unexpected character ± at position 9 on line 2");
+
+  });  
 });
