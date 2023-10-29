@@ -57,11 +57,14 @@ export class Parser {
         const statements:Statement[] = [];
 
         while(!this.endOfTokenStream()) {
-            var d = this.declaration();
-
-            //console.log(d);
-            statements.push(d);
-            //statements.push(this.declaration());
+            
+            if (this.peek().type == TokenType.SEMICOLON) {
+                // Swallow any stray semi-colons 
+                this.consume(TokenType.SEMICOLON, "");
+            }
+            else {
+                statements.push(this.declaration());
+            }
         }
 
         return statements;
