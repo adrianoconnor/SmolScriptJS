@@ -8,8 +8,8 @@ export class ByteCodeInstruction {
     operand1:unknown;
     operand2:unknown;
 
-    // This flag tells us that we're at the end of a single Statement, so this is where
-    // the debugger would naturally step to if we're stepping through our program
+    // This flag tells the debugger that this instruction starts a new statement,
+    // which is how it steps through the program
     isStatementStartpoint:boolean;
 
     // These attributes are used for mapping back to the original source code
