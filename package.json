@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "jest ./tests",
+    "testsuite": "jest ./tests/run_test_suite.test.ts",
     "build": "tsc --build src && webpack"
   },
   "keywords": [],
