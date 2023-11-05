@@ -63,4 +63,27 @@ describe('SmolDevTest', () => {
     expect(vm.getGlobalVar('f')).toBe(6765);*/
   })
 
+  test('indexerplusplus', () => {
+
+    const source = `
+    var i = 0;
+    var a = [0, 1, 2, 3, [0, 1, 2, 3]];
+
+    var r1 = a[++i];
+    var r2 = a[i++];
+    var r3 = a[++i + 1][2];
+    var r4 = ++a[i];
+//    a[i]++;
+//    var r4 = a[i];
+    `;
+
+    const vm = SmolVM.Init(source);
+
+    expect(vm.getGlobalVar('r1')).toBe(1);
+    expect(vm.getGlobalVar('r2')).toBe(1);
+    expect(vm.getGlobalVar('r3')).toBe(2);
+    expect(vm.getGlobalVar('r4')).toBe(4);
+//    expect(vm.getGlobalVar('r3')).toBe(4);
+  })
+
 });

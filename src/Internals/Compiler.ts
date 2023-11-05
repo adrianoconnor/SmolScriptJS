@@ -611,7 +611,6 @@ export class Compiler {
         })
 
         chunk.appendChunk(expr.callee.accept(this)); // Load the function name onto the stack
-
         chunk.appendInstruction(OpCode.CALL, expr.args.length, expr.useObjectRef);
 
         return chunk;
@@ -675,12 +674,10 @@ export class Compiler {
         const chunk = this.createChunk();
 
         chunk.appendChunk(expr.obj.accept(this));
-
         chunk.appendChunk(expr.value.accept(this));
-
         chunk.appendChunk(expr.indexerExpr.accept(this));
-
         chunk.appendInstruction(OpCode.STORE, "@IndexerSet", true);
+
         // This is so inefficient, but we need to read the saved value back onto the stack
 
         chunk.appendChunk(expr.obj.accept(this));
@@ -791,7 +788,6 @@ export class Compiler {
         }
 
         chunk.appendInstruction(OpCode.CALL, expr.ctorArgs.length, true);
-
         chunk.appendInstruction(OpCode.POP_AND_DISCARD); // We don't care about the ctor's return value
 
         return chunk;
@@ -802,9 +798,7 @@ export class Compiler {
         const chunk = this.createChunk();
 
         chunk.appendInstruction(OpCode.DUPLICATE_VALUE, 2);
-
         chunk.appendChunk(expr.value.accept(this));
-
         chunk.appendInstruction(OpCode.STORE, expr.name.lexeme, true);
 
         // We don't reload the value onto the stack for these...
@@ -817,15 +811,12 @@ export class Compiler {
         const chunk = this.createChunk();
 
         chunk.appendChunk(expr.obj.accept(this));
-
         chunk.appendChunk(expr.value.accept(this));
-
         chunk.appendInstruction(OpCode.STORE, expr.name.lexeme, true);
 
         // This is so inefficient, but we need to read the saved value back onto the stack
 
         chunk.appendChunk(expr.obj.accept(this));
-
         chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme, true);
 
         return chunk;
@@ -865,14 +856,11 @@ export class Compiler {
 
                     // If we're here it was false, so now it's true
                     chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolBool(true)));
-
                     chunk.appendInstruction(OpCode.JMP, endLabel);
-
                     chunk.appendInstruction(OpCode.LABEL, isTrueLabel);
 
                     // If we're here it was true, so now it's false
                     chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolBool(false)));
-
                     chunk.appendInstruction(OpCode.LABEL, endLabel);
 
                     break;
@@ -881,9 +869,7 @@ export class Compiler {
             case TokenType.MINUS:
 
                 chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(0)));
-
                 chunk.appendChunk(expr.right.accept(this));
-
                 chunk.appendInstruction(OpCode.SUB);
 
                 break;
@@ -904,44 +890,32 @@ export class Compiler {
             if (expr.prepostfixOp == TokenType.POSTFIX_INCREMENT)
             {
                 chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
-
                 chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
-
                 chunk.appendInstruction(OpCode.ADD);
-
                 chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
             }
 
             if (expr.prepostfixOp == TokenType.POSTFIX_DECREMENT)
             {
                 chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
-
                 chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
-
                 chunk.appendInstruction(OpCode.SUB);
-
                 chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
             }
 
             if (expr.prepostfixOp == TokenType.PREFIX_INCREMENT)
             {
                 chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
-
                 chunk.appendInstruction(OpCode.ADD);
-
                 chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
-
                 chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
             }
 
             if (expr.prepostfixOp == TokenType.PREFIX_DECREMENT)
             {
                 chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
-
                 chunk.appendInstruction(OpCode.SUB);
-
                 chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
-
                 chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
             }
         }
