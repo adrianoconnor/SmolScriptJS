@@ -6,38 +6,45 @@ import * as path from 'path';
 const testFiles:string[] = []; // Keeping a separate array because I can't get keys to work with the dicitonary?!
 const tests: { [fileName:string] : { fileData: string, steps: string[] } } = {};
 
-// Recursive is new for node 20 -- that's why we don't auto test on 16/18. We could add something to
-// do the same, but it really is not worth the trouble to me personally right now so I'm leaving it
-// like this and assuming 20+
-const allFiles = fs.readdirSync(path.join(__dirname, '../SmolScriptTests'), { recursive: true })
-
 const regexTestFileHeader = /\/\*(.*?)(Steps:.*?\n)(.*?)\*\//s;
 const regexStepMatcher = /^- (.*?)$/gm;
 
-allFiles.forEach((f) => {
-  const fileName = f as string
+function findTestsRecursive(folderPath:string) {
+  
+  var files = fs.readdirSync(folderPath, { recursive: true })
 
-  if (fileName.endsWith('.test.smol')) {
+  files.forEach((f) => {
+    const fileName = f as string
+    const fullPath = path.join(folderPath, fileName);
+    //console.log(`${folderPath}, ${fileName}`);
+  
+    if (!fileName.startsWith('.') && fs.statSync(fullPath).isDirectory()) {
+      findTestsRecursive(fullPath);
+    }
 
-    const fileData = fs.readFileSync(path.join(__dirname, '../SmolScriptTests', f as string)).toString();
+    if (fileName.endsWith('.test.smol')) {
 
-    const testFileHeaderMatch = regexTestFileHeader.exec(fileData);
+      //const fileData = fs.readFileSync(path.join(__dirname, '../SmolScriptTests', f as string)).toString();
+      const fileData = fs.readFileSync(fullPath).toString();
 
-    if (testFileHeaderMatch != null) {
+      const testFileHeaderMatch = regexTestFileHeader.exec(fileData);
 
-      const stepsBlock:string = testFileHeaderMatch[3];
-      const matchedSteps = stepsBlock.match(regexStepMatcher);
+      if (testFileHeaderMatch != null) {
 
-      if (matchedSteps != null) {
-        const steps = matchedSteps.map<string>((x) => x.toString());
+        const stepsBlock:string = testFileHeaderMatch[3];
+        const matchedSteps = stepsBlock.match(regexStepMatcher);
 
-        tests[fileName] = { fileData: fileData, steps: steps };
+        if (matchedSteps != null) {
+          const steps = matchedSteps.map<string>((x) => x.toString());
 
-        testFiles.push(fileName);
+          tests[fileName] = { fileData: fileData, steps: steps };
+
+          testFiles.push(fileName);
+        }
       }
     }
-  }
-});
+  });
+}
 
 const runStepRegex = /- run$/i;
 const expectGlobalNumberRegex = /- expect global (.*?) to be number (-{0,1}\d+(\.{0,1}\d*))/i;
@@ -47,6 +54,8 @@ const expectGlobalUndefinedRegex = /- expect global (.*?) to be undefined/i;
 const repeatWithoutSemicolonsRegex = /- /i;
 
 describe('Automated Test Suite', () => {
+
+  findTestsRecursive(path.join(__dirname, '../SmolScriptTests'));
 
   test.each(testFiles)('%s', (fileName) => {
 

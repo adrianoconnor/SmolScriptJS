@@ -48,7 +48,7 @@ describe('Smol Interop Basics', () => {
       
       var r = vm.call('moo', 2, 'x'); 
 
-    }).toThrowError('Init() should be used before calling a function, to ensure the vm state is prepared');
+    }).toThrow('Init() should be used before calling a function, to ensure the vm state is prepared');
   })
   
 });
