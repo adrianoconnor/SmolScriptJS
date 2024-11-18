@@ -166,6 +166,10 @@ export class Scanner {
                 {
                     this.addToken(TokenType.EQUAL_EQUAL);
                 }
+                else if (this.matchNext('>'))
+                {
+                    this.addToken(TokenType.FAT_ARROW);
+                }
                 else
                 {
                     this.addToken(TokenType.EQUAL);

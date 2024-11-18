@@ -707,7 +707,11 @@ export class Parser {
 
     private functionExpression() : Expression {
 
-        if (this.match(TokenType.FUNC))
+        if ((this.peek().type == TokenType.LEFT_BRACKET || this.peek().type == TokenType.IDENTIFIER) && this.isInFatArrow(false))
+        {
+            return this.fatArrowFunctionExpression(false);
+        }
+        else if (this.match(TokenType.FUNC))
         {
             // _statementCallStack.Push("FUNCTION");
 
@@ -1038,5 +1042,141 @@ export class Parser {
             }
 
         throw new Error(`Parser did not expect to see token "${TokenType[this.peek().type]}" on line ${this.peek().line}, sorry :(`);
+    }
+
+    private fatArrowFunctionExpression(openBracketConsumed:Boolean = false):FunctionExpression
+    {
+        //this._statementCallStack.Push("FUNCTION");
+        
+        if (!openBracketConsumed && this.check(TokenType.LEFT_BRACKET))
+        {
+            this.consume(TokenType.LEFT_BRACKET, "Expected (");
+            
+            openBracketConsumed = true;
+        }
+
+        const functionParams:Token[] = [];
+                
+        if (!this.check(TokenType.RIGHT_BRACKET))
+        {
+            do
+            {
+                /*
+                if (functionParams.length >= 127)
+                {
+                    this.error(this.peek(), "Can't define a function with more than 127 parameters.");
+                }*/
+
+                functionParams.push(this.consume(TokenType.IDENTIFIER, "Expected parameter name"));
+                
+            } while (this.match(TokenType.COMMA));
+        }
+
+        if (openBracketConsumed)
+        {
+            this.consume(TokenType.RIGHT_BRACKET, "Expected )");
+        }
+
+        this.consume(TokenType.FAT_ARROW, "Expected =>");
+
+        if (this.check(TokenType.LEFT_BRACE))
+        {
+            this.consume(TokenType.LEFT_BRACE, "Expected {");
+
+            var functionBody = this.block();
+                    
+            //_ = _statementCallStack.Pop();
+
+            return new FunctionExpression(functionParams, functionBody);
+        }
+        else
+        {
+            const funcBodyStmts:Statement[] = [];
+
+            funcBodyStmts.push(new ReturnStatement(this.expression()));
+
+            const functionBody = new BlockStatement(funcBodyStmts);
+
+            //_ = _statementCallStack.Pop();
+
+            return new FunctionExpression(functionParams, functionBody);
+        }
+    }
+
+    private isInFatArrow(openBracketConsumed:Boolean = true) : Boolean
+    {
+        // If we've jsut consumed an opening bracket we need to look ahead for
+        //  (x) => 
+        // or
+        //  (x, y, z) =>
+        
+        var index = this._currentTokenIndex;
+        
+        // If we're looking at an expression, the current token could be an identifier and we just need to check if the next token is =>
+        
+        if (!openBracketConsumed)
+        {
+            if (!(this._tokens as Token[])[this._currentTokenIndex].followed_by_line_break && (this._tokens as Token[])[this._currentTokenIndex + 1].type == TokenType.FAT_ARROW)
+            {
+                return true;
+            }
+            else if ((this._tokens as Token[])[this._currentTokenIndex].type == TokenType.LEFT_BRACKET)
+            {
+                index++; // pretend we consumed the left brack and next section can serve both needs
+            }
+            else
+            {
+                return false;
+            }
+        }
+        
+        // The logic for brackets is a bit more involved...
+        
+        var previous = TokenType.LEFT_BRACKET;
+
+        
+        while (true)
+        {
+            if ((this._tokens as Token[])[index].followed_by_line_break && (this._tokens as Token[])[index].type != TokenType.FAT_ARROW) // => has to be on same line as (...), but newline can come after =>
+            {
+                break;
+            }
+            
+            var next = (this._tokens as Token[])[index];
+
+            if (previous == TokenType.LEFT_BRACKET && next.type == TokenType.RIGHT_BRACKET)
+            {
+                // Valid, move on to the next token
+                index++;
+            }
+            else if (previous == TokenType.LEFT_BRACKET && next.type == TokenType.IDENTIFIER)
+            {
+                // Valid, move on to the next token
+                index++;
+            }
+            else if (previous == TokenType.IDENTIFIER && (next.type == TokenType.COMMA || next.type == TokenType.RIGHT_BRACKET))
+            {
+                // Valid, move on to the next token
+                index++;
+            }
+            else if (previous == TokenType.COMMA && next.type == TokenType.IDENTIFIER)
+            {
+                // Valid, move on to the next token
+                index++;
+            }
+            else if (previous == TokenType.RIGHT_BRACKET && next.type == TokenType.FAT_ARROW)
+            {
+                // Valid, we're definitely dealing with a fat arrow
+                return true;
+            }
+            else
+            {
+                break;
+            }
+
+            previous = next.type;
+        }
+
+        return false;
     }
 } 

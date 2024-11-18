@@ -48,6 +48,8 @@ export enum TokenType {
     POSTFIX_DECREMENT,
     PREFIX_DECREMENT,
 
+    FAT_ARROW,
+
     // Literals
 
     IDENTIFIER,
