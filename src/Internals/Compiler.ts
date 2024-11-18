@@ -886,6 +886,15 @@ export class Compiler {
 
             case TokenType.MINUS:
 
+                // This block looks to see if the minus sign is followed by a literal number. If it is,
+                // we can create a constant for the negative number and load that instead of the more
+                // generalised unary operator behaviour, which negates whatever expression might come 
+                // after it in normal cirumstances.
+                if (expr.right instanceof LiteralExpression && expr.right.value instanceof SmolNumber) {
+                    chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(0 - expr.right.value._value)));
+                    break;
+                }
+
                 chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(0)));
                 chunk.appendChunk(expr.right.accept(this));
                 chunk.appendInstruction(OpCode.SUB);
