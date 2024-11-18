@@ -8,9 +8,11 @@ export class GroupingExpression implements Expression {
     }
 
     expr:Expression;
+    castToStringForEmbeddedStringExpression:Boolean;
 
-    constructor(expr:Expression) {
+    constructor(expr:Expression, castToStringForEmbeddedStringExpression:Boolean = false) {
         this.expr = expr;
+        this.castToStringForEmbeddedStringExpression = castToStringForEmbeddedStringExpression;
     }
 
     accept(visitor:any) {

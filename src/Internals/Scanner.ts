@@ -283,7 +283,7 @@ export class Scanner {
                 this.processString('\'');
                 break;
             case '`':
-                this.processBacktickString();
+                this.processString('`');
                 break;
 
             default:
@@ -362,79 +362,21 @@ export class Scanner {
     private processString(quoteChar:string) : void {
 
         let extractedString = '';
+        let hasProducedAtLeastOneToken = false;
 
         while(this.peek() != quoteChar && !this.endOfFile())
         { 
-            if (this.matchNext('\n')) // Peek() == '\n')
+            if (quoteChar == '`' && this.peek() == '\n')
+            {
+                this._currentLine++;
+                this._currentLineStartIndex = this._currentPos;
+            }
+            else if (this.matchNext('\n')) // Peek() == '\n')
             {
                 this._currentLine++;
                 this._currentLineStartIndex = this._currentPos;
 
                 throw new CompilerError(`Unexpected line break in string on line ${this._currentLine - 1}`);
-            }
-
-            if (this.peek() == '\\')
-            {
-                const next = this.peek(1);
-
-                if (next == '\'' || next == '"' || next == '\\')
-                {
-                    this.nextChar();
-                    extractedString += this.nextChar();
-                }
-                else if (next == 't')
-                {
-                    this.nextChar();
-                    this.nextChar();
-                    extractedString += '\t';
-                }
-                else if (next == 'r')
-                {
-                    this.nextChar();
-                    this.nextChar();
-                    extractedString += '\r';
-                }
-                else if (next == 'n')
-                {
-                    this.nextChar();
-                    this.nextChar();
-                    extractedString += '\n';
-                }
-                else
-                {
-                    extractedString += this.nextChar();
-                }
-            }
-            else
-            {
-                extractedString += this.nextChar();
-            } 
-        }
-
-        if (this.endOfFile()) {
-            throw new CompilerError("Unterminated string");
-        }
-
-        // Consume the final "
-        this.nextChar();
-
-        //var extractedString = this._source.substring(this._startOfToken + 1, this._currentPos - 1);
-        
-        this.addTokenWithLiteral(TokenType.STRING, extractedString);
-    }
-
-    private processBacktickString() : void {
-
-        const quoteChar = '`';
-        let extractedString = '';
-        let hasProducedAtLeastOneToken = false;
-
-        while(this.peek() != quoteChar && !this.endOfFile())
-        { 
-            if (this.peek() == '\n')
-            {
-                this._currentLine++;
-                this._currentLineStartIndex = this._currentPos;
             }
 
             if (this.peek() == '\\')
@@ -471,7 +413,7 @@ export class Scanner {
             }
             else
             {
-                if (this.peek() == '$' && this.peek(1) == '{')
+                if (quoteChar == '`' && this.peek() == '$' && this.peek(1) == '{')
                 {
                     // We've just entered the ${} section, so whatever we've got so far, create
                     // a string token and add it to the stream, and then start a new string part
@@ -518,9 +460,6 @@ export class Scanner {
 
                         if (hasProducedAtLeastOneToken)
                         {
-                            // There is actually a potential bug here... I think
-                            // `${a}${b}` might actually print the result of a+b if they're numbers.
-
                             this.addToken(TokenType.PLUS);
                         }
 
@@ -528,9 +467,7 @@ export class Scanner {
 
                         const embeddedTokens:Token[] = embeddedScanner.scanTokens();
 
-                        //TODO: Handle errors from embedded scanner
-
-                        this.addToken(TokenType.LEFT_BRACKET);
+                        this.addToken(TokenType.START_OF_EMBEDDED_STRING_EXPRESSION);
 
                         for (const t of embeddedTokens)
                         {
@@ -542,7 +479,7 @@ export class Scanner {
                             this._tokens.push(t);
                         }
 
-                        this.addToken(TokenType.RIGHT_BRACKET);
+                        this.addToken(TokenType.END_OF_EMBEDDED_STRING_EXPRESSION);
 
                         hasProducedAtLeastOneToken = true;
                     }
@@ -559,10 +496,9 @@ export class Scanner {
             throw new Error("Unterminated string");
         }
 
-        // Consume the closing `
-        this.nextChar();
+        this.nextChar(); // Consume the closing quote character
 
-        if (extractedString.length > 0 || !hasProducedAtLeastOneToken) // If we haven't produced a token yet, even if it's an empty string, we still need that string token
+        if (extractedString.length > 0 || !hasProducedAtLeastOneToken)
         {
             if (hasProducedAtLeastOneToken)
             {

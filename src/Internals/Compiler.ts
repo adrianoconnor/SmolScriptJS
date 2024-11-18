@@ -655,7 +655,25 @@ export class Compiler {
 
     private visitGroupingExpression(expr:GroupingExpression) : ByteCodeInstruction[]|ByteCodeInstruction {
         
-        return expr.expr.accept(this);
+        if (expr.castToStringForEmbeddedStringExpression)
+        {
+            // We use a group with this special flag to force a cast of a varible like `${a}` to string, where a is a number (or whatever).
+            // This is important because interpolated strings are basically separate expressions joined with a +,
+            // so `${a}${b}` is really a+b internally -- if we force both a and b to toString'd, then
+            // you'll get a string concatenation instead of numbers being added...
+            
+            const chunk = this.createChunk();
+            
+            chunk.appendChunk(expr.expr.accept(this));
+            chunk.appendInstruction(OpCode.FETCH, "toString", true);
+            chunk.appendInstruction(OpCode.CALL, 0, true);
+            
+            return chunk;
+        }
+        else
+        {
+            return expr.expr.accept(this);
+        }
     }
 
     private visitIndexerGetExpression(expr:IndexerGetExpression) : ByteCodeInstruction[] {

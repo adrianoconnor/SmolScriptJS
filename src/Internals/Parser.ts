@@ -1030,6 +1030,13 @@ export class Parser {
             return new GroupingExpression(expr);
         }
 
+        if (this.match(TokenType.START_OF_EMBEDDED_STRING_EXPRESSION)) 
+            {
+                const expr = this.expression();
+                this.consume(TokenType.END_OF_EMBEDDED_STRING_EXPRESSION, "Expect ')' after expression.");
+                return new GroupingExpression(expr, true);
+            }
+
         throw new Error(`Parser did not expect to see token "${TokenType[this.peek().type]}" on line ${this.peek().line}, sorry :(`);
     }
 } 

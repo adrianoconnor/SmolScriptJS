@@ -54,6 +54,9 @@ export enum TokenType {
     STRING,
     NUMBER,
 
+    START_OF_EMBEDDED_STRING_EXPRESSION,
+    END_OF_EMBEDDED_STRING_EXPRESSION,
+
     // Keywords
 
     BREAK,
@@ -74,7 +77,6 @@ export enum TokenType {
     RETURN,
     SUPER,
     SWITCH,
-    // THIS,
     TRUE,
     VAR,
     WHILE,
