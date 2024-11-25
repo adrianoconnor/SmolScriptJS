@@ -547,11 +547,8 @@ export class Parser {
         
         const expr = this.functionExpression();
 
-        // TODO: Refactor this junk...
-
         if (this.match(TokenType.EQUAL))
         {
-            //var equals:Token = this.previous();
             const value:Expression = this.assignment();
 
             if (expr instanceof VariableExpression) {
@@ -572,138 +569,60 @@ export class Parser {
 
         if (this.match(TokenType.PLUS_EQUALS))
         {
-            const originalToken = this.previous();
-            const value:Expression = this.assignment();
-            const additionExpr = new BinaryExpression(expr, new Token(TokenType.PLUS, "+=", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
-
-            if (expr instanceof VariableExpression) {
-                const name = (expr as VariableExpression).name;
-                return new AssignExpression(name, additionExpr);
-            }
-            else if (expr instanceof GetExpression) {            
-                const getExpr = expr as GetExpression;
-                return new SetExpression(getExpr.obj, getExpr.name, additionExpr);
-            }
-            else if (expr instanceof IndexerGetExpression) {
-                const getIndexerExpr = expr as IndexerGetExpression;
-                return new IndexerSetExpression(getIndexerExpr.obj, getIndexerExpr.indexerExpr, additionExpr);
-            }
-
-            throw new Error("Invalid assignment target");
+            return this.compoundAssignmentExpressionHelper(TokenType.PLUS, "+=", expr);
         }
 
         if (this.match(TokenType.MINUS_EQUALS))
         {
-            const originalToken = this.previous();
-            const value:Expression = this.assignment();
-            const subtractExpr = new BinaryExpression(expr, new Token(TokenType.MINUS, "-=", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
-
-            if (expr instanceof VariableExpression) {
-                const name = (expr as VariableExpression).name;
-                return new AssignExpression(name, subtractExpr);
-            }
-            else if (expr instanceof GetExpression) {            
-                const getExpr = expr as GetExpression;
-                return new SetExpression(getExpr.obj, getExpr.name, subtractExpr);
-            }
-            else if (expr instanceof IndexerGetExpression) {
-                const getIndexerExpr = expr as IndexerGetExpression;
-                return new IndexerSetExpression(getIndexerExpr.obj, getIndexerExpr.indexerExpr, subtractExpr);
-            }
-
-            throw new Error("Invalid assignment target");
+            return this.compoundAssignmentExpressionHelper(TokenType.MINUS, "-=", expr);
         }
 
         if (this.match(TokenType.DIVIDE_EQUALS))
         {
-            const originalToken = this.previous();
-            const value:Expression = this.assignment();
-            const divideExpr = new BinaryExpression(expr, new Token(TokenType.DIVIDE, "/=", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
-
-            if (expr instanceof VariableExpression) {
-                const name = (expr as VariableExpression).name;
-                return new AssignExpression(name, divideExpr);
-            }
-            else if (expr instanceof GetExpression) {            
-                const getExpr = expr as GetExpression;
-                return new SetExpression(getExpr.obj, getExpr.name, divideExpr);
-            }
-            else if (expr instanceof IndexerGetExpression) {
-                const getIndexerExpr = expr as IndexerGetExpression;
-                return new IndexerSetExpression(getIndexerExpr.obj, getIndexerExpr.indexerExpr, divideExpr);
-            }
-
-            throw new Error("Invalid assignment target");
+            return this.compoundAssignmentExpressionHelper(TokenType.DIVIDE, "/=", expr);
         }
 
         if (this.match(TokenType.REMAINDER_EQUALS))
         {
-            const originalToken = this.previous();
-            const value:Expression = this.assignment();
-            const remainderExpr = new BinaryExpression(expr, new Token(TokenType.REMAINDER, "%=", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
-
-            if (expr instanceof VariableExpression) {
-                const name = (expr as VariableExpression).name;
-                return new AssignExpression(name, remainderExpr);
-            }
-            else if (expr instanceof GetExpression) {            
-                const getExpr = expr as GetExpression;
-                return new SetExpression(getExpr.obj, getExpr.name, remainderExpr);
-            }
-            else if (expr instanceof IndexerGetExpression) {
-                const getIndexerExpr = expr as IndexerGetExpression;
-                return new IndexerSetExpression(getIndexerExpr.obj, getIndexerExpr.indexerExpr, remainderExpr);
-            }
-
-            throw new Error("Invalid assignment target");
+            return this.compoundAssignmentExpressionHelper(TokenType.REMAINDER, "%=", expr);
         }
 
         if (this.match(TokenType.MULTIPLY_EQUALS))
         {
-            const originalToken = this.previous();
-            const value:Expression = this.assignment();
-            const multiplyExpr = new BinaryExpression(expr, new Token(TokenType.MULTIPLY, "*=", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
-
-            if (expr instanceof VariableExpression) {
-                const name = (expr as VariableExpression).name;
-                return new AssignExpression(name, multiplyExpr);
-            }
-            else if (expr instanceof GetExpression) {            
-                const getExpr = expr as GetExpression;
-                return new SetExpression(getExpr.obj, getExpr.name, multiplyExpr);
-            }
-            else if (expr instanceof IndexerGetExpression) {
-                const getIndexerExpr = expr as IndexerGetExpression;
-                return new IndexerSetExpression(getIndexerExpr.obj, getIndexerExpr.indexerExpr, multiplyExpr);
-            }
-
-            throw new Error("Invalid assignment target");
+            return this.compoundAssignmentExpressionHelper(TokenType.MULTIPLY, "*=", expr);
         }
 
         if (this.match(TokenType.POW_EQUALS))
         {
-            const originalToken = this.previous();
-            const value:Expression = this.assignment();
-            const powExpr = new BinaryExpression(expr, new Token(TokenType.POW, "**=", undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
-
-            if (expr instanceof VariableExpression) {
-                const name = (expr as VariableExpression).name;
-                return new AssignExpression(name, powExpr);
-            }
-            else if (expr instanceof GetExpression) {            
-                const getExpr = expr as GetExpression;
-                return new SetExpression(getExpr.obj, getExpr.name, powExpr);
-            }
-            else if (expr instanceof IndexerGetExpression) {
-                const getIndexerExpr = expr as IndexerGetExpression;
-                return new IndexerSetExpression(getIndexerExpr.obj, getIndexerExpr.indexerExpr, powExpr);
-            }
-
-            throw new Error("Invalid assignment target");
+            return this.compoundAssignmentExpressionHelper(TokenType.POW, "**=", expr);
         }
 
         return expr;
     }
+
+    private compoundAssignmentExpressionHelper(tokenForExpression:TokenType, literalForExpression:string, expr:Expression) : Expression {
+
+        const originalToken = this.previous();
+        const value:Expression = this.assignment();
+        const binExpr = new BinaryExpression(expr, new Token(tokenForExpression, literalForExpression, undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
+
+        if (expr instanceof VariableExpression) {
+            const name = (expr as VariableExpression).name;
+            return new AssignExpression(name, binExpr);
+        }
+        else if (expr instanceof GetExpression) {            
+            const getExpr = expr as GetExpression;
+            return new SetExpression(getExpr.obj, getExpr.name, binExpr);
+        }
+        else if (expr instanceof IndexerGetExpression) {
+            const getIndexerExpr = expr as IndexerGetExpression;
+            return new IndexerSetExpression(getIndexerExpr.obj, getIndexerExpr.indexerExpr, binExpr);
+        }
+
+        throw new Error("Invalid assignment target");
+        
+    }
+
 
     private functionExpression() : Expression {
 
