@@ -9,7 +9,8 @@
   "scripts": {
     "test": "jest ./tests",
     "testsuite": "jest ./tests/run_test_suite.test.ts",
-    "build": "tsc --build src && webpack"
+    "build": "tsc --build src && webpack",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "Adrian O'Connor (adrian.oconnor@arctus.co.uk)",

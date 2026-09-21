@@ -1,8 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 import { SmolVM } from '../../../src/SmolVM';
-import { RunMode } from '../../../src/Internals/RunMode';
 import { TokenType } from '../../../src/Internals/TokenType';
-import { OpCode } from '../../../src/Internals/OpCode';
 
 function getPendingInstr(vm:SmolVM) : string {
   let pending_instr = vm.program.code_sections[vm.code_section][vm.pc];
@@ -48,6 +46,28 @@ describe('Smol Debug Basics', () => {
     vm.step();
     vm.step(); // var z = y / 2; executed
     expect(vm.getGlobalVar('z')).toBe(4);
+  })
+
+  test('debug step through of var assignment with single instruction step mode', () => {
+
+    const source = `
+    debugger;
+    var y = 2;
+  `;
+
+    const vm = SmolVM.Compile(source);
+
+    vm.run();
+    // PROGRAM START
+    // * DEBUGGER
+    expect(vm.getGlobalVar('y')).toBeUndefined;
+    vm.step(true); // * DECLARE y
+    expect(vm.getGlobalVar('y')).toBeUndefined;
+    vm.step(true); // CONST [0] (SmolNumber) 2
+    expect(vm.getGlobalVar('y')).toBeUndefined;
+    vm.step(true); // STORE y
+    expect(vm.getGlobalVar('y')).toBe(2);
+    // * PROGRAM END
   })
 
   test('debug step through if statement', () => {

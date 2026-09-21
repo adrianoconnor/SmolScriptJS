@@ -36,6 +36,7 @@ export class SmolVM {
     jmplocs:number[] = [];
     maxStackSize = -1;
     maxCycles = -1;
+    totalCycles = 0;
 
     globalEnv = new Environment();
     environment:Environment = this.globalEnv;
@@ -175,7 +176,7 @@ export class SmolVM {
             }
         }
 
-        if (i == -1) {
+        if (fnIndex == -1) {
             throw new Error(`Could not find a function named '${functionName}'`);
         }
 
@@ -1017,6 +1018,7 @@ export class SmolVM {
             hasExecutedAtLeastOnce = true;
 
             consumedCycles += 1;
+            this.totalCycles += 1;
 
             if (this.maxCycles > -1 && consumedCycles > this.maxCycles) throw new Error("Too many cycles");
         }
