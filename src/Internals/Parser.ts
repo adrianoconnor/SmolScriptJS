@@ -40,7 +40,7 @@ import { SmolNumber } from "./SmolVariableTypes/SmolNumber";
 
 export class Parser {
 
-    private _tokens?:Token[];
+    private _tokens:Token[];
     private _currentTokenIndex:number;
 
     private constructor(tokens:Token[]) {
@@ -94,7 +94,7 @@ export class Parser {
     }
 
     private peek(skip = 0) : Token {
-        return (this._tokens as Token[])[this._currentTokenIndex + skip];
+        return this._tokens[this._currentTokenIndex + skip];
     }
 
     private advance() : Token {
@@ -105,7 +105,7 @@ export class Parser {
 
     private previous(skip = 0) : Token
     {
-        return (this._tokens as Token[])[this._currentTokenIndex - 1 - (skip * 1)];
+        return this._tokens[this._currentTokenIndex - 1 - (skip * 1)];
     }
 
     private consume(tokenType:TokenType, errorIfNotFound:string ) : Token
@@ -113,7 +113,7 @@ export class Parser {
         if (this.check(tokenType)) return this.advance();
 
         // If we expected a ; but got a newline, we just wave it through
-        if (tokenType == TokenType.SEMICOLON && (this._tokens as Token[])[this._currentTokenIndex - 1].followed_by_line_break) {
+        if (tokenType == TokenType.SEMICOLON && this._tokens[this._currentTokenIndex - 1].followed_by_line_break) {
             // We need to return a token, so we'll make a fake semicolon
             return new Token(TokenType.SEMICOLON, "", "", -1, -1, -1, -1);
         }
@@ -253,7 +253,7 @@ export class Parser {
                                         
             this.consume(TokenType.SEMICOLON, "Expected ;");
 
-            var returnStmt = new ReturnStatement(undefined);
+            const returnStmt = new ReturnStatement(undefined);
             returnStmt.tokenIndex = tokenIndex;
             return returnStmt;
         }
@@ -264,7 +264,7 @@ export class Parser {
             
             this.consume(TokenType.SEMICOLON, "Expected ;");
 
-            var returnStmt = new ReturnStatement(expr);
+            const returnStmt = new ReturnStatement(expr);
             returnStmt.tokenIndex = tokenIndex;
             returnStmt.exprFirstTokenIndex = exprFirstTokenIndex;
             returnStmt.exprLastTokenIndex = exprLastTokenIndex;
@@ -280,7 +280,7 @@ export class Parser {
 
         this.consume(TokenType.SEMICOLON, "Expected ;");
         
-        var stmt = new BreakStatement();
+        const stmt = new BreakStatement();
         stmt.tokenIndex = tokenIndex;
 
         return stmt;
@@ -294,7 +294,7 @@ export class Parser {
 
         this.consume(TokenType.SEMICOLON, "Expected ;");
 
-        var stmt = new ContinueStatement();
+        const stmt = new ContinueStatement();
         stmt.tokenIndex = tokenIndex;
 
         return stmt;
@@ -308,7 +308,7 @@ export class Parser {
 
         this.consume(TokenType.SEMICOLON, "Expected ;");
 
-        var stmt = new DebuggerStatement();
+        const stmt = new DebuggerStatement();
         stmt.tokenIndex = tokenIndex;
 
         return stmt;
@@ -329,7 +329,7 @@ export class Parser {
         
         const blockLastTokenIndex = this._currentTokenIndex - 1;
 
-        var blockStmt = new BlockStatement(stmts);
+        const blockStmt = new BlockStatement(stmts);
         blockStmt.blockStartTokenIndex = blockFirstTokenIndex;
         blockStmt.blockEndTokenIndex = blockLastTokenIndex;
 
@@ -354,7 +354,7 @@ export class Parser {
 
         const thenLastTokenIndex = this._currentTokenIndex - 1; // TODO: Semi-colon check
 
-        var elseStmt:Statement|undefined;
+        let elseStmt:Statement|undefined;
 
         if (this.match(TokenType.ELSE)) {
             elseStmt = this.statement();   
@@ -437,7 +437,7 @@ export class Parser {
 
         this.consume(TokenType.LEFT_BRACKET, "Expected (");
 
-        let initialiser:Statement|null = null;
+        let initialiser:Statement|null;
 
         if (this.match(TokenType.SEMICOLON))
         {
@@ -487,7 +487,7 @@ export class Parser {
 
         if (increment != null)
         {
-            let incrExprStmt = new ExpressionStatement(increment);
+            const incrExprStmt = new ExpressionStatement(increment);
             incrExprStmt.firstTokenIndex = incrFirstTokenIndex;
             incrExprStmt.lastTokenIndex = incrLastTokenIndex;
             const innerStmts:Statement[] = [body, incrExprStmt];
@@ -495,7 +495,7 @@ export class Parser {
             body = new BlockStatement(innerStmts, true); // true is for 'inserted by parser' on the block statement
         }
 
-        let whileStmt = new WhileStatement(condition, body);
+        const whileStmt = new WhileStatement(condition, body);
 
         whileStmt.exprFirstTokenIndex = conditionFirstTokenIndex;
         whileStmt.exprLastTokenIndex = conditionLastTokenIndex;
@@ -632,8 +632,6 @@ export class Parser {
         }
         else if (this.match(TokenType.FUNC))
         {
-            // _statementCallStack.Push("FUNCTION");
-
             const functionParams:Token[] = [];
 
             this.consume(TokenType.LEFT_BRACKET, "Expected (");
@@ -642,12 +640,6 @@ export class Parser {
             {
                 do
                 {
-                    /*
-                    if (functionParams.length >= 127)
-                    {
-                        this.error(this.peek(), "Can't define a function with more than 127 parameters.");
-                    }*/
-
                     functionParams.push(this.consume(TokenType.IDENTIFIER, "Expected parameter name"));
                 } while (this.match(TokenType.COMMA));
             }
@@ -656,8 +648,6 @@ export class Parser {
             this.consume(TokenType.LEFT_BRACE, "Expected {");
 
             const functionBody = this.block();
-
-            //_ = _statementCallStack.Pop();
 
             return new FunctionExpression(functionParams, functionBody);
         }
@@ -945,7 +935,6 @@ export class Parser {
             return new NewInstanceExpression(className, args);
         }
 
-
         if (this.match(TokenType.LEFT_BRACKET)) 
         {
             const expr = this.expression();
@@ -954,19 +943,17 @@ export class Parser {
         }
 
         if (this.match(TokenType.START_OF_EMBEDDED_STRING_EXPRESSION)) 
-            {
-                const expr = this.expression();
-                this.consume(TokenType.END_OF_EMBEDDED_STRING_EXPRESSION, "Expect ')' after expression.");
-                return new GroupingExpression(expr, true);
-            }
+        {
+            const expr = this.expression();
+            this.consume(TokenType.END_OF_EMBEDDED_STRING_EXPRESSION, "Expect ')' after expression.");
+            return new GroupingExpression(expr, true);
+        }
 
         throw new Error(`Parser did not expect to see token "${TokenType[this.peek().type]}" on line ${this.peek().line}, sorry :(`);
     }
 
-    private fatArrowFunctionExpression(openBracketConsumed:Boolean = false):FunctionExpression
-    {
-        //this._statementCallStack.Push("FUNCTION");
-        
+    private fatArrowFunctionExpression(openBracketConsumed:boolean = false):FunctionExpression
+    {        
         if (!openBracketConsumed && this.check(TokenType.LEFT_BRACKET))
         {
             this.consume(TokenType.LEFT_BRACKET, "Expected (");
@@ -980,12 +967,6 @@ export class Parser {
         {
             do
             {
-                /*
-                if (functionParams.length >= 127)
-                {
-                    this.error(this.peek(), "Can't define a function with more than 127 parameters.");
-                }*/
-
                 functionParams.push(this.consume(TokenType.IDENTIFIER, "Expected parameter name"));
                 
             } while (this.match(TokenType.COMMA));
@@ -1002,9 +983,7 @@ export class Parser {
         {
             this.consume(TokenType.LEFT_BRACE, "Expected {");
 
-            var functionBody = this.block();
-                    
-            //_ = _statementCallStack.Pop();
+            const functionBody = this.block();
 
             return new FunctionExpression(functionParams, functionBody);
         }
@@ -1016,30 +995,28 @@ export class Parser {
 
             const functionBody = new BlockStatement(funcBodyStmts);
 
-            //_ = _statementCallStack.Pop();
-
             return new FunctionExpression(functionParams, functionBody);
         }
     }
 
-    private isInFatArrow(openBracketConsumed:Boolean = true) : Boolean
+    private isInFatArrow(openBracketConsumed:boolean = true) : boolean
     {
         // If we've jsut consumed an opening bracket we need to look ahead for
         //  (x) => 
         // or
         //  (x, y, z) =>
         
-        var index = this._currentTokenIndex;
+        let index = this._currentTokenIndex;
         
         // If we're looking at an expression, the current token could be an identifier and we just need to check if the next token is =>
         
         if (!openBracketConsumed)
         {
-            if (!(this._tokens as Token[])[this._currentTokenIndex].followed_by_line_break && (this._tokens as Token[])[this._currentTokenIndex + 1].type == TokenType.FAT_ARROW)
+            if (!this._tokens[this._currentTokenIndex].followed_by_line_break && this._tokens[this._currentTokenIndex + 1].type == TokenType.FAT_ARROW)
             {
                 return true;
             }
-            else if ((this._tokens as Token[])[this._currentTokenIndex].type == TokenType.LEFT_BRACKET)
+            else if (this._tokens[this._currentTokenIndex].type == TokenType.LEFT_BRACKET)
             {
                 index++; // pretend we consumed the left brack and next section can serve both needs
             }
@@ -1051,17 +1028,17 @@ export class Parser {
         
         // The logic for brackets is a bit more involved...
         
-        var previous = TokenType.LEFT_BRACKET;
+        let previous: TokenType = TokenType.LEFT_BRACKET;
 
         
         while (true)
         {
-            if ((this._tokens as Token[])[index].followed_by_line_break && (this._tokens as Token[])[index].type != TokenType.FAT_ARROW) // => has to be on same line as (...), but newline can come after =>
+            if (this._tokens[index].followed_by_line_break && this._tokens[index].type != TokenType.FAT_ARROW) // => has to be on same line as (...), but newline can come after =>
             {
                 break;
             }
             
-            var next = (this._tokens as Token[])[index];
+            const next = this._tokens[index];
 
             if (previous == TokenType.LEFT_BRACKET && next.type == TokenType.RIGHT_BRACKET)
             {
