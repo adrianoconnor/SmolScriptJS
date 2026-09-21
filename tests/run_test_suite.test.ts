@@ -3,144 +3,102 @@ import { SmolVM } from '../src/SmolVM';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const testFiles:string[] = []; // Keeping a separate array because I can't get keys to work with the dicitonary?!
-const tests: { [fileName:string] : { fileData: string, steps: string[] } } = {};
+interface TestCase {
+  fileData: string;
+  steps: string[];
+}
+
+const tests: Record<string, TestCase> = {};
 
 const regexTestFileHeader = /\/\*(.*?)(Steps:.*?\n)(.*?)\*\//s;
 const regexStepMatcher = /^- (.*?)$/gm;
 
-function findTestsRecursive(folderPath:string) {
-  
-  var files = fs.readdirSync(folderPath, { recursive: true })
+function loadTests(rootFolder: string) {
+  const files = fs.readdirSync(rootFolder, { recursive: true }) as string[];
 
-  files.forEach((f) => {
-    const fileName = f as string
-    const fullPath = path.join(folderPath, fileName);
-    //console.log(`${folderPath}, ${fileName}`);
-  
-    if (!fileName.startsWith('.') && fs.statSync(fullPath).isDirectory()) {
-      findTestsRecursive(fullPath);
-    }
+  for (const relativePath of files) {
+    if (!relativePath.endsWith('.test.smol')) continue;
 
-    if (fileName.endsWith('.test.smol')) {
+    const fullPath = path.join(rootFolder, relativePath);
+    if (!fs.statSync(fullPath).isFile()) continue;
 
-      //const fileData = fs.readFileSync(path.join(__dirname, '../SmolScriptTests', f as string)).toString();
-      const fileData = fs.readFileSync(fullPath).toString();
+    const fileData = fs.readFileSync(fullPath, 'utf-8');
+    const headerMatch = regexTestFileHeader.exec(fileData);
 
-      const testFileHeaderMatch = regexTestFileHeader.exec(fileData);
-
-      if (testFileHeaderMatch != null) {
-
-        const stepsBlock:string = testFileHeaderMatch[3];
-        const matchedSteps = stepsBlock.match(regexStepMatcher);
-
-        if (matchedSteps != null) {
-          const steps = matchedSteps.map<string>((x) => x.toString());
-
-          tests[fileName] = { fileData: fileData, steps: steps };
-
-          testFiles.push(fileName);
-        }
+    if (headerMatch?.[3]) {
+      const matchedSteps = headerMatch[3].match(regexStepMatcher);
+      if (matchedSteps) {
+        tests[relativePath] = {
+          fileData,
+          steps: matchedSteps.map((s) => s.trim()),
+        };
       }
     }
-  });
+  }
 }
 
-const runStepRegex = /- run$/i;
-const expectGlobalNumberRegex = /- expect global (.*?) to be number (-{0,1}\d+(\.{0,1}\d*))/i;
-const expectGlobalStringRegex = /- expect global (.*?) to be string (.*)/i;
-const expectGlobalBoolRegex = /- expect global (.*?) to be boolean (.*)/i;
-const expectGlobalUndefinedRegex = /- expect global (.*?) to be undefined/i;
-const repeatWithoutSemicolonsRegex = /- /i;
+const runStepRegex = /^- run$/i;
+const expectGlobalNumberRegex = /^- expect global (.*?) to be number (-?\d+(\.\d*)?)/i;
+const expectGlobalStringRegex = /^- expect global (.*?) to be string(?: (.*))?$/i;
+const expectGlobalBoolRegex = /^- expect global (.*?) to be boolean (.*)/i;
+const expectGlobalUndefinedRegex = /^- expect global (.*?) to be undefined/i;
 
 describe('Automated Test Suite', () => {
+  const testsDir = path.join(__dirname, '../SmolScriptTests');
+  loadTests(testsDir);
 
-  findTestsRecursive(path.join(__dirname, '../SmolScriptTests'));
+  const testCases = Object.keys(tests).flatMap((file) => [
+    { file, removeSemicolons: false, label: `${file} (semicolons)` },
+    { file, removeSemicolons: true, label: `${file} (no semicolons)` },
+  ]);
+  
+  // console.log(`Found ${Object.keys(tests).length} test files:`, Object.keys(tests));
 
-  test.each(testFiles)('%s', (fileName) => {
-
-    runTest(fileName, false);
-    runTest(fileName, true);
-
-  })
+  test.each(testCases)('$label', ({ file, removeSemicolons }) => {
+    runTest(file, removeSemicolons);
+  });
 });
 
-function runTest(fileName:string, removeSemicolons:boolean = false) {
-    const currentTest = tests[fileName];
 
-    let source = currentTest.fileData;
+function runTest(fileName: string, removeSemicolons: boolean = false) {
+  const currentTest = tests[fileName];
+  let source = currentTest.fileData;
 
-    if (removeSemicolons) {
-      source = source.replace(/(?<!(for\(.*?;.*?)|for\(.*?);/g, '') // This won't work for a 'for' statement followed by a statement on the same line (it'll just leave the following ;'s there)
+  if (removeSemicolons) {
+    source = source.replace(/(?<!(for\(.*?;.*?)|for\(.*?);/g, '');
+  }
+
+  const vm = SmolVM.Compile(source);
+  vm.maxCycles = 300000;
+  vm.maxStackSize = 1000;
+
+  let debugLog = '';
+  vm.onDebugPrint = (str) => { debugLog += `${str}\n`; };
+
+  for (const step of currentTest.steps) {
+    if (runStepRegex.test(step)) {
+      try {
+        vm.run();
+      } catch (e) {
+        console.error(`Source:\n${source}`);
+        console.error(`Decompiled:\n${vm.decompile()}`);
+        console.error(`Debug Log:\n${debugLog}`);
+        throw e;
+      }
+    } else if (expectGlobalNumberRegex.test(step)) {
+      const [, varName, val] = step.match(expectGlobalNumberRegex)!;
+      expect(vm.getGlobalVar(varName)).toBe(Number(val));
+    } else if (expectGlobalStringRegex.test(step)) {
+      const [, varName, val = ''] = step.match(expectGlobalStringRegex)!;
+      expect(String(vm.getGlobalVar(varName))).toBe(String(val));   
+    } else if (expectGlobalBoolRegex.test(step)) {
+      const [, varName, val] = step.match(expectGlobalBoolRegex)!;
+      expect(vm.getGlobalVar(varName)).toBe(val.toLowerCase() === 'true');
+    } else if (expectGlobalUndefinedRegex.test(step)) {
+      const [, varName] = step.match(expectGlobalUndefinedRegex)!;
+      expect(vm.getGlobalVar(varName)).toBeUndefined();
+    } else {
+      throw new Error(`Could not parse step: "${step}" in test: ${fileName}`);
     }
-
-    const vm = SmolVM.Compile(source);
-
-    vm.maxCycles = 300000;
-    vm.maxStackSize = 1000;
-
-    let debugLog = '';
-
-    vm.onDebugPrint = (str) => { debugLog += `${str}\n` };
-    
-    currentTest.steps.forEach((step) => {
-
-      if (runStepRegex.test(step)) {
-        try {
-          vm.run();
-        }
-        catch(e) {
-          console.log(source);
-          console.log(vm.decompile());
-          console.log(debugLog);
-          throw e;
-        }
-      }
-      else if (expectGlobalNumberRegex.test(step)) {
-        const m = step.match(expectGlobalNumberRegex);
-
-        if (m == null) {
-          throw new Error(`Could not parse ${step}`);
-        }
-
-        expect(vm.getGlobalVar(m[1])).toBe(Number(m[2]));        
-      }
-      else if (expectGlobalStringRegex.test(step)) {
-        const m = step.match(expectGlobalStringRegex);
-
-        if (m == null) {
-          throw new Error(`Could not parse ${step}`);
-        }
-        
-        try {
-          expect(vm.getGlobalVar(m[1]).toString()).toBe(String(m[2]));                
-        }
-        catch(e)
-        {
-          console.log(`Failed checking value of ${m[1]} in test ${fileName}`);
-          throw e;
-        }
-      }
-      else if (expectGlobalBoolRegex.test(step)) {
-        const m = step.match(expectGlobalBoolRegex);
-
-        if (m == null) {
-          throw new Error(`Could not parse ${step}`);
-        }
-
-        expect(vm.getGlobalVar(m[1])).toBe(m[2].toLowerCase() == 'true');
-      }
-      else if (expectGlobalUndefinedRegex.test(step)) {
-        const m = step.match(expectGlobalUndefinedRegex);
-
-        if (m == null) {
-          throw new Error(`Could not parse ${step}`);
-        }
-
-        expect(vm.getGlobalVar(m[1])).toBeUndefined();
-      }
-      else {        
-        throw new Error(`Could not parse ${step}`);
-      }
-    });
+  }
 }
