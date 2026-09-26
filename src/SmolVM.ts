@@ -124,16 +124,16 @@ export class SmolVM {
 
     callExternalMethod(methodName:string, numberOfPassedArgs:number) {
 
-        let methodArgs:any[] = [];
+        const methodArgs:any[] = [];
 
-        for (var i = 0; i < numberOfPassedArgs; i++)
+        for (let i = 0; i < numberOfPassedArgs; i++)
         {        
-            var value = this.stack.pop() as SmolVariableType;
+            const value = this.stack.pop() as SmolVariableType;
 
             methodArgs.push(value.getValue());
         }
 
-        var returnValue = this.externalMethods[methodName].apply(null, methodArgs);
+        const returnValue = this.externalMethods[methodName].apply(null, methodArgs);
 
         if (typeof returnValue == "undefined")
         {
@@ -146,6 +146,7 @@ export class SmolVM {
     }
 
     call(functionName:string, ...args: any[]) : undefined {
+
         if (this.runMode != RunMode.Done)
         {
             throw new Error("Init() should be used before calling a function, to ensure the vm state is prepared");
@@ -156,7 +157,7 @@ export class SmolVM {
 
         // Store the current state. This doesn't matter too much, because it shouldn't really
         // be runnable after we're done, but it doesn't hurt to do this.
-        var state = new SmolCallSiteSaveState(
+        const state = new SmolCallSiteSaveState(
             this.code_section,
             this.pc,
             this.environment,
@@ -164,12 +165,12 @@ export class SmolVM {
         );
 
         // Create an environment for the function
-        var env = new Environment(this.globalEnv);
+        const env = new Environment(this.globalEnv);
         this.environment = env;
 
-        var fnIndex = -1;
+        let fnIndex = -1;
 
-        for(var i = 0; i <  this.program.function_table.length; i++) {
+        for(let i = 0; i <  this.program.function_table.length; i++) {
             if (this.program.function_table[i].global_function_name == functionName) {
                 fnIndex = i;
                 break;
@@ -180,14 +181,13 @@ export class SmolVM {
             throw new Error(`Could not find a function named '${functionName}'`);
         }
 
-        var fn = this.program.function_table[i];
-
+        const fn = this.program.function_table[fnIndex];
 
         // Prime the new environment with variables for
         // the parameters in the function declaration (actual number
         // passed might be different)
 
-        for (var i = 0; i < fn.arity; i++)
+        for (let i = 0; i < fn.arity; i++)
         {
             if (args.length > i)
             {
@@ -200,20 +200,18 @@ export class SmolVM {
         }
 
 
-        this.stack.push(state!);
+        this.stack.push(state);
 
         this.pc = 0;
         this.code_section = fn.code_section;
 
         this.run();
 
-        var returnValue = this.stack.pop();
+        const returnValue = this.stack.pop();
 
         return (returnValue as SmolVariableType).getValue();
     }
 
-    // I have no idea how I could do this without Function, it's needed
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private debugFunc:((str:string) => void)|undefined = undefined;
 
     set onDebugPrint (debugFunc:(str:string) => void) {
@@ -531,14 +529,12 @@ export class SmolVM {
 
                             // Next value should be the original pre-call state that we saved
 
-                            const _savedCallState = this.stack.pop();
+                            const savedCallState = this.stack.pop();
 
-                            if (!(_savedCallState instanceof SmolCallSiteSaveState))
+                            if (!(savedCallState instanceof SmolCallSiteSaveState))
                             {
                                 throw new Error("Tried to return but found something unexecpted on the stack");
                             }
-
-                            const savedCallState = _savedCallState as SmolCallSiteSaveState;
 
                             this.environment = savedCallState.previous_env;
                             this.pc = savedCallState.pc;
@@ -598,22 +594,22 @@ export class SmolVM {
 
                                 if (objRef instanceof SmolObject)
                                 {
-                                    env_in_context = (objRef as SmolObject).object_env;
+                                    env_in_context = objRef.object_env;
                                 }
                                 else if (objRef instanceof ISmolNativeCallable)
                                 {
-                                    (objRef as ISmolNativeCallable).setProp(name, value);
+                                    objRef.setProp(name, value);
                                     break;
                                 }
                                 else
                                 {
-                                    throw new Error(`${objRef} is not a valid target for this call`);
+                                    throw new Error(`${objRef?.constructor.name ?? "<unknown>"} is not a valid target for this call`);
                                 }
                             }
 
                             env_in_context.assign(name, value, isPropertySetter);
 
-                            this.debug(`              [Saved ${(value as SmolVariableType).toString()}]`);
+                            this.debug(`              [Saved ${value.toString()}]`);
 
                             break;
                         }
@@ -645,7 +641,7 @@ export class SmolVM {
 
                                 if (objRef instanceof SmolObject)
                                 {
-                                    env_in_context = (objRef as SmolObject).object_env;
+                                    env_in_context = objRef.object_env;
 
                                     if (peek_instr.opcode == OpCode.CALL && (peek_instr.operand2 as boolean))
                                     {
@@ -669,14 +665,14 @@ export class SmolVM {
                                                 paramValues.push(this.stack.pop() as SmolVariableType);
                                             }
 
-                                            this.stack.push((objRef as ISmolNativeCallable).nativeCall(name, paramValues));
+                                            this.stack.push(objRef.nativeCall(name, paramValues));
                                             this.stack.push(new SmolNativeFunctionResult()); // Call will use this to see that the call is already done.
                                         }
                                         else
                                         {
                                             // For now won't work with Setter
 
-                                            this.stack.push((objRef as ISmolNativeCallable).getProp(name));
+                                            this.stack.push(objRef.getProp(name));
                                         }
 
                                         break;
@@ -693,12 +689,7 @@ export class SmolVM {
                                                 throw new Error("class method name regex failed");
                                             }
 
-                                            // TODO: Document why this is any and why the first
-                                            // value is the regex second group match
-                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                            //const parameters:any[] = [rexResult[2]];
-
-                                            const functionName = rexResult[2] as string;
+                                            const functionName = rexResult[2];
 
                                             const functionArgs:SmolVariableType[] = [];
 
@@ -742,23 +733,23 @@ export class SmolVM {
                                     }
                                     else
                                     {
-                                        throw new Error(`${objRef} is not a valid target for this call`);
+                                        throw new Error(`${objRef?.constructor.name ?? "<unknown>"} is not a valid target for this call`);
                                     }
                                 }                    
                             }
 
-                            let fetchedValue = env_in_context.tryGet(name);
+                            const fetchedValue = env_in_context.tryGet(name);
 
-                            if (fetchedValue instanceof SmolFunction)
-                            {
-                                fetchedValue = fetchedValue as SmolFunction;
-                            }
+                            // if (fetchedValue instanceof SmolFunction)
+                            // {
+                            //     fetchedValue = fetchedValue;
+                            // }
 
                             if (fetchedValue != null)
                             {
-                                this.stack.push(fetchedValue as SmolStackType);
+                                this.stack.push(fetchedValue);
 
-                                this.debug(`              [Loaded ${(fetchedValue as SmolVariableType).getValue()}]`);
+                                this.debug(`              [Loaded ${fetchedValue.getValue()}]`);
                             }
                             else
                             {
@@ -825,7 +816,7 @@ export class SmolVM {
                     case OpCode.LEAVE_SCOPE:
                         {
 
-                            this.environment = this.environment.enclosing as Environment;
+                            this.environment = this.environment.enclosing!;
                             break;
                         }
 
@@ -849,8 +840,8 @@ export class SmolVM {
                         break;
 
                     case OpCode.TRY:
-
-                        let exception:SmolVariableType|undefined;
+                    {
+                        let storedException:SmolVariableType|undefined = undefined;
 
                         if (instr.operand2 != undefined && (instr.operand2 as boolean))
                         {
@@ -858,7 +849,7 @@ export class SmolVM {
                             // take the exception that's already on the stack and leave it at the
                             // top after creating the try checkpoint.
 
-                            exception = this.stack.pop() as SmolVariableType;
+                            storedException = this.stack.pop() as SmolVariableType;
                         }
 
                         this.stack.push(new SmolTryRegionSaveState(
@@ -869,12 +860,13 @@ export class SmolVM {
                             )
                         );
 
-                        if (exception != undefined)
+                        if (storedException != undefined)
                         {
-                            this.stack.push(exception);
+                            this.stack.push(storedException);
                         }
 
                         break;
+                    }
 
                     case OpCode.THROW:
                                             
@@ -899,7 +891,7 @@ export class SmolVM {
 
                             if (next instanceof SmolLoopMarker)
                             {
-                                this.environment = (next as SmolLoopMarker).current_env;
+                                this.environment = next.current_env;
 
                                 this.stack.push(next); // Needs to still be on the stack
 
@@ -987,13 +979,13 @@ export class SmolVM {
 
                 while (this.stack.length > 0)
                 {
-                    const next = this.stack.pop();
+                    const nextStackItem = this.stack.pop();
 
-                    if (next instanceof SmolTryRegionSaveState)
+                    if (nextStackItem instanceof SmolTryRegionSaveState)
                     {
                         // We found the start of a try section, restore our state and jump to the exception handler location
 
-                        const tryState = next as SmolTryRegionSaveState;
+                        const tryState = nextStackItem;
 
                         this.code_section = tryState.code_section;
                         this.pc = tryState.jump_exception;
