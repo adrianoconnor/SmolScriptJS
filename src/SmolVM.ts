@@ -25,7 +25,6 @@ class SmolThrownFromInstruction extends Error {
     // We use native exceptions to throw from both user code and internal operations.
     // This internal error type lets us our generic error handler know that it was user-thrown 
 }
-
 export class SmolVM {
 
     program:SmolProgram;
@@ -114,49 +113,45 @@ export class SmolVM {
         return this.program.decompile();
     }
 
-    private externalMethods:{ [string: string] : Function } = {};
-    
-    registerMethod(methodName:string, closure:Function) {
-        // console.log(`type = ${typeof closure}`); // function
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private externalMethods: Record<string, (...args: any[]) => unknown> = {};
 
+    registerMethod<TArgs extends unknown[]>(
+        methodName: string, 
+        closure: (...args: TArgs) => unknown
+    ): void {
         this.externalMethods[methodName] = closure;
     }
 
-    callExternalMethod(methodName:string, numberOfPassedArgs:number) {
+    callExternalMethod(methodName: string, numberOfPassedArgs: number): SmolVariableType {
+        const fn = this.externalMethods[methodName];
+        if (!fn) {
+            throw new Error(`External method '${methodName}' not registered`);
+        }
 
-        const methodArgs:any[] = [];
+        const methodArgs: unknown[] = [];
 
-        for (let i = 0; i < numberOfPassedArgs; i++)
-        {        
+        for (let i = 0; i < numberOfPassedArgs; i++) {
             const value = this.stack.pop() as SmolVariableType;
-
             methodArgs.push(value.getValue());
         }
 
-        const returnValue = this.externalMethods[methodName].apply(null, methodArgs);
+        const returnValue = fn(...methodArgs);
 
-        if (typeof returnValue == "undefined")
-        {
+        if (typeof returnValue === "undefined") {
             return new SmolUndefined();
-        }
-        else
-        {
+        } else {
             return SmolVariableCreator.create(returnValue);
         }
     }
 
-    call(functionName:string, ...args: any[]) : undefined {
-
-        if (this.runMode != RunMode.Done)
-        {
+    call<TReturn = unknown>(functionName: string, ...args: unknown[]): TReturn {
+        if (this.runMode != RunMode.Done) {
             throw new Error("Init() should be used before calling a function, to ensure the vm state is prepared");
         }
 
-        // Let the VM know that it's ok to proceed from wherever the PC was pointing next
         this.runMode = RunMode.Paused;
 
-        // Store the current state. This doesn't matter too much, because it shouldn't really
-        // be runnable after we're done, but it doesn't hurt to do this.
         const state = new SmolCallSiteSaveState(
             this.code_section,
             this.pc,
@@ -164,44 +159,26 @@ export class SmolVM {
             true
         );
 
-        // Create an environment for the function
         const env = new Environment(this.globalEnv);
         this.environment = env;
 
-        let fnIndex = -1;
+        const fn = this.program.function_table.find(
+            (f) => f.global_function_name === functionName
+        );
 
-        for(let i = 0; i <  this.program.function_table.length; i++) {
-            if (this.program.function_table[i].global_function_name == functionName) {
-                fnIndex = i;
-                break;
-            }
-        }
-
-        if (fnIndex == -1) {
+        if (!fn) {
             throw new Error(`Could not find a function named '${functionName}'`);
         }
 
-        const fn = this.program.function_table[fnIndex];
-
-        // Prime the new environment with variables for
-        // the parameters in the function declaration (actual number
-        // passed might be different)
-
-        for (let i = 0; i < fn.arity; i++)
-        {
-            if (args.length > i)
-            {
+        for (let i = 0; i < fn.arity; i++) {
+            if (args.length > i) {
                 env.define(fn.param_variable_names[i], SmolVariableCreator.create(args[i]));
-            }
-            else
-            {
+            } else {
                 env.define(fn.param_variable_names[i], new SmolUndefined());
             }
         }
 
-
         this.stack.push(state);
-
         this.pc = 0;
         this.code_section = fn.code_section;
 
@@ -209,7 +186,7 @@ export class SmolVM {
 
         const returnValue = this.stack.pop();
 
-        return (returnValue as SmolVariableType).getValue();
+        return (returnValue as SmolVariableType).getValue() as TReturn;
     }
 
     private debugFunc:((str:string) => void)|undefined = undefined;
