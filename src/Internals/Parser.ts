@@ -776,8 +776,7 @@ export class Parser {
     private call() : Expression
     {
         let expr = this.primary();
-
-        // eslint-disable-next-line no-constant-condition
+       
         while (true)
         {
             if (this.match(TokenType.LEFT_BRACKET))

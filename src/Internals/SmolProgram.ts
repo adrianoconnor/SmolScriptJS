@@ -18,7 +18,9 @@ export class SmolProgram
         p += `.constants\n`;
         this.constants.forEach((c,n) => {
             if (html) {
-                p += `${n}: ${(c.getValue() ?? c).toString().replace('<', '&lt;')}\n`;
+                // Ingore the expected error caused by getValue() returning 'any':
+                // eslint-disable-next-line
+                p += `${n}: ${(c.getValue() ?? c.constructor.name).toString().replace('<', '&lt;')}\n`;
             }
             else {
                 p += `${n}: ${c.getValue()}\n`;
@@ -43,16 +45,16 @@ export class SmolProgram
                     p += '  ';
                 }
 
-                const op1 = i.operand1 != undefined ? ` ${i.operand1}` : '';
-                const op2 = i.operand2 != undefined ? ` ${i.operand2}` : '';
+                const op1 = i.operand1 != undefined ? ` ${i.operand1.constructor.name}` : '';
+                const op2 = i.operand2 != undefined ? ` ${i.operand2.constructor.name}` : '';
 
-                if (i.opcode == OpCode.CONST) {
+                if (i.opcode == OpCode.CONST &&  i.operand1 != undefined) {
                     
                     if (html) {
-                        p += `${OpCode[i.opcode]} [${i.operand1}] ${this.constants[i.operand1 as number].toString().replace('<', '&lt;')}`;
+                        p += `${OpCode[i.opcode]} [${i.operand1.constructor.name}] ${this.constants[i.operand1 as number].toString().replace('<', '&lt;')}`;
                     }
                     else {
-                        p += `${OpCode[i.opcode]} [${i.operand1}] ${this.constants[i.operand1 as number]}`;
+                        p += `${OpCode[i.opcode]} [${i.operand1.constructor.name}] ${this.constants[i.operand1 as number].toString()}`;
                     }                   
                 }
                 else if (i.opcode == OpCode.START) {
@@ -81,7 +83,7 @@ export class SmolProgram
         p += `.function_table:\n`;
 
         this.function_table.forEach((fn,n) => {
-            p += `${n}: name: ${fn.global_function_name}, code_section: ${fn.code_section}, arity: ${fn.arity}, parameter names: ${fn.param_variable_names}\n`;
+            p += `${n}: name: ${fn.global_function_name}, code_section: ${fn.code_section}, arity: ${fn.arity}, parameter names: ${fn.param_variable_names.join(', ')}\n`;
         });
         p += ``;
 

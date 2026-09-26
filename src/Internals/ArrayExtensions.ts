@@ -4,35 +4,13 @@ import { OpCode } from "./OpCode";
 export { }
 
 declare global {
-    // We do a lot of work with arrays/collections, so these convenience methods/extensions
-    // help us keeep our code a little bit tidier
     interface Array<T> {
         appendChunk(this: ByteCodeInstruction[], chunkOrInstruction: ByteCodeInstruction[] | ByteCodeInstruction): ByteCodeInstruction[];
         appendInstruction(this: ByteCodeInstruction[], opcode: OpCode, operand1?: unknown, operand2?: unknown): ByteCodeInstruction[];
-        //appendChunk(elem: T): T;
-        //appendInstruction(opcode: OpCode, operand1?: unknown, operand2?: unknown): T;
         peek(): T;
         mapTokens(first_token_index: number | undefined, last_token_index: number | undefined): ByteCodeInstruction[];
     }
 }
-
-// if (!Array.prototype.appendChunk) {
-//     Array.prototype.appendChunk = function <ByteCodeInstruction>(this: ByteCodeInstruction[], chunkOrInstruction: ByteCodeInstruction[] | ByteCodeInstruction): ByteCodeInstruction[] {
-//         if (Array.isArray(chunkOrInstruction)) {
-//             chunkOrInstruction.forEach(element => {
-//                 this.push(element);
-//             });
-//         }
-//         else if (chunkOrInstruction instanceof ByteCodeInstruction) {
-//             this.push(chunkOrInstruction);
-//         }
-//         else {
-//             throw new Error(`Can't append unknown chunk of type ${typeof chunkOrInstruction}`);
-//         }
-
-//         return this;
-//     }
-// }
 
 if (!Array.prototype.appendChunk) {
     Array.prototype.appendChunk = function (
