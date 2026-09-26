@@ -26,27 +26,27 @@ function x() {
 
     const varStmt = stmts[0] as VarStatement;
 
-    expect(varStmt.firstTokenIndex!).toBe(0);
-    expect(varStmt.lastTokenIndex!).toBe(3);
+    expect(varStmt.firstTokenIndex).toBe(0);
+    expect(varStmt.lastTokenIndex).toBe(3);
 
-    expect(tokens[varStmt.firstTokenIndex!].lexeme).toBe('var');
-    expect(tokens[varStmt.lastTokenIndex!].lexeme).toBe('1');
+    expect(tokens[varStmt.firstTokenIndex ?? -1].lexeme).toBe('var');
+    expect(tokens[varStmt.lastTokenIndex ?? -1].lexeme).toBe('1');
 
     expect(stmts[1].getStatementType()).toBe("Function");
 
-    var funcStmt = stmts[1] as FunctionStatement;
+    const funcStmt = stmts[1] as FunctionStatement;
 
     expect(funcStmt.functionBody.statements.length).toBe(1);
 
     expect(funcStmt.functionBody.statements[0].getStatementType()).toBe("Expression");
 
-    var exprStmt = funcStmt.functionBody.statements[0] as ExpressionStatement;
+    const exprStmt = funcStmt.functionBody.statements[0] as ExpressionStatement;
 
-    expect(exprStmt.firstTokenIndex!).toBe(10);
-    expect(exprStmt.lastTokenIndex!).toBe(14);
+    expect(exprStmt.firstTokenIndex ?? -1 ).toBe(10);
+    expect(exprStmt.lastTokenIndex ?? -1).toBe(14);
 
-    expect(tokens[exprStmt.firstTokenIndex!].lexeme).toBe('c');
-    expect(tokens[exprStmt.lastTokenIndex!].lexeme).toBe('2');
+    expect(tokens[exprStmt.firstTokenIndex ?? -1].lexeme).toBe('c');
+    expect(tokens[exprStmt.lastTokenIndex ?? -1].lexeme).toBe('2');
   });
 
 

@@ -11,17 +11,20 @@ export class VarStatement extends Statement {
 
     name:Token;
     initializerExpression?:Expression;
+    firstTokenIndex:number|undefined;
+    lastTokenIndex:number|undefined;
 
     constructor(name:Token, initializerExpression:Expression|undefined) {
         super();
         this.name = name;
         this.initializerExpression = initializerExpression;
+        this.firstTokenIndex = undefined;
+        this.lastTokenIndex = undefined;
     }
 
     accept<R>(visitor: StatementVisitor<R>): R {
         return visitor.visitVarStatement(this);
     }
 
-    firstTokenIndex:number|undefined;
-    lastTokenIndex:number|undefined;
+
 }

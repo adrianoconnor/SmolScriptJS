@@ -7,7 +7,7 @@ import tsParser from '@typescript-eslint/parser';
 
 
 export default defineConfig({
-  files: ['**/*.{js,ts}'],
+  files: ['src/*.{js,ts}', 'tests/*.{js,ts}'],
   extends: [
     js.configs.recommended,
     tseslint.configs.recommendedTypeChecked,
@@ -16,11 +16,6 @@ export default defineConfig({
       parser: tsParser,
       parserOptions: {
         projectService: {
-          allowDefaultProject: [
-            '*.config.ts',
-            'jest.config.ts',
-            'tests/test-runner.ts'
-          ],
         },
         tsconfigRootDir: import.meta.dirname,
       },

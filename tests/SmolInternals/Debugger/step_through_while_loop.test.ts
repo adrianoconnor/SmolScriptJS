@@ -1,10 +1,7 @@
 import { describe, expect, test } from '@jest/globals';
 import { SmolVM } from '../../../src/SmolVM';
-import { RunMode } from '../../../src/Internals/RunMode';
-import { TokenType } from '../../../src/Internals/TokenType';
-import { OpCode } from '../../../src/Internals/OpCode';
 
-function getPendingInstr(vm:SmolVM) : string {
+function getPendingInstr(vm: SmolVM): string {
   let pending_instr = vm.program.code_sections[vm.code_section][vm.pc];
 
   let pending_instr_first_token = vm.program.tokens[pending_instr.token_map_start_index as number];
@@ -53,7 +50,7 @@ describe('Smol Debug Step-through While Loop', () => {
     expect(vm.getGlobalVar('y')).toBe(0);
     expect(getPendingInstr(vm)).toBe('y++');
     var y = 0;
-    while(y < 9) {
+    while (y < 9) {
       vm.step();
       expect(vm.getGlobalVar('y')).toBe(++y);
       expect(getPendingInstr(vm)).toBe('while(y < 10)');
@@ -65,7 +62,7 @@ describe('Smol Debug Step-through While Loop', () => {
     expect(getPendingInstr(vm)).toBe('while(y < 10)');
     vm.step();
     expect(getPendingInstr(vm)).toBe('while ( y>2 )');
-    while(y > 2) {
+    while (y > 2) {
       vm.step();
       expect(getPendingInstr(vm)).toBe('{');
       vm.step();

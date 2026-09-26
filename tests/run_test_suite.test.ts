@@ -51,8 +51,6 @@ describe('Automated Test Suite', () => {
     { file, removeSemicolons: false, label: `${file} (semicolons)` },
     { file, removeSemicolons: true, label: `${file} (no semicolons)` },
   ]);
-  
-  // console.log(`Found ${Object.keys(tests).length} test files:`, Object.keys(tests));
 
   test.each(testCases)('$label', ({ file, removeSemicolons }) => {
     runTest(file, removeSemicolons);
@@ -86,16 +84,16 @@ function runTest(fileName: string, removeSemicolons: boolean = false) {
         throw e;
       }
     } else if (expectGlobalNumberRegex.test(step)) {
-      const [, varName, val] = step.match(expectGlobalNumberRegex)!;
+      const [, varName, val] = step.match(expectGlobalNumberRegex) ?? [];
       expect(vm.getGlobalVar(varName)).toBe(Number(val));
     } else if (expectGlobalStringRegex.test(step)) {
-      const [, varName, val = ''] = step.match(expectGlobalStringRegex)!;
+      const [, varName, val = ''] = step.match(expectGlobalStringRegex) ?? [];
       expect(String(vm.getGlobalVar(varName))).toBe(String(val));   
     } else if (expectGlobalBoolRegex.test(step)) {
-      const [, varName, val] = step.match(expectGlobalBoolRegex)!;
+      const [, varName, val] = step.match(expectGlobalBoolRegex) ?? [];
       expect(vm.getGlobalVar(varName)).toBe(val.toLowerCase() === 'true');
     } else if (expectGlobalUndefinedRegex.test(step)) {
-      const [, varName] = step.match(expectGlobalUndefinedRegex)!;
+      const [, varName] = step.match(expectGlobalUndefinedRegex) ?? [];
       expect(vm.getGlobalVar(varName)).toBeUndefined();
     } else {
       throw new Error(`Could not parse step: "${step}" in test: ${fileName}`);

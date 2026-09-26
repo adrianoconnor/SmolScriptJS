@@ -3,16 +3,17 @@ import { SmolString } from "./SmolString";
 import { SmolVariableType } from "./SmolVariableType";
 
 export class SmolNumber extends ISmolNativeCallable {
-    
-    setProp(name: string, value: any): void {
-        throw new Error("Not implemented.");
-    }
 
-    getProp(name: string): SmolVariableType {
-        throw new Error("Not implemented.");
+    setProp(): void {
+        throw new Error("Method not implemented.");
     }
     
-    nativeCall(funcName: string, parameters: SmolVariableType[]): SmolVariableType {
+
+    getProp(): SmolVariableType {
+        throw new Error("Method not implemented.");
+    }
+    
+    nativeCall(funcName: string): SmolVariableType {
 
         if (funcName === "toString") {
             return new SmolString(this._value.toString());
