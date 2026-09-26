@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Expression } from "./Expression";
+import { ExpressionVisitor } from "./ExpressionVisitor";
 import { Token } from "../../Token";
 
-export class UnaryExpression implements Expression {
+export class UnaryExpression extends Expression {
 
     getExpressionType() : string {
         return "Unary";
@@ -12,11 +12,12 @@ export class UnaryExpression implements Expression {
     right:Expression;
 
     constructor(op:Token, right:Expression) {
+        super();
         this.op = op;
         this.right = right;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: ExpressionVisitor<R>): R {
         return visitor.visitUnaryExpression(this);
     }
 }

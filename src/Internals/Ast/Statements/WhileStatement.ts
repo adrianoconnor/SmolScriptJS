@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Statement } from "./Statement";
+import { StatementVisitor } from "./StatementVisitor";
 import { Expression } from "../Expressions/Expression";
 
-export class WhileStatement implements Statement {
+export class WhileStatement extends Statement {
 
     getStatementType() : string {
         return "While";
@@ -12,11 +12,12 @@ export class WhileStatement implements Statement {
     executeStatement:Statement;
 
     constructor(whileCondition:Expression, executeStatement:Statement) {
+        super();
         this.whileCondition = whileCondition;
         this.executeStatement = executeStatement;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: StatementVisitor<R>): R {
         return visitor.visitWhileStatement(this);
     }
 

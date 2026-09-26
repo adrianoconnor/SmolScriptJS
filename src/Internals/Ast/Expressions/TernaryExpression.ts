@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Expression } from "./Expression";
+import { ExpressionVisitor } from "./ExpressionVisitor";
 
-export class TernaryExpression implements Expression {
+export class TernaryExpression extends Expression {
 
     getExpressionType() : string {
         return "Ternary";
@@ -12,12 +12,13 @@ export class TernaryExpression implements Expression {
     expresisonIfFalse:Expression;
 
     constructor(evaluationExpression:Expression, expresisonIfTrue:Expression, expresisonIfFalse:Expression) {
+        super();
         this.evaluationExpression = evaluationExpression;
         this.expresisonIfTrue = expresisonIfTrue;
         this.expresisonIfFalse = expresisonIfFalse;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: ExpressionVisitor<R>): R {
         return visitor.visitTernaryExpression(this);
     }
 }

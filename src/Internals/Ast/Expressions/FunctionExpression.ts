@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Expression } from "./Expression";
+import { ExpressionVisitor } from "./ExpressionVisitor";
 import { Token } from "../../Token";
-import {BlockStatement} from "../Statements/BlockStatement";
+import { BlockStatement } from "../Statements/BlockStatement";
 
-export class FunctionExpression implements Expression {
+export class FunctionExpression extends Expression {
 
     getExpressionType() : string {
         return "Function";
@@ -13,11 +13,12 @@ export class FunctionExpression implements Expression {
     functionBody:BlockStatement;
 
     constructor(parameters:Token[], functionBody:BlockStatement) {
+        super();
         this.parameters = parameters;
         this.functionBody = functionBody;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: ExpressionVisitor<R>): R {
         return visitor.visitFunctionExpression(this);
     }
 }

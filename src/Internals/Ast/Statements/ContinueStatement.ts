@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Statement } from "./Statement";
-
-export class ContinueStatement implements Statement {
+import { StatementVisitor } from "./StatementVisitor";
+export class ContinueStatement extends Statement {
 
     getStatementType() : string {
         return "Continue";
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: StatementVisitor<R>): R {
         return visitor.visitContinueStatement(this);
     }
 

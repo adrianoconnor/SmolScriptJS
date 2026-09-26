@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Statement } from "./Statement";
+import { StatementVisitor } from "./StatementVisitor";
 import { Expression } from "../Expressions/Expression";
 
-export class ExpressionStatement implements Statement {
+export class ExpressionStatement extends Statement {
     
     firstTokenIndex:number|undefined;
     lastTokenIndex:number|undefined;
@@ -14,10 +14,11 @@ export class ExpressionStatement implements Statement {
     expression:Expression;
 
     constructor(expression:Expression) {
+        super();
         this.expression = expression;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: StatementVisitor<R>): R {
         return visitor.visitExpressionStatement(this);
     }
 }

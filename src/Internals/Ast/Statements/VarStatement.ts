@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Statement } from "./Statement";
+import { StatementVisitor } from "./StatementVisitor";
 import { Token } from "../../Token";
 import { Expression } from "../Expressions/Expression";
 
-export class VarStatement implements Statement {
+export class VarStatement extends Statement {
 
     getStatementType() : string {
         return "Var";
@@ -13,11 +13,12 @@ export class VarStatement implements Statement {
     initializerExpression?:Expression;
 
     constructor(name:Token, initializerExpression:Expression|undefined) {
+        super();
         this.name = name;
         this.initializerExpression = initializerExpression;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: StatementVisitor<R>): R {
         return visitor.visitVarStatement(this);
     }
 

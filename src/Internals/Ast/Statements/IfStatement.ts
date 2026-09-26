@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Statement } from "./Statement";
+import { StatementVisitor } from "./StatementVisitor";
 import { Expression } from "../Expressions/Expression";
 
-export class IfStatement implements Statement {
+export class IfStatement extends Statement {
 
     getStatementType() : string {
         return "If";
@@ -13,12 +13,13 @@ export class IfStatement implements Statement {
     elseStatement?:Statement;
 
     constructor(expression:Expression, thenStatement:Statement, elseStatement:Statement|undefined) {
+        super();
         this.expression = expression;
         this.thenStatement = thenStatement;
         this.elseStatement = elseStatement;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: StatementVisitor<R>): R {
         return visitor.visitIfStatement(this);
     }
 

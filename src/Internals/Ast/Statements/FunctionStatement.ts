@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Statement } from "./Statement";
+import { StatementVisitor } from "./StatementVisitor";
 import { Token } from "../../Token";
 import {BlockStatement} from "./BlockStatement";
 
-export class FunctionStatement implements Statement {
+export class FunctionStatement extends Statement {
 
     getStatementType() : string {
         return "Function";
@@ -14,12 +14,13 @@ export class FunctionStatement implements Statement {
     functionBody:BlockStatement;
 
     constructor(name:Token, parameters:Token[], functionBody:BlockStatement) {
+        super();
         this.name = name;
         this.parameters = parameters;
         this.functionBody = functionBody;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: StatementVisitor<R>): R {
         return visitor.visitFunctionStatement(this);
     }
 }

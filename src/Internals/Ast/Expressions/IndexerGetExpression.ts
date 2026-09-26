@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Expression } from "./Expression";
+import { ExpressionVisitor } from "./ExpressionVisitor";
 
-export class IndexerGetExpression implements Expression {
+export class IndexerGetExpression extends Expression {
 
     getExpressionType() : string {
         return "IndexerGet";
@@ -11,11 +11,12 @@ export class IndexerGetExpression implements Expression {
     indexerExpr:Expression;
 
     constructor(obj:Expression, indexerExpr:Expression) {
+        super();
         this.obj = obj;
         this.indexerExpr = indexerExpr;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: ExpressionVisitor<R>): R {
         return visitor.visitIndexerGetExpression(this);
     }
 }

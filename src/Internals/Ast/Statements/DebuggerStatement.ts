@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Statement } from "./Statement";
-
-export class DebuggerStatement implements Statement {
+import { StatementVisitor } from "./StatementVisitor";
+export class DebuggerStatement extends Statement {
 
     getStatementType() : string {
         return "Debugger";
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: StatementVisitor<R>): R {
         return visitor.visitDebuggerStatement(this);
     }
 

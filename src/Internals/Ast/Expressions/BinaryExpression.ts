@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Expression } from "./Expression";
+import { ExpressionVisitor } from "./ExpressionVisitor";
 import { Token } from "../../Token";
 
-export class BinaryExpression implements Expression {
+export class BinaryExpression extends Expression {
 
     getExpressionType() : string {
         return "Binary";
@@ -13,12 +13,13 @@ export class BinaryExpression implements Expression {
     right:Expression;
 
     constructor(left:Expression, op:Token, right:Expression) {
+        super();
         this.left = left;
         this.op = op;
         this.right = right;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: ExpressionVisitor<R>): R {
         return visitor.visitBinaryExpression(this);
     }
 }

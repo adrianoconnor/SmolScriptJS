@@ -265,6 +265,7 @@ export class Scanner {
 
             case ' ':
                 this._previous = this._currentPos;
+                break;                
             case '\r':
             case '\t':
                 // Ignore whitespace

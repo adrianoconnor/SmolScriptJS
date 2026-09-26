@@ -1,24 +1,27 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Statement } from "./Statement";
+import { StatementVisitor } from "./StatementVisitor";
 
-export class BlockStatement implements Statement {
+export class BlockStatement extends Statement {
 
     getStatementType() : string {
         return "Block";
     }
 
     statements:Statement[];
-    insertedByParser:boolean; // Means it was inserted by the parser to support a scope that is required by convention butnot explicitly given
+    insertedByParser:boolean; // This means it was inserted by the parser to support a scope that is required by convention butnot explicitly given
+
+    blockStartTokenIndex:number | undefined;
+    blockEndTokenIndex:number | undefined;
 
     constructor(statements:Statement[], isVirtual = false) {
+        super();
         this.statements = statements;
         this.insertedByParser = isVirtual;
+        this.blockStartTokenIndex = undefined;
+        this.blockEndTokenIndex = undefined;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: StatementVisitor<R>): R {
         return visitor.visitBlockStatement(this);
     }
-
-    blockStartTokenIndex:number|undefined;
-    blockEndTokenIndex:number|undefined;
 }

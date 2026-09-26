@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Expression } from "./Expression";
+import { ExpressionVisitor } from "./ExpressionVisitor";
 
-export class CallExpression implements Expression {
+export class CallExpression extends Expression {
 
     getExpressionType() : string {
         return "Call";
@@ -12,12 +12,13 @@ export class CallExpression implements Expression {
     useObjectRef:boolean;
 
     constructor(callee:Expression, args:Expression[], useObjectRef:boolean) {
+        super();
         this.callee = callee;
         this.args = args;
         this.useObjectRef = useObjectRef;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: ExpressionVisitor<R>): R {
         return visitor.visitCallExpression(this);
     }
 }

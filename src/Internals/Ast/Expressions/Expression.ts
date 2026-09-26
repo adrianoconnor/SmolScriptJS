@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export class Expression {
-    accept(visitor:any) : any {
-        throw new Error("Should not be called on base");
-    }
+import { ExpressionVisitor } from "./ExpressionVisitor";
+
+export abstract class Expression {
+
+    abstract accept<R>(visitor: ExpressionVisitor<R>): R;
 }

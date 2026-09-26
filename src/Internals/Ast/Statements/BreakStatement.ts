@@ -1,13 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Statement } from "./Statement";
+import { StatementVisitor } from "./StatementVisitor";
 
-export class BreakStatement implements Statement {
+export class BreakStatement extends Statement {
 
     getStatementType() : string {
         return "Break";
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: StatementVisitor<R>): R {
         return visitor.visitBreakStatement(this);
     }
 

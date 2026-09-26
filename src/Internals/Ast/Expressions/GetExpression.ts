@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Expression } from "./Expression";
+import { ExpressionVisitor } from "./ExpressionVisitor";
 import { Token } from "../../Token";
 
-export class GetExpression implements Expression {
+export class GetExpression extends Expression {
 
     getExpressionType() : string {
         return "Get";
@@ -12,11 +12,12 @@ export class GetExpression implements Expression {
     name:Token;
 
     constructor(obj:Expression, name:Token) {
+        super();
         this.obj = obj;
         this.name = name;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: ExpressionVisitor<R>): R {
         return visitor.visitGetExpression(this);
     }
 }

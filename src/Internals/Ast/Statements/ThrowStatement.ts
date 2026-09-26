@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Statement } from "./Statement";
+import { StatementVisitor } from "./StatementVisitor";
 import { Expression } from "../Expressions/Expression";
 
-export class ThrowStatement implements Statement {
+export class ThrowStatement extends Statement {
 
     getStatementType() : string {
         return "Throw";
@@ -11,10 +11,11 @@ export class ThrowStatement implements Statement {
     expression:Expression;
 
     constructor(expression:Expression) {
+        super();
         this.expression = expression;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: StatementVisitor<R>): R {
         return visitor.visitThrowStatement(this);
     }
 }

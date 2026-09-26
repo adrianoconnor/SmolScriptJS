@@ -2,6 +2,10 @@ import js from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+
+
 export default defineConfig({
   files: ['**/*.{js,ts}'],
   extends: [
@@ -9,8 +13,18 @@ export default defineConfig({
     tseslint.configs.recommendedTypeChecked,
   ],
   languageOptions: {
-    parserOptions: {
-      projectService: true,
-    },
+      parser: tsParser,
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: [
+            '*.config.ts',
+            'jest.config.ts',
+            'tests/test-runner.ts'
+          ],
+        },
+        tsconfigRootDir: import.meta.dirname,
+      },
   },
 });
+
+

@@ -3,7 +3,6 @@ import { OpCode } from "./OpCode";
 import { SmolFunction } from "./SmolVariableTypes/SmolFunction";
 import { SmolVariableType } from "./SmolVariableTypes/SmolVariableType";
 import { VarStatement } from "./Ast/Statements/VarStatement";
-import { Expression } from "./Ast/Expressions/Expression";
 import { LiteralExpression } from "./Ast/Expressions/LiteralExpression";
 import { GroupingExpression } from "./Ast/Expressions/GroupingExpression";
 import { VariableExpression } from "./Ast/Expressions/VariableExpression";
@@ -38,52 +37,55 @@ import { SmolBool } from "./SmolVariableTypes/SmolBool";
 import { TokenType } from "./TokenType";
 import { SmolUndefined } from "./SmolVariableTypes/SmolUndefined";
 import { SmolNumber } from "./SmolVariableTypes/SmolNumber";
-import "./ArrayExtensions";
 import { ContinueStatement } from "./Ast/Statements/ContinueStatement";
 import { DebuggerStatement } from "./Ast/Statements/DebuggerStatement";
 import { BreakStatement } from "./Ast/Statements/BreakStatement";
+import { ExpressionVisitor } from "./Ast/Expressions/ExpressionVisitor";
+import { StatementVisitor } from "./Ast/Statements/StatementVisitor";
+import "./ArrayExtensions";
 
 class WhileLoop {
-    startOfLoop:number;
-    endOfLoop:number;
+    startOfLoop: number;
+    endOfLoop: number;
 
-    constructor(startOfLoop:number, endOfLoop:number) {
+    constructor(startOfLoop: number, endOfLoop: number) {
         this.startOfLoop = startOfLoop;
         this.endOfLoop = endOfLoop;
     }
 }
 
-export class Compiler {
+export class Compiler implements
+    StatementVisitor<ByteCodeInstruction[]>,
+    ExpressionVisitor<ByteCodeInstruction[]> {
 
-    private _function_table:SmolFunction[] = [];
-    private _function_bodies:ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
+    private _function_table: SmolFunction[] = [];
+    private _function_bodies: ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
 
     private _nextLabel = 1;
 
     // Labels for jumoing to are just numeric place holders. When a code gen section needs to
     // create a new jump-location, it can use this function
-    private reserveLabelId():number
-    {
+    private reserveLabelId(): number {
         return this._nextLabel++;
     }
 
     // This is our structure to hold the constants that appear in source and need to be
     // referenced by the program (e.g., numbers, strings, bools). We define some here
     // so that a few common ones always have the same index.
-    private _constants:SmolVariableType[] = [];
+    private _constants: SmolVariableType[] = [];
 
-    private _loopStack:Array<WhileLoop> = new Array<WhileLoop>();
-    
+    private _loopStack: Array<WhileLoop> = new Array<WhileLoop>();
+
     // This method can be called by any block that needs to create/reference a constant, either
     // getting the existing index of the value if we already have it, or inserting and returning
     // the new index 
-    ensureConst(value:SmolVariableType) : number {
+    ensureConst(value: SmolVariableType): number {
 
         let constIndex = -1;
 
         this._constants.forEach((e, i) => {
             if (e.getValue() === value.getValue()) { // e.equals(value)) {
-                constIndex = i;                
+                constIndex = i;
             }
         });
 
@@ -94,7 +96,7 @@ export class Compiler {
         return constIndex;
     }
 
-    public Compile(source:string) : SmolProgram {
+    public Compile(source: string): SmolProgram {
 
         const t = Scanner.tokenize(source);
         const p = Parser.parse(t);
@@ -102,13 +104,9 @@ export class Compiler {
         const mainChunk = this.createChunk();
         mainChunk.appendInstruction(OpCode.START); // This NOP is here so if the user starts the program with step, it will immediately hit this and show the first real statement as the next/first instruction to execute
         mainChunk[0].isStatementStartpoint = true;
-        
-        for(let i = 0; i < p.length; i++) {
-            const checkPoint = mainChunk.length;
 
+        for (let i = 0; i < p.length; i++) {
             mainChunk.appendChunk(p[i].accept(this));
-
-            //mainChunk[checkPoint].isStatementStartpoint = true;
         }
 
         mainChunk.appendInstruction(OpCode.EOF);
@@ -126,15 +124,15 @@ export class Compiler {
     }
 
     // Short hand helper method to keep the code a little tidier 
-    private createChunk() : ByteCodeInstruction[] {
+    private createChunk(): ByteCodeInstruction[] {
         return new Array<ByteCodeInstruction>();
     }
 
-    private visitBlockStatement(stmt:BlockStatement) : ByteCodeInstruction[] {
+    visitBlockStatement(stmt: BlockStatement): ByteCodeInstruction[] {
 
         const chunk = this.createChunk();
 
-        var enterScope = new ByteCodeInstruction(OpCode.ENTER_SCOPE);
+        const enterScope = new ByteCodeInstruction(OpCode.ENTER_SCOPE);
 
         enterScope.token_map_start_index = stmt.blockStartTokenIndex;
         enterScope.token_map_end_index = stmt.blockStartTokenIndex;
@@ -144,15 +142,14 @@ export class Compiler {
         chunk.appendChunk(enterScope);
 
 
-        stmt.statements.forEach((blockStmt:Statement) => {
-            
+        stmt.statements.forEach((blockStmt: Statement) => {
+
             const c = blockStmt.accept(this);
-            //c[0].isStatementStartpoint = true;
             chunk.appendChunk(c);
 
         });
 
-        var leaveScope = new ByteCodeInstruction(OpCode.LEAVE_SCOPE);
+        const leaveScope = new ByteCodeInstruction(OpCode.LEAVE_SCOPE);
         leaveScope.token_map_start_index = stmt.blockEndTokenIndex;
         leaveScope.token_map_end_index = stmt.blockEndTokenIndex;
         if (stmt.insertedByParser == false) {
@@ -164,20 +161,20 @@ export class Compiler {
         return chunk;
     }
 
-    private visitBreakStatement(stmt:BreakStatement) : ByteCodeInstruction[] {        
+    visitBreakStatement(stmt: BreakStatement): ByteCodeInstruction[] {
         const chunk = this.createChunk();
 
         chunk.appendInstruction(OpCode.LOOP_EXIT, this._loopStack.peek().endOfLoop);
         chunk[0].isStatementStartpoint = true;
         chunk.mapTokens(stmt.tokenIndex, stmt.tokenIndex);
-        
+
         return chunk;
     }
 
-    private visitClassStatement(stmt:ClassStatement) : ByteCodeInstruction {
+    visitClassStatement(stmt: ClassStatement): ByteCodeInstruction[] {
 
         stmt.functions.forEach((fn) => {
-        
+
             const function_index = this._function_bodies.length + 1;
             const function_name = `@${stmt.className.lexeme}.${fn.name.lexeme}`;
 
@@ -187,38 +184,37 @@ export class Compiler {
                 fn.parameters.length,
                 fn.parameters.map<string>((p) => p.lexeme)
             ));
-    
+
             const body = this.createChunk();
 
             body.appendChunk(fn.functionBody.accept(this));
-    
-            if (body.length == 0 || body.peek().opcode != OpCode.RETURN)
-            {
+
+            if (body.length == 0 || body.peek().opcode != OpCode.RETURN) {
                 body.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
                 body.appendInstruction(OpCode.RETURN);
             }
-    
+
             this._function_bodies.push(body);
         });
 
         // We are declaring a function, we don't add anything to the byte stream at the current loc.
         // When we allow functions as expressions and assignments we'll need to do something
         // here, I guess something more like load constant but for functions
-        return new ByteCodeInstruction(OpCode.NOP);
+        return [new ByteCodeInstruction(OpCode.NOP)];
     }
 
-    private visitContinueStatement(stmt:ContinueStatement) : ByteCodeInstruction[] {
+    visitContinueStatement(stmt: ContinueStatement): ByteCodeInstruction[] {
 
         const chunk = this.createChunk();
 
         chunk.appendInstruction(OpCode.LOOP_EXIT, this._loopStack.peek().startOfLoop);
         chunk[0].isStatementStartpoint = true;
         chunk.mapTokens(stmt.tokenIndex, stmt.tokenIndex);
-        
+
         return chunk;
     }
 
-    private visitDebuggerStatement(stmt:DebuggerStatement) : ByteCodeInstruction[] {
+    visitDebuggerStatement(stmt: DebuggerStatement): ByteCodeInstruction[] {
 
         const chunk = this.createChunk();
 
@@ -229,7 +225,7 @@ export class Compiler {
         return chunk;
     }
 
-    private visitExpressionStatement(stmt:ExpressionStatement) : ByteCodeInstruction[] {
+    visitExpressionStatement(stmt: ExpressionStatement): ByteCodeInstruction[] {
 
         const chunk = this.createChunk();
 
@@ -241,8 +237,8 @@ export class Compiler {
 
         return chunk;
     }
-    
-    private visitFunctionStatement(stmt:FunctionStatement) : ByteCodeInstruction {
+
+    visitFunctionStatement(stmt: FunctionStatement): ByteCodeInstruction[] {
 
         const function_index = this._function_bodies.length + 1;
         const function_name = stmt.name.lexeme;
@@ -258,8 +254,7 @@ export class Compiler {
 
         body.appendChunk(stmt.functionBody.accept(this));
 
-        if (body.length == 0 || body.peek().opcode != OpCode.RETURN)
-        {
+        if (body.length == 0 || body.peek().opcode != OpCode.RETURN) {
             body.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
             body.appendInstruction(OpCode.RETURN);
         }
@@ -269,11 +264,11 @@ export class Compiler {
         // We are declaring a function, we don't add anything to the byte stream at the current loc.
         // When we allow functions as expressions and assignments we'll need to do something
         // here, I guess something more like load constant but for functions
-        return new ByteCodeInstruction(OpCode.NOP);
+        return [new ByteCodeInstruction(OpCode.NOP)];
     }
-    
 
-    private visitIfStatement(stmt:IfStatement) : ByteCodeInstruction[] {
+
+    visitIfStatement(stmt: IfStatement): ByteCodeInstruction[] {
 
         const chunk = this.createChunk();
 
@@ -285,28 +280,26 @@ export class Compiler {
         chunk.appendInstruction(OpCode.JMPFALSE, notTrueLabel);
 
         const thenChunk = stmt.thenStatement.accept(this);
-        
-        if (thenChunk instanceof Array) {
-            thenChunk.mapTokens(stmt.thenFirstTokenIndex, stmt.thenLastTokenIndex);
-            if (stmt.thenStatement.getStatementType() != "Block") {        
-                (thenChunk[0] as ByteCodeInstruction).isStatementStartpoint = true;
-            }
+
+        // if (thenChunk instanceof Array) {
+        thenChunk.mapTokens(stmt.thenFirstTokenIndex, stmt.thenLastTokenIndex);
+        if (stmt.thenStatement.getStatementType() != "Block") {
+            thenChunk[0].isStatementStartpoint = true;
         }
-        else {
-            (thenChunk as ByteCodeInstruction).token_map_start_index = stmt.thenFirstTokenIndex;
-            (thenChunk as ByteCodeInstruction).token_map_end_index = stmt.thenLastTokenIndex;
-        }
-  
+        // }
+        // else {
+        //     (thenChunk as ByteCodeInstruction).token_map_start_index = stmt.thenFirstTokenIndex;
+        //     (thenChunk as ByteCodeInstruction).token_map_end_index = stmt.thenLastTokenIndex;
+        // }
+
         chunk.appendChunk(thenChunk);
 
-        if (stmt.elseStatement == undefined)
-        {
+        if (stmt.elseStatement == undefined) {
             chunk.appendInstruction(OpCode.LABEL, notTrueLabel);
         }
-        else
-        {
+        else {
             const skipElseLabel = this.reserveLabelId();
-            
+
             chunk.appendInstruction(OpCode.JMP, skipElseLabel);
             chunk.appendInstruction(OpCode.LABEL, notTrueLabel);
 
@@ -320,7 +313,7 @@ export class Compiler {
         return chunk;
     }
 
-    private visitPrintStatement(stmt:PrintStatement) : ByteCodeInstruction[] {
+    visitPrintStatement(stmt: PrintStatement): ByteCodeInstruction[] {
 
         const chunk = this.createChunk();
 
@@ -330,16 +323,14 @@ export class Compiler {
         return chunk;
     }
 
-    private visitReturnStatement(stmt:ReturnStatement) : ByteCodeInstruction[] {
+    visitReturnStatement(stmt: ReturnStatement): ByteCodeInstruction[] {
 
         const chunk = this.createChunk()
 
-        if (stmt.expression != undefined)
-        {
+        if (stmt.expression != undefined) {
             chunk.appendChunk(stmt.expression.accept(this));
         }
-        else
-        {
+        else {
             chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
         }
 
@@ -350,7 +341,7 @@ export class Compiler {
         return chunk;
     }
 
-    private visitTryStatement(stmt:TryStatement) : ByteCodeInstruction[] {
+    visitTryStatement(stmt: TryStatement): ByteCodeInstruction[] {
 
         const chunk = this.createChunk();
 
@@ -383,10 +374,8 @@ export class Compiler {
 
         chunk.appendInstruction(OpCode.TRY, finallyWithExceptionLabel, true); // True means keep the exception at the top of the stack
 
-        if (stmt.catchBody != null)
-        {
-            if (stmt.exceptionVariableName != null)
-            {
+        if (stmt.catchBody != null) {
+            if (stmt.exceptionVariableName != null) {
                 chunk.appendInstruction(OpCode.ENTER_SCOPE);
 
                 // Top of stack will be exception so store it in variable name
@@ -394,21 +383,18 @@ export class Compiler {
                 chunk.appendInstruction(OpCode.DECLARE, stmt.exceptionVariableName.lexeme);
                 chunk.appendInstruction(OpCode.STORE, stmt.exceptionVariableName.lexeme);
             }
-            else
-            {
+            else {
                 // Top of stack is exception, but no variable defined to hold it so get rid of it
                 chunk.appendInstruction(OpCode.POP_AND_DISCARD);
             }
 
             chunk.appendChunk(stmt.catchBody.accept(this)); // Might be a throw inside here...
 
-            if (stmt.exceptionVariableName != null)
-            {
+            if (stmt.exceptionVariableName != null) {
                 chunk.appendInstruction(OpCode.LEAVE_SCOPE);
             }
         }
-        else
-        {
+        else {
             // No catch body is replaced by single instruction to rethrow the exception, which is already on the top of the stack
 
             chunk.appendInstruction(OpCode.THROW);
@@ -426,8 +412,7 @@ export class Compiler {
         // When we throw this time the try checkpoint has been removed so we'll bubble down the stack to the next
         // try checkpoint (if there is one -- and panic if not)
 
-        if (stmt.finallyBody != null)
-        {
+        if (stmt.finallyBody != null) {
             chunk.appendChunk(stmt.finallyBody.accept(this));
 
             // Instruction to check for unthrown exception and throw it
@@ -436,8 +421,7 @@ export class Compiler {
         chunk.appendInstruction(OpCode.THROW);
         chunk.appendInstruction(OpCode.LABEL, finallyLabel);
 
-        if (stmt.finallyBody != null)
-        {
+        if (stmt.finallyBody != null) {
             chunk.appendChunk(stmt.finallyBody.accept(this));
 
             // Instruction to check for unthrown exception and throw it
@@ -449,23 +433,23 @@ export class Compiler {
         return chunk;
     }
 
-    private visitThrowStatement(stmt:ThrowStatement) : ByteCodeInstruction[] {
+    visitThrowStatement(stmt: ThrowStatement): ByteCodeInstruction[] {
 
         const chunk = this.createChunk();
 
         chunk.appendChunk(stmt.expression.accept(this));
         chunk.appendInstruction(OpCode.THROW);
-        
+
         return chunk;
     }
 
-    private visitVarStatement(stmt:VarStatement) : ByteCodeInstruction[] {
+    visitVarStatement(stmt: VarStatement): ByteCodeInstruction[] {
 
         const chunk = this.createChunk();
 
         chunk.appendInstruction(OpCode.DECLARE, stmt.name.lexeme);
 
-        if (stmt.initializerExpression != undefined) {    
+        if (stmt.initializerExpression != undefined) {
             chunk.appendChunk(stmt.initializerExpression.accept(this));
             chunk.appendInstruction(OpCode.STORE, stmt.name.lexeme);
         }
@@ -476,8 +460,8 @@ export class Compiler {
         return chunk;
     }
 
-    private visitWhileStatement(stmt:WhileStatement) : ByteCodeInstruction[] {
-        
+    visitWhileStatement(stmt: WhileStatement): ByteCodeInstruction[] {
+
         const chunk = this.createChunk();
 
         const startOfLoop = this.reserveLabelId();
@@ -488,10 +472,10 @@ export class Compiler {
         chunk.appendInstruction(OpCode.LOOP_START);
         chunk.appendInstruction(OpCode.LABEL, startOfLoop);
         const whileExpr = stmt.whileCondition.accept(this);
-        if (whileExpr[0] == undefined)
-            whileExpr.isStatementStartpoint = true;
-        else
-           whileExpr[0].isStatementStartpoint = true;
+
+        if (whileExpr.length > 0) {
+            whileExpr[0].isStatementStartpoint = true;
+        }
 
         chunk.appendChunk(whileExpr);
         chunk.appendInstruction(OpCode.JMPFALSE, endOfLoop);
@@ -511,7 +495,7 @@ export class Compiler {
     }
 
 
-    private visitAssignExpression(expr:AssignExpression) : ByteCodeInstruction[] {
+    visitAssignExpression(expr: AssignExpression): ByteCodeInstruction[] {
 
         const chunk = this.createChunk();
 
@@ -528,15 +512,14 @@ export class Compiler {
         return chunk;
     }
 
-    private visitBinaryExpression(expr:BinaryExpression) : ByteCodeInstruction[] {
-        
+    visitBinaryExpression(expr: BinaryExpression): ByteCodeInstruction[] {
+
         const chunk = this.createChunk();
 
         chunk.appendChunk(expr.left.accept(this));
         chunk.appendChunk(expr.right.accept(this));
 
-        switch (expr.op.type)
-        {
+        switch (expr.op.type) {
             case TokenType.MINUS:
                 chunk.appendInstruction(OpCode.SUB);
                 break;
@@ -600,14 +583,14 @@ export class Compiler {
         return chunk;
     }
 
-    private visitCallExpression(expr:CallExpression) : ByteCodeInstruction[] {
-        
+    visitCallExpression(expr: CallExpression): ByteCodeInstruction[] {
+
         const chunk = this.createChunk();
 
         // Evalulate the arguments from left to right and pop them on the stack.
 
         expr.args.reverse().forEach((arg) => {
-            chunk.appendChunk((arg as Expression).accept(this));
+            chunk.appendChunk(arg.accept(this));
         })
 
         chunk.appendChunk(expr.callee.accept(this)); // Load the function name onto the stack
@@ -616,7 +599,7 @@ export class Compiler {
         return chunk;
     }
 
-    private visitFunctionExpression(expr:FunctionExpression) : ByteCodeInstruction {
+    visitFunctionExpression(expr: FunctionExpression): ByteCodeInstruction[] {
 
         const function_index = this._function_bodies.length + 1;
         const function_name = `$_anon_${function_index}`;
@@ -632,19 +615,18 @@ export class Compiler {
 
         body.appendChunk(expr.functionBody.accept(this));
 
-        if (body.length == 0 || body.peek().opcode != OpCode.RETURN)
-        {
+        if (body.length == 0 || body.peek().opcode != OpCode.RETURN) {
             body.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
             body.appendInstruction(OpCode.RETURN);
         }
 
         this._function_bodies.push(body);
 
-        return new ByteCodeInstruction(OpCode.FETCH, function_name);
+        return [new ByteCodeInstruction(OpCode.FETCH, function_name)];
     }
 
-    private visitGetExpression(expr:GetExpression) : ByteCodeInstruction[] {
-        
+    visitGetExpression(expr: GetExpression): ByteCodeInstruction[] {
+
         const chunk = this.createChunk();
 
         chunk.appendChunk(expr.obj.accept(this));
@@ -653,31 +635,29 @@ export class Compiler {
         return chunk;
     }
 
-    private visitGroupingExpression(expr:GroupingExpression) : ByteCodeInstruction[]|ByteCodeInstruction {
-        
-        if (expr.castToStringForEmbeddedStringExpression)
-        {
+    visitGroupingExpression(expr: GroupingExpression): ByteCodeInstruction[] {
+
+        if (expr.castToStringForEmbeddedStringExpression) {
             // We use a group with this special flag to force a cast of a varible like `${a}` to string, where a is a number (or whatever).
             // This is important because interpolated strings are basically separate expressions joined with a +,
             // so `${a}${b}` is really a+b internally -- if we force both a and b to toString'd, then
             // you'll get a string concatenation instead of numbers being added...
-            
+
             const chunk = this.createChunk();
-            
+
             chunk.appendChunk(expr.expr.accept(this));
             chunk.appendInstruction(OpCode.FETCH, "toString", true);
             chunk.appendInstruction(OpCode.CALL, 0, true);
-            
+
             return chunk;
         }
-        else
-        {
+        else {
             return expr.expr.accept(this);
         }
     }
 
-    private visitIndexerGetExpression(expr:IndexerGetExpression) : ByteCodeInstruction[] {
-        
+    visitIndexerGetExpression(expr: IndexerGetExpression): ByteCodeInstruction[] {
+
         const chunk = this.createChunk();
 
         chunk.appendChunk(expr.obj.accept(this));
@@ -686,9 +666,9 @@ export class Compiler {
 
         return chunk;
     }
-    
-    private visitIndexerSetExpression(expr:IndexerSetExpression) : ByteCodeInstruction[] {
-    
+
+    visitIndexerSetExpression(expr: IndexerSetExpression): ByteCodeInstruction[] {
+
         const chunk = this.createChunk();
 
         chunk.appendChunk(expr.obj.accept(this));
@@ -708,27 +688,26 @@ export class Compiler {
         return chunk;
     }
 
-    private visitLiteralExpression(expr:LiteralExpression) : ByteCodeInstruction {
+    visitLiteralExpression(expr: LiteralExpression): ByteCodeInstruction[] {
 
         const constIndex = this.ensureConst(expr.value);
 
-        return new ByteCodeInstruction(OpCode.CONST, constIndex);
+        return [new ByteCodeInstruction(OpCode.CONST, constIndex)];
     }
 
-    private visitLogicalExpression(expr:LogicalExpression) : ByteCodeInstruction[] {
-        
+    visitLogicalExpression(expr: LogicalExpression): ByteCodeInstruction[] {
+
         const chunk = this.createChunk();
 
         const shortcutLabel = this.reserveLabelId();
         const testCompleteLabel = this.reserveLabelId();
 
-        switch (expr.op.type)
-        {
+        switch (expr.op.type) {
             case TokenType.LOGICAL_AND:
 
                 chunk.appendChunk(expr.left.accept(this));
 
-                chunk.appendInstruction( OpCode.JMPFALSE, shortcutLabel);
+                chunk.appendInstruction(OpCode.JMPFALSE, shortcutLabel);
 
                 chunk.appendChunk(expr.right.accept(this));
 
@@ -757,19 +736,19 @@ export class Compiler {
                 chunk.appendInstruction(OpCode.JMP, testCompleteLabel);
 
                 chunk.appendInstruction(OpCode.LABEL, shortcutLabel);
- 
+
                 chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolBool(true)));
-        
+
                 chunk.appendInstruction(OpCode.LABEL, testCompleteLabel);
 
                 break;
         }
 
-        return chunk;   
+        return chunk;
     }
 
-    private visitNewInstanceExpression(expr:NewInstanceExpression) : ByteCodeInstruction[] {
-        
+    visitNewInstanceExpression(expr: NewInstanceExpression): ByteCodeInstruction[] {
+
         const chunk = this.createChunk();
 
         const className = expr.className.lexeme;
@@ -780,16 +759,14 @@ export class Compiler {
         // ready for whatever was wanting it in the first place
         chunk.appendInstruction(OpCode.CREATE_OBJECT, className);
 
-        if (className != "Object")
-        {
+        if (className != "Object") {
             expr.ctorArgs.reverse().forEach((arg) => {
                 chunk.appendChunk(arg.accept(this));
             });
 
             chunk.appendInstruction(OpCode.DUPLICATE_VALUE, expr.ctorArgs.length); // We need two copies of that ref
         }
-        else
-        {
+        else {
             chunk.appendInstruction(OpCode.DUPLICATE_VALUE, 0); // We need two copies of that ref
         }
 
@@ -798,8 +775,7 @@ export class Compiler {
 
         chunk.appendInstruction(OpCode.FETCH, `@${expr.className.lexeme}.constructor`, true);
 
-        if (className == "Object")
-        {
+        if (className == "Object") {
             expr.ctorArgs.reverse().forEach((arg) => {
                 chunk.appendChunk(arg.accept(this));
             });
@@ -811,8 +787,8 @@ export class Compiler {
         return chunk;
     }
 
-    private visitObjectInitializerExpression(expr:ObjectInitializerExpression) : ByteCodeInstruction[] {
-        
+    visitObjectInitializerExpression(expr: ObjectInitializerExpression): ByteCodeInstruction[] {
+
         const chunk = this.createChunk();
 
         chunk.appendInstruction(OpCode.DUPLICATE_VALUE, 2);
@@ -824,8 +800,8 @@ export class Compiler {
         return chunk;
     }
 
-    private visitSetExpression(expr:SetExpression) : ByteCodeInstruction[] {
-        
+    visitSetExpression(expr: SetExpression): ByteCodeInstruction[] {
+
         const chunk = this.createChunk();
 
         chunk.appendChunk(expr.obj.accept(this));
@@ -840,8 +816,8 @@ export class Compiler {
         return chunk;
     }
 
-    private visitTernaryExpression(expr:TernaryExpression) : ByteCodeInstruction[] {
-        
+    visitTernaryExpression(expr: TernaryExpression): ByteCodeInstruction[] {
+
         const chunk = this.createChunk();
         const notTrueLabel = this.reserveLabelId();
         const endLabel = this.reserveLabelId();
@@ -857,12 +833,11 @@ export class Compiler {
         return chunk;
     }
 
-    private visitUnaryExpression(expr:UnaryExpression) : ByteCodeInstruction[] {
-        
+    visitUnaryExpression(expr: UnaryExpression): ByteCodeInstruction[] {
+
         const chunk = this.createChunk();
 
-        switch (expr.op.type)
-        {
+        switch (expr.op.type) {
             case TokenType.NOT:
                 {
                     chunk.appendChunk(expr.right.accept(this));
@@ -906,40 +881,35 @@ export class Compiler {
         return chunk;
     }
 
-    private visitVariableExpression(expr:VariableExpression) : ByteCodeInstruction[] {
-        
+    visitVariableExpression(expr: VariableExpression): ByteCodeInstruction[] {
+
         const chunk = this.createChunk();
 
         chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
 
-        if (expr.prepostfixOp != undefined)
-        {
-            if (expr.prepostfixOp == TokenType.POSTFIX_INCREMENT)
-            {
+        if (expr.prepostfixOp != undefined) {
+            if (expr.prepostfixOp == TokenType.POSTFIX_INCREMENT) {
                 chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
                 chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
                 chunk.appendInstruction(OpCode.ADD);
                 chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
             }
 
-            if (expr.prepostfixOp == TokenType.POSTFIX_DECREMENT)
-            {
+            if (expr.prepostfixOp == TokenType.POSTFIX_DECREMENT) {
                 chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
                 chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
                 chunk.appendInstruction(OpCode.SUB);
                 chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
             }
 
-            if (expr.prepostfixOp == TokenType.PREFIX_INCREMENT)
-            {
+            if (expr.prepostfixOp == TokenType.PREFIX_INCREMENT) {
                 chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
                 chunk.appendInstruction(OpCode.ADD);
                 chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
                 chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
             }
 
-            if (expr.prepostfixOp == TokenType.PREFIX_DECREMENT)
-            {
+            if (expr.prepostfixOp == TokenType.PREFIX_DECREMENT) {
                 chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
                 chunk.appendInstruction(OpCode.SUB);
                 chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);

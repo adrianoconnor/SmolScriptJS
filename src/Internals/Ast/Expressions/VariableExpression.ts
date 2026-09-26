@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Expression } from "./Expression";
+import { ExpressionVisitor } from "./ExpressionVisitor";
 import { Token } from "../../Token";
 import { TokenType } from "../../TokenType";
 
-export class VariableExpression implements Expression {
+export class VariableExpression extends Expression {
 
     getExpressionType() : string {
         return "Variable";
@@ -13,11 +13,12 @@ export class VariableExpression implements Expression {
     prepostfixOp?:TokenType;
 
     constructor(name:Token, prepostfixOp:TokenType|undefined) {
+        super();
         this.name = name;
         this.prepostfixOp = prepostfixOp;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: ExpressionVisitor<R>): R {
         return visitor.visitVariableExpression(this);
     }
 }

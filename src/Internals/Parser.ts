@@ -205,7 +205,7 @@ export class Parser {
             }
             else
             {
-                throw new Error(`Didn't expect to find ${this.peek()} in the class body`);
+                throw new Error(`Didn't expect to find ${this.peek().lexeme} in the class body`);
             }
         }
         
@@ -552,16 +552,13 @@ export class Parser {
             const value:Expression = this.assignment();
 
             if (expr instanceof VariableExpression) {
-                const name = (expr as VariableExpression).name;
-                return new AssignExpression(name, value);
+                return new AssignExpression(expr.name, value);
             }
             else if (expr instanceof GetExpression) {            
-                const getExpr = expr as GetExpression;
-                return new SetExpression(getExpr.obj, getExpr.name, value);
+                return new SetExpression(expr.obj, expr.name, value);
             }
             else if (expr instanceof IndexerGetExpression) {
-                const getIndexerExpr = expr as IndexerGetExpression;
-                return new IndexerSetExpression(getIndexerExpr.obj, getIndexerExpr.indexerExpr, value);
+                return new IndexerSetExpression(expr.obj, expr.indexerExpr, value);
             }
 
             throw new Error("Invalid assignment target");
@@ -607,17 +604,14 @@ export class Parser {
         const binExpr = new BinaryExpression(expr, new Token(tokenForExpression, literalForExpression, undefined, originalToken.line, originalToken.col, originalToken.start_pos, originalToken.end_pos), value);
 
         if (expr instanceof VariableExpression) {
-            const name = (expr as VariableExpression).name;
-            return new AssignExpression(name, binExpr);
+            return new AssignExpression(expr.name, binExpr);
         }
         else if (expr instanceof GetExpression) {            
-            const getExpr = expr as GetExpression;
-            return new SetExpression(getExpr.obj, getExpr.name, binExpr);
+            return new SetExpression(expr.obj, expr.name, binExpr);
         }
         else if (expr instanceof IndexerGetExpression) {
-            const getIndexerExpr = expr as IndexerGetExpression;
-            return new IndexerSetExpression(getIndexerExpr.obj, getIndexerExpr.indexerExpr, binExpr);
-        }
+            return new IndexerSetExpression(expr.obj, expr.indexerExpr, binExpr);
+        }        
 
         throw new Error("Invalid assignment target");
         
@@ -840,7 +834,13 @@ export class Parser {
 
         if(this.match(TokenType.STRING))
         {
-            return new LiteralExpression(new SmolString(this.previous().literal as string));
+            const prev = this.previous();
+
+            if (typeof prev.literal !== "string") {
+                throw new Error(`Expected string literal at token: ${prev.lexeme}`);
+            }
+
+            return new LiteralExpression(new SmolString(prev.literal));
         }
 
         if (this.match(TokenType.PREFIX_INCREMENT))

@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Statement } from "./Statement";
+import { StatementVisitor } from "./StatementVisitor";
 import { Expression } from "../Expressions/Expression";
 
-export class ReturnStatement implements Statement {
+export class ReturnStatement extends Statement {
 
     getStatementType() : string {
         return "Return";
@@ -11,10 +11,11 @@ export class ReturnStatement implements Statement {
     expression?:Expression;
 
     constructor(expression:Expression|undefined) {
+        super();
         this.expression = expression;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: StatementVisitor<R>): R {
         return visitor.visitReturnStatement(this);
     }
 

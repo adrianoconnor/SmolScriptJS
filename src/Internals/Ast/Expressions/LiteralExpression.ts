@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { SmolVariableType } from "../../SmolVariableTypes/SmolVariableType";
 import { Expression } from "./Expression";
+import { ExpressionVisitor } from "./ExpressionVisitor";
+import { SmolVariableType } from "../../SmolVariableTypes/SmolVariableType";
 
-export class LiteralExpression implements Expression {
+export class LiteralExpression extends Expression {
 
     getExpressionType() : string {
         return "Literal";
@@ -11,10 +11,11 @@ export class LiteralExpression implements Expression {
     value:SmolVariableType;
 
     constructor(value:SmolVariableType) {
+        super();
         this.value = value;
     }
 
-    accept(visitor:any) {
+    accept<R>(visitor: ExpressionVisitor<R>): R {
         return visitor.visitLiteralExpression(this);
     }
 }
