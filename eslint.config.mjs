@@ -11,15 +11,14 @@ export default defineConfig({
   extends: [
     js.configs.recommended,
     tseslint.configs.recommendedTypeChecked,
+    tseslint.configs.strict,
+    tseslint.configs.stylistic,
   ],
   languageOptions: {
       parser: tsParser,
       parserOptions: {
-        projectService: {
-        },
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
   },
 });
-
-

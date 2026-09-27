@@ -58,7 +58,7 @@ describe('Automated Test Suite', () => {
 });
 
 
-function runTest(fileName: string, removeSemicolons: boolean = false) {
+function runTest(fileName: string, removeSemicolons = false) {
   const currentTest = tests[fileName];
   let source = currentTest.fileData;
 

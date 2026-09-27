@@ -42,7 +42,7 @@ export class SmolVM {
     // We're using any because we need to be able to call arbitrary functions on the type -- we might be able
     // to wrap this up in an interface.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    staticTypes:{ [name:string] : any } = {};
+    staticTypes:Record<string, any> = {};
 
     classMethodRegEx = new RegExp("@([A-Za-z]+)[.]([A-Za-z]+)");
 
@@ -81,14 +81,12 @@ export class SmolVM {
         // in the instructions for that section so we can jump
         // if we need to.
 
-        for (let i = 0; i < this.program.code_sections.length; i++)
+        for (const codeSection of this.program.code_sections)
         {
             // Not sure if this will hold up, might be too simplistic
 
-            for (let j = 0; j < this.program.code_sections[i].length; j++)
+            for (const [j, instr] of codeSection.entries())
             {
-                const instr = this.program.code_sections[i][j];
-
                 if (instr.opcode == OpCode.LABEL)
                 {
                     // We're not storing anything about the section
@@ -99,7 +97,7 @@ export class SmolVM {
                     this.jmplocs[instr.operand1 as number] = j;
                 }
             }
-        }        
+        }
     }
 
     createStdLib() {
@@ -783,8 +781,11 @@ export class SmolVM {
 
                     case OpCode.LEAVE_SCOPE:
                         {
+                            if (this.environment.enclosing == null) {
+                                throw new Error("Tried to leave scope but there is no enclosing scope");
+                            }
 
-                            this.environment = this.environment.enclosing!;
+                            this.environment = this.environment.enclosing;
                             break;
                         }
 
