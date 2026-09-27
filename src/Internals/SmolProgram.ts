@@ -18,12 +18,10 @@ export class SmolProgram
         p += `.constants\n`;
         this.constants.forEach((c,n) => {
             if (html) {
-                // Ingore the expected error caused by getValue() returning 'any':
-                // eslint-disable-next-line
-                p += `${n}: ${(c.getValue() ?? c.constructor.name).toString().replace('<', '&lt;')}\n`;
+                p += `${n}: ${c.toString().replace('<', '&lt;')}\n`;
             }
             else {
-                p += `${n}: ${c.getValue()}\n`;
+                p += `${n}: ${c.toString()}\n`;
             }
         });
 
@@ -45,16 +43,16 @@ export class SmolProgram
                     p += '  ';
                 }
 
-                const op1 = i.operand1 != undefined ? ` ${i.operand1.constructor.name}` : '';
-                const op2 = i.operand2 != undefined ? ` ${i.operand2.constructor.name}` : '';
+                const op1 = i.operand1 != undefined ? ` ${i.operand1.toString()}` : '';
+                const op2 = i.operand2 != undefined ? ` ${i.operand2.toString()}` : '';
 
                 if (i.opcode == OpCode.CONST &&  i.operand1 != undefined) {
                     
                     if (html) {
-                        p += `${OpCode[i.opcode]} [${i.operand1.constructor.name}] ${this.constants[i.operand1 as number].toString().replace('<', '&lt;')}`;
+                        p += `${OpCode[i.opcode]} [${i.operand1.toString()}] ${this.constants[i.operand1 as number].toString().replace('<', '&lt;')}`;
                     }
                     else {
-                        p += `${OpCode[i.opcode]} [${i.operand1.constructor.name}] ${this.constants[i.operand1 as number].toString()}`;
+                        p += `${OpCode[i.opcode]} [${i.operand1.toString()}] ${this.constants[i.operand1 as number].toString()}`;
                     }                   
                 }
                 else if (i.opcode == OpCode.START) {

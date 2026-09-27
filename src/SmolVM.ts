@@ -350,7 +350,7 @@ export class SmolVM {
                                 this.stack.push(new SmolNumber(left.getValue() + right.getValue()));
                             }
                             else {
-                                this.stack.push(new SmolString(left.getValue().toString() + right.getValue().toString()));
+                                this.stack.push(new SmolString(String(left.getValue()) + String(right.getValue())));
                             }
                             
                             break;
@@ -553,7 +553,7 @@ export class SmolVM {
 
                                 // Not sure about this cast, might need to add an extra check for type
 
-                                name = (this.stack.pop() as SmolVariableType).getValue();
+                                name = String((this.stack.pop() as SmolVariableType).getValue());
                             }
 
                             const value = this.stack.pop() as SmolVariableType; // Hopefully always true...
@@ -593,12 +593,7 @@ export class SmolVM {
 
                     case OpCode.FETCH:
                         {
-                            // Could be a variable or a function
                             let name = instr.operand1 as string;
-
-                            //console.log(name);
-                            //console.log(this.stack);
-
                             let env_in_context = this.environment;
                             
                             // WARNING -- Difference heere between .net and ts versions and I can't remember why .net was changed :(
@@ -607,12 +602,11 @@ export class SmolVM {
                             {
                                 // Special case for square brackets!
 
-                                name = (this.stack.pop() as SmolVariableType).getValue().toString();
+                                name = String((this.stack.pop() as SmolVariableType).getValue());
                             }
 
                             if (instr.operand2 != null && (instr.operand2 as boolean))
                             {
-
                                 const objRef = this.stack.pop();
                                 const peek_instr = this.program.code_sections[this.code_section][this.pc];
 
@@ -660,14 +654,12 @@ export class SmolVM {
                                         {
                                             const rexResult = this.classMethodRegEx.exec(name);
 
-                                            //console.log(rexResult);
-
                                             if (rexResult == null) {
                                                 throw new Error("class method name regex failed");
                                             }
 
+                                            const className = rexResult[1];
                                             const functionName = rexResult[2];
-
                                             const functionArgs:SmolVariableType[] = [];
 
                                             if (name != "@Object.constructor")
@@ -679,18 +671,19 @@ export class SmolVM {
 
                                                 if ((peek_instr.operand1 as number) > 0)
                                                 {
-                                                    //parameters.push(functionArgs);
+                                                    // I can't even remember why I added this and then commented it out, surely it's nothing important
+                                                    // parameters.push(functionArgs);
                                                 }
                                             }
 
                                             // Now we've got rid of the params we can get rid
-                                            // of the dummy object that create_object left
-                                            // on the stack
-
+                                            // of the dummy object that create_object left on the stack
                                             this.stack.pop();
 
-                                            // Put our actual new object on after calling the ctor:                                            
-                                            const r = this.staticTypes[rexResult[1]]["staticCall"](functionName, functionArgs) as SmolVariableType;
+                                            // Call the static method on the actual class that wraps the type
+                                            // This is probably a bit of a hack, but it works OK for now.
+                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+                                            const r = this.staticTypes[className].staticCall(functionName, functionArgs) as SmolVariableType;
                                             
                                             if (name == "@Object.constructor")
                                             {
@@ -717,15 +710,9 @@ export class SmolVM {
 
                             const fetchedValue = env_in_context.tryGet(name);
 
-                            // if (fetchedValue instanceof SmolFunction)
-                            // {
-                            //     fetchedValue = fetchedValue;
-                            // }
-
                             if (fetchedValue != null)
                             {
                                 this.stack.push(fetchedValue);
-
                                 this.debug(`              [Loaded ${fetchedValue.getValue()}]`);
                             }
                             else
@@ -750,11 +737,16 @@ export class SmolVM {
                             break;
                         }
 
+                    // In .net, we use .IsTruthy() and .IsFalsey() to simulate JS truthiness,
+                    // but since here we're running in JS I think we should be ok to just lean on
+                    // the native built-in truthiness/falsiness of the value itself. Applies to
+                    // anywhere we do boolean logic in the run-time, but these are the main
+                    // operations...
                     case OpCode.JMPFALSE:
                         {
                             const value = (this.stack.pop() as SmolVariableType);
 
-                            if (value.getValue() == false) // .isFalsey())
+                            if (value.getValue() == false)
                             {
                                 this.pc = this.jmplocs[instr.operand1 as number];
                             }
@@ -764,10 +756,9 @@ export class SmolVM {
 
                     case OpCode.JMPTRUE:
                         {
-                            //.IsTruthy())
                             const value = this.stack.pop() as SmolVariableType;
 
-                            if (value.getValue() == true) // .isFalsey())
+                            if (value.getValue() == true)
                             {
                                 this.pc = this.jmplocs[instr.operand1 as number];
                             }                         

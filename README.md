@@ -4,9 +4,15 @@
 
 # SmolScript
 
-SmolScript is a JS-like language that runs inside a tiny stack based VM. It is designed to be relatively easy to implement in other languages (there is also a .net version), but each version is going to be different because we use the host language's features very heavily (e.g., we are totally dependent on the javascript host's implementation of strings, regexes, serialization routines, networking, JSON etc). This choice allows SmolScript itself be *very* smol.
+SmolScript is a JS-like language that runs inside a tiny stack based VM, in JavaScript. It is designed to be relatively easy to implement in other languages (there is also a .net version, an almost-complete Python version and the beginnings of a Java version), but each implementation is going to be different because we rely on the host language's features to provide certain primitives and base functionality (for example, each version is totally dependent on the host language implementation of strings, numbers, regexes etc), so while we try to make it highly consistent and the language test suite is shared across languages, in .net there are going to be small differences to JavaScript and vice versa. This choice allows SmolScript itself be *very* small and limits our 'blast' radius for the things that might introduce vulnerabilities and other headaches.
 
-A demo website (that runs the type script version in the browser) is coming soon-ish, but it's not ready yet -- it will let you visualise the compiled program along with the VM internal state and we're quite exicited about it :)
+A demo website (that runs this Javascript version in the browser) is available at https://smolscript.org/interactive-demo. It is very basic, but it lets you view the compiled program along with the VM's internal state as you step through the debugger.
+
+## Is this just another AI generated side-project?
+
+No. In 2026 there has been an explosion of side-projects like this as people used AI coding agents to scratch their many coding itches. This is not one of those projects, 90% of the code was written (by hand) in 2023, and more recent changes are also all still hand-coded. I wanted to fully understand how programming languages work, not just try and race to the end-result, so I will continue to maintain it by hand.
+
+## Background
 
 The primary goals of this project are:
 
@@ -17,6 +23,8 @@ The primary goals of this project are:
 One goal we do not have is performance. This is probably the slowest Javascript-like engine you will ever use! We have absolutely prioritised simplicity of code over high performance.
 
 Even though we've based SmolScript on Javascript, it is not anywhere near feature parity and never will be, this really is just a little side project. However, whenever we add new features we always start by looking at how Javascript does it, and over time that has become our defacto approach.
+
+## Status
 
 What is built so far:
 
@@ -32,26 +40,28 @@ In terms of language features, we currently have:
 * Var only for variables (but in smol var works more like let)
 * Flow control
 * Basic Arrays
-* Basic Dictionarys (plain Objects, no inheritence)
+* Basic Dictionarys (plain Objects, inheritence/prototype is not really there)
 * Classes (no inheritence)
 * First class functions
 * Basic Try/Catch
 * Regex
+* => syntax
+* JS style handling of optional semicolons
+* Ability to define native functions in JS and call them from SmolScript...
+* Ability to call SmolScript functions from JS (and return the result)
 
 On our list of things that we think we want to add:
 
 * for ... in
-* JSON
-* Pass JS objects in as paramters and use reflection to access them dynamicly
-* => syntax
+* JSON, Console, Date added to the standard library
+* Pass JS/JSON objects in as paramters and use reflection to access them dynamicly
 * Better try/catch
-* Exposing tokens/line numbers for compiled source (we've 50% done this, but in a way that I think professional compiler builders would not approve of...)
-* Much better compiler errors
-* Support for code without semicolons (this is almost working in the latest ts version)
+* Exposing tokens/line numbers for compiled source (we've mostly done this, but in a way that I don't think professional compiler engineers would approve of)
+* Better compiler errors
 
-What is not on our roadmap to support:
+What is not on our roadmap right now:
 
-* Modules (except maybe basic include statements, equivalent to multiple script tags on a webpage)
+* Modules
 * Async/await
 * file, network, database etc -- for that we expect you to use native custom functions exposed to your VM (this is how we make it secure!)
 
@@ -59,7 +69,7 @@ What is not on our roadmap to support:
 
 No, it is not ready, it is not a commercial project and I don't have time to support it.
 
-Also, it is incredibly slow -- probably the least optimised language you've ever used. I really have made no effort to optimise, because I want to keep the code simple.
+Also, it is incredibly slow -- probably the least optimised language you've ever used. I really have made no effort to optimise, because I want to keep the code simple. In benchmarks it is typically 3-4 times slower than NodeJS for small scripts, and as the code gets more complicated or the run-time gets longer, the gap widens.
 
 Also, it is a bit messy. Unit tests prove it works as designed, but I made some questionable choices due to lack of experience.
 
