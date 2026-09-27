@@ -34,28 +34,20 @@ export class SmolObject extends SmolVariableType {
     throw new Error('Not a valid target');
   }
 
-  nativeCall(
-    funcName: string,
-    parameters: SmolVariableType[]
-  ): SmolVariableType {
+  nativeCall(funcName: string, parameters: SmolVariableType[]): SmolVariableType {
     switch (funcName) {
       default:
         throw new Error(`Object cannot handle native function ${funcName}`);
     }
   }
 
-  static staticCall(
-    funcName: string,
-    parameters: SmolVariableType[]
-  ): SmolVariableType {
+  static staticCall(funcName: string, parameters: SmolVariableType[]): SmolVariableType {
     switch (funcName) {
       case 'constructor':
         return new SmolObject(new Environment(), 'Object');
 
       default:
-        throw new Error(
-          `Object class cannot handle static function ${funcName}`
-        );
+        throw new Error(`Object class cannot handle static function ${funcName}`);
     }
   }
 }

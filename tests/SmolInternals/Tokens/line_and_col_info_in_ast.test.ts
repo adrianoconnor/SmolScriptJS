@@ -36,9 +36,7 @@ function x() {
 
     expect(funcStmt.functionBody.statements.length).toBe(1);
 
-    expect(funcStmt.functionBody.statements[0].getStatementType()).toBe(
-      'Expression'
-    );
+    expect(funcStmt.functionBody.statements[0].getStatementType()).toBe('Expression');
 
     const exprStmt = funcStmt.functionBody.statements[0] as ExpressionStatement;
 

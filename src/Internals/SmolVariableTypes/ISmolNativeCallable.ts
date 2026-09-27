@@ -13,8 +13,5 @@ export abstract class ISmolNativeCallable extends SmolVariableType {
 
   abstract getProp(name: string): SmolVariableType;
 
-  abstract nativeCall(
-    funcName: string,
-    parameters: SmolVariableType[]
-  ): SmolVariableType;
+  abstract nativeCall(funcName: string, parameters: SmolVariableType[]): SmolVariableType;
 }

@@ -9,14 +9,10 @@ export class GroupingExpression extends Expression {
   expr: Expression;
   castToStringForEmbeddedStringExpression: boolean;
 
-  constructor(
-    expr: Expression,
-    castToStringForEmbeddedStringExpression: boolean = false
-  ) {
+  constructor(expr: Expression, castToStringForEmbeddedStringExpression: boolean = false) {
     super();
     this.expr = expr;
-    this.castToStringForEmbeddedStringExpression =
-      castToStringForEmbeddedStringExpression;
+    this.castToStringForEmbeddedStringExpression = castToStringForEmbeddedStringExpression;
   }
 
   accept<R>(visitor: ExpressionVisitor<R>): R {

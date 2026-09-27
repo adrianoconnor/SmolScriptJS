@@ -106,8 +106,8 @@ export class Parser {
 
     // If we expected a ; but got a newline, we just wave it through
     if (
-      tokenType == TokenType.SEMICOLON &&
-      this._tokens[this._currentTokenIndex - 1].followed_by_line_break
+      tokenType == TokenType.SEMICOLON
+      && this._tokens[this._currentTokenIndex - 1].followed_by_line_break
     ) {
       // We need to return a token, so we'll make a fake semicolon
       return new Token(TokenType.SEMICOLON, '', '', -1, -1, -1, -1);
@@ -115,20 +115,20 @@ export class Parser {
 
     // If we expected a ; but got a }, we also wave that through
     if (
-      tokenType == TokenType.SEMICOLON &&
-      (this.check(TokenType.RIGHT_BRACE) || this.peek().type == TokenType.EOF)
+      tokenType == TokenType.SEMICOLON
+      && (this.check(TokenType.RIGHT_BRACE) || this.peek().type == TokenType.EOF)
     ) {
       return new Token(TokenType.SEMICOLON, '', '', -1, -1, -1, -1);
     }
 
     throw new Error(
-      'ERROR IN PARSER: ' +
-        errorIfNotFound +
-        ' but got ' +
-        TokenType[this.peek().type] +
-        ' [line: ' +
-        this.previous().line.toString() +
-        ']'
+      'ERROR IN PARSER: '
+        + errorIfNotFound
+        + ' but got '
+        + TokenType[this.peek().type]
+        + ' [line: '
+        + this.previous().line.toString()
+        + ']'
     );
   }
 
@@ -150,8 +150,7 @@ export class Parser {
       initializerExpr = this.expression();
     }
 
-    const skip =
-      this.consume(TokenType.SEMICOLON, 'Expected ;').start_pos == -1 ? 1 : 2;
+    const skip = this.consume(TokenType.SEMICOLON, 'Expected ;').start_pos == -1 ? 1 : 2;
     const lastTokenIndex = this._currentTokenIndex - skip;
 
     const stmt = new VarStatement(name, initializerExpr);
@@ -163,10 +162,7 @@ export class Parser {
   }
 
   private functionDeclaration() {
-    const functionName = this.consume(
-      TokenType.IDENTIFIER,
-      'Expected function name'
-    );
+    const functionName = this.consume(TokenType.IDENTIFIER, 'Expected function name');
     const functionParams: Token[] = [];
 
     this.consume(TokenType.LEFT_BRACKET, 'Expected (');
@@ -178,9 +174,7 @@ export class Parser {
           throw new Error('Too many params');
         }
 
-        functionParams.push(
-          this.consume(TokenType.IDENTIFIER, 'Expected parameter name')
-        );
+        functionParams.push(this.consume(TokenType.IDENTIFIER, 'Expected parameter name'));
       } while (this.match(TokenType.COMMA));
     }
 
@@ -193,34 +187,23 @@ export class Parser {
   }
 
   private classDeclaration() {
-    const className = this.consume(
-      TokenType.IDENTIFIER,
-      'Expected function name'
-    );
+    const className = this.consume(TokenType.IDENTIFIER, 'Expected function name');
     let superclassName: Token | undefined = undefined;
     const functions: FunctionStatement[] = new Array<FunctionStatement>();
 
     if (this.match(TokenType.COLON)) {
-      superclassName = this.consume(
-        TokenType.IDENTIFIER,
-        'Expected superclass name'
-      );
+      superclassName = this.consume(TokenType.IDENTIFIER, 'Expected superclass name');
     }
 
     this.consume(TokenType.LEFT_BRACE, 'Expected {');
 
     while (!this.check(TokenType.RIGHT_BRACE) && !this.endOfTokenStream()) {
-      if (
-        this.check(TokenType.IDENTIFIER) &&
-        this.check(TokenType.LEFT_BRACKET, 1)
-      ) {
+      if (this.check(TokenType.IDENTIFIER) && this.check(TokenType.LEFT_BRACKET, 1)) {
         const classFn = this.functionDeclaration();
 
         functions.push(classFn);
       } else {
-        throw new Error(
-          `Didn't expect to find ${this.peek().lexeme} in the class body`
-        );
+        throw new Error(`Didn't expect to find ${this.peek().lexeme} in the class body`);
       }
     }
 
@@ -262,9 +245,9 @@ export class Parser {
     const tokenIndex = this._currentTokenIndex - 1;
 
     if (
-      this.peek().type == TokenType.SEMICOLON ||
-      this.peek().type == TokenType.RIGHT_BRACE ||
-      this.previous().followed_by_line_break
+      this.peek().type == TokenType.SEMICOLON
+      || this.peek().type == TokenType.RIGHT_BRACE
+      || this.previous().followed_by_line_break
     ) {
       this.consume(TokenType.SEMICOLON, 'Expected ;');
 
@@ -504,8 +487,7 @@ export class Parser {
 
     const expr: Expression = this.expression();
 
-    const skip =
-      this.consume(TokenType.SEMICOLON, 'Expected ;').start_pos == -1 ? 1 : 2;
+    const skip = this.consume(TokenType.SEMICOLON, 'Expected ;').start_pos == -1 ? 1 : 2;
     const lastTokenIndex = this._currentTokenIndex - skip;
 
     const stmt = new ExpressionStatement(expr);
@@ -548,51 +530,27 @@ export class Parser {
     }
 
     if (this.match(TokenType.PLUS_EQUALS)) {
-      return this.compoundAssignmentExpressionHelper(
-        TokenType.PLUS,
-        '+=',
-        expr
-      );
+      return this.compoundAssignmentExpressionHelper(TokenType.PLUS, '+=', expr);
     }
 
     if (this.match(TokenType.MINUS_EQUALS)) {
-      return this.compoundAssignmentExpressionHelper(
-        TokenType.MINUS,
-        '-=',
-        expr
-      );
+      return this.compoundAssignmentExpressionHelper(TokenType.MINUS, '-=', expr);
     }
 
     if (this.match(TokenType.DIVIDE_EQUALS)) {
-      return this.compoundAssignmentExpressionHelper(
-        TokenType.DIVIDE,
-        '/=',
-        expr
-      );
+      return this.compoundAssignmentExpressionHelper(TokenType.DIVIDE, '/=', expr);
     }
 
     if (this.match(TokenType.REMAINDER_EQUALS)) {
-      return this.compoundAssignmentExpressionHelper(
-        TokenType.REMAINDER,
-        '%=',
-        expr
-      );
+      return this.compoundAssignmentExpressionHelper(TokenType.REMAINDER, '%=', expr);
     }
 
     if (this.match(TokenType.MULTIPLY_EQUALS)) {
-      return this.compoundAssignmentExpressionHelper(
-        TokenType.MULTIPLY,
-        '*=',
-        expr
-      );
+      return this.compoundAssignmentExpressionHelper(TokenType.MULTIPLY, '*=', expr);
     }
 
     if (this.match(TokenType.POW_EQUALS)) {
-      return this.compoundAssignmentExpressionHelper(
-        TokenType.POW,
-        '**=',
-        expr
-      );
+      return this.compoundAssignmentExpressionHelper(TokenType.POW, '**=', expr);
     }
 
     return expr;
@@ -632,9 +590,8 @@ export class Parser {
 
   private functionExpression(): Expression {
     if (
-      (this.peek().type == TokenType.LEFT_BRACKET ||
-        this.peek().type == TokenType.IDENTIFIER) &&
-      this.isInFatArrow(false)
+      (this.peek().type == TokenType.LEFT_BRACKET || this.peek().type == TokenType.IDENTIFIER)
+      && this.isInFatArrow(false)
     ) {
       return this.fatArrowFunctionExpression(false);
     } else if (this.match(TokenType.FUNC)) {
@@ -644,9 +601,7 @@ export class Parser {
 
       if (!this.check(TokenType.RIGHT_BRACKET)) {
         do {
-          functionParams.push(
-            this.consume(TokenType.IDENTIFIER, 'Expected parameter name')
-          );
+          functionParams.push(this.consume(TokenType.IDENTIFIER, 'Expected parameter name'));
         } while (this.match(TokenType.COMMA));
       }
 
@@ -701,12 +656,7 @@ export class Parser {
     let expr = this.bitwise_op();
 
     while (
-      this.match(
-        TokenType.GREATER,
-        TokenType.GREATER_EQUAL,
-        TokenType.LESS,
-        TokenType.LESS_EQUAL
-      )
+      this.match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)
     ) {
       const op = this.previous();
       const right = this.term();
@@ -719,13 +669,7 @@ export class Parser {
   private bitwise_op(): Expression {
     let expr = this.term();
 
-    while (
-      this.match(
-        TokenType.BITWISE_AND,
-        TokenType.BITWISE_OR,
-        TokenType.REMAINDER
-      )
-    ) {
+    while (this.match(TokenType.BITWISE_AND, TokenType.BITWISE_OR, TokenType.REMAINDER)) {
       const op = this.previous();
       const right = this.term();
       expr = new BinaryExpression(expr, op, right);
@@ -793,10 +737,7 @@ export class Parser {
 
         expr = new IndexerGetExpression(expr, indexerExpression);
       } else if (this.match(TokenType.DOT)) {
-        const name = this.consume(
-          TokenType.IDENTIFIER,
-          "Expect property name after '.'."
-        );
+        const name = this.consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
         expr = new GetExpression(expr, name);
       } else {
         break;
@@ -806,10 +747,7 @@ export class Parser {
     return expr;
   }
 
-  private finishCall(
-    callee: Expression,
-    isFollowingGetter = false
-  ): Expression {
+  private finishCall(callee: Expression, isFollowingGetter = false): Expression {
     const args = new Array<Expression>();
 
     if (!this.check(TokenType.RIGHT_BRACKET)) {
@@ -824,19 +762,13 @@ export class Parser {
   }
 
   private primary(): Expression {
-    if (this.match(TokenType.FALSE))
-      return new LiteralExpression(new SmolBool(false));
-    if (this.match(TokenType.TRUE))
-      return new LiteralExpression(new SmolBool(true));
-    if (this.match(TokenType.NULL))
-      return new LiteralExpression(new SmolNull());
-    if (this.match(TokenType.UNDEFINED))
-      return new LiteralExpression(new SmolUndefined());
+    if (this.match(TokenType.FALSE)) return new LiteralExpression(new SmolBool(false));
+    if (this.match(TokenType.TRUE)) return new LiteralExpression(new SmolBool(true));
+    if (this.match(TokenType.NULL)) return new LiteralExpression(new SmolNull());
+    if (this.match(TokenType.UNDEFINED)) return new LiteralExpression(new SmolUndefined());
 
     if (this.match(TokenType.NUMBER)) {
-      return new LiteralExpression(
-        new SmolNumber(Number(this.previous().literal))
-      );
+      return new LiteralExpression(new SmolNumber(Number(this.previous().literal)));
     }
 
     if (this.match(TokenType.STRING)) {
@@ -851,43 +783,28 @@ export class Parser {
 
     if (this.match(TokenType.PREFIX_INCREMENT)) {
       if (this.match(TokenType.IDENTIFIER)) {
-        return new VariableExpression(
-          this.previous(),
-          TokenType.PREFIX_INCREMENT
-        );
+        return new VariableExpression(this.previous(), TokenType.PREFIX_INCREMENT);
       }
     }
 
     if (this.match(TokenType.PREFIX_DECREMENT)) {
       if (this.match(TokenType.IDENTIFIER)) {
-        return new VariableExpression(
-          this.previous(),
-          TokenType.PREFIX_DECREMENT
-        );
+        return new VariableExpression(this.previous(), TokenType.PREFIX_DECREMENT);
       }
     }
 
     if (this.match(TokenType.IDENTIFIER)) {
       if (this.match(TokenType.POSTFIX_INCREMENT)) {
-        return new VariableExpression(
-          this.previous(1),
-          TokenType.POSTFIX_INCREMENT
-        );
+        return new VariableExpression(this.previous(1), TokenType.POSTFIX_INCREMENT);
       } else if (this.match(TokenType.POSTFIX_DECREMENT)) {
-        return new VariableExpression(
-          this.previous(1),
-          TokenType.POSTFIX_DECREMENT
-        );
+        return new VariableExpression(this.previous(1), TokenType.POSTFIX_DECREMENT);
       } else {
         return new VariableExpression(this.previous(), undefined);
       }
     }
 
     if (this.match(TokenType.NEW)) {
-      const className = this.consume(
-        TokenType.IDENTIFIER,
-        'Expected identifier after new'
-      );
+      const className = this.consume(TokenType.IDENTIFIER, 'Expected identifier after new');
 
       this.consume(TokenType.LEFT_BRACKET, "Expect ')' after expression.");
 
@@ -966,10 +883,7 @@ export class Parser {
 
     if (this.match(TokenType.START_OF_EMBEDDED_STRING_EXPRESSION)) {
       const expr = this.expression();
-      this.consume(
-        TokenType.END_OF_EMBEDDED_STRING_EXPRESSION,
-        "Expect ')' after expression."
-      );
+      this.consume(TokenType.END_OF_EMBEDDED_STRING_EXPRESSION, "Expect ')' after expression.");
       return new GroupingExpression(expr, true);
     }
 
@@ -978,9 +892,7 @@ export class Parser {
     );
   }
 
-  private fatArrowFunctionExpression(
-    openBracketConsumed: boolean = false
-  ): FunctionExpression {
+  private fatArrowFunctionExpression(openBracketConsumed: boolean = false): FunctionExpression {
     if (!openBracketConsumed && this.check(TokenType.LEFT_BRACKET)) {
       this.consume(TokenType.LEFT_BRACKET, 'Expected (');
 
@@ -991,9 +903,7 @@ export class Parser {
 
     if (!this.check(TokenType.RIGHT_BRACKET)) {
       do {
-        functionParams.push(
-          this.consume(TokenType.IDENTIFIER, 'Expected parameter name')
-        );
+        functionParams.push(this.consume(TokenType.IDENTIFIER, 'Expected parameter name'));
       } while (this.match(TokenType.COMMA));
     }
 
@@ -1032,13 +942,11 @@ export class Parser {
 
     if (!openBracketConsumed) {
       if (
-        !this._tokens[this._currentTokenIndex].followed_by_line_break &&
-        this._tokens[this._currentTokenIndex + 1].type == TokenType.FAT_ARROW
+        !this._tokens[this._currentTokenIndex].followed_by_line_break
+        && this._tokens[this._currentTokenIndex + 1].type == TokenType.FAT_ARROW
       ) {
         return true;
-      } else if (
-        this._tokens[this._currentTokenIndex].type == TokenType.LEFT_BRACKET
-      ) {
+      } else if (this._tokens[this._currentTokenIndex].type == TokenType.LEFT_BRACKET) {
         index++; // pretend we consumed the left brack and next section can serve both needs
       } else {
         return false;
@@ -1051,8 +959,8 @@ export class Parser {
 
     while (true) {
       if (
-        this._tokens[index].followed_by_line_break &&
-        this._tokens[index].type != TokenType.FAT_ARROW
+        this._tokens[index].followed_by_line_break
+        && this._tokens[index].type != TokenType.FAT_ARROW
       ) // => has to be on same line as (...), but newline can come after =>
       {
         break;
@@ -1060,34 +968,22 @@ export class Parser {
 
       const next = this._tokens[index];
 
-      if (
-        previous == TokenType.LEFT_BRACKET &&
-        next.type == TokenType.RIGHT_BRACKET
-      ) {
+      if (previous == TokenType.LEFT_BRACKET && next.type == TokenType.RIGHT_BRACKET) {
+        // Valid, move on to the next token
+        index++;
+      } else if (previous == TokenType.LEFT_BRACKET && next.type == TokenType.IDENTIFIER) {
         // Valid, move on to the next token
         index++;
       } else if (
-        previous == TokenType.LEFT_BRACKET &&
-        next.type == TokenType.IDENTIFIER
+        previous == TokenType.IDENTIFIER
+        && (next.type == TokenType.COMMA || next.type == TokenType.RIGHT_BRACKET)
       ) {
         // Valid, move on to the next token
         index++;
-      } else if (
-        previous == TokenType.IDENTIFIER &&
-        (next.type == TokenType.COMMA || next.type == TokenType.RIGHT_BRACKET)
-      ) {
+      } else if (previous == TokenType.COMMA && next.type == TokenType.IDENTIFIER) {
         // Valid, move on to the next token
         index++;
-      } else if (
-        previous == TokenType.COMMA &&
-        next.type == TokenType.IDENTIFIER
-      ) {
-        // Valid, move on to the next token
-        index++;
-      } else if (
-        previous == TokenType.RIGHT_BRACKET &&
-        next.type == TokenType.FAT_ARROW
-      ) {
+      } else if (previous == TokenType.RIGHT_BRACKET && next.type == TokenType.FAT_ARROW) {
         // Valid, we're definitely dealing with a fat arrow
         return true;
       } else {

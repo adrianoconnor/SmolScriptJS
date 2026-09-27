@@ -115,10 +115,7 @@ export class SmolVM {
     this.externalMethods[methodName] = closure;
   }
 
-  callExternalMethod(
-    methodName: string,
-    numberOfPassedArgs: number
-  ): SmolVariableType {
+  callExternalMethod(methodName: string, numberOfPassedArgs: number): SmolVariableType {
     const fn = this.externalMethods[methodName];
     if (!fn) {
       throw new Error(`External method '${methodName}' not registered`);
@@ -149,19 +146,12 @@ export class SmolVM {
 
     this.runMode = RunMode.Paused;
 
-    const state = new SmolCallSiteSaveState(
-      this.code_section,
-      this.pc,
-      this.environment,
-      true
-    );
+    const state = new SmolCallSiteSaveState(this.code_section, this.pc, this.environment, true);
 
     const env = new Environment(this.globalEnv);
     this.environment = env;
 
-    const fn = this.program.function_table.find(
-      (f) => f.global_function_name === functionName
-    );
+    const fn = this.program.function_table.find((f) => f.global_function_name === functionName);
 
     if (!fn) {
       throw new Error(`Could not find a function named '${functionName}'`);
@@ -169,10 +159,7 @@ export class SmolVM {
 
     for (let i = 0; i < fn.arity; i++) {
       if (args.length > i) {
-        env.define(
-          fn.param_variable_names[i],
-          SmolVariableCreator.create(args[i])
-        );
+        env.define(fn.param_variable_names[i], SmolVariableCreator.create(args[i]));
       } else {
         env.define(fn.param_variable_names[i], new SmolUndefined());
       }
@@ -221,31 +208,26 @@ export class SmolVM {
     let consumedCycles = 0;
 
     while (
-      this.runMode == RunMode.Run ||
-      this.runMode == RunMode.Step ||
-      this.runMode == RunMode.InstructionStep
+      this.runMode == RunMode.Run
+      || this.runMode == RunMode.Step
+      || this.runMode == RunMode.InstructionStep
     ) {
       if (
-        this.runMode == RunMode.Step &&
-        this.code_section == 0 &&
-        this.program.code_sections[0].length < this.pc - 1
+        this.runMode == RunMode.Step
+        && this.code_section == 0
+        && this.program.code_sections[0].length < this.pc - 1
       ) {
         this.runMode = RunMode.Done;
         return;
-      }
-      // Peek at the next instruction to execute and see if it's a step break point
-      else if (
-        this.runMode == RunMode.Step &&
-        this.program.code_sections[this.code_section][this.pc]
-          .isStatementStartpoint &&
-        hasExecutedAtLeastOnce
+      } else if (
+        // Peek at the next instruction to see if it's a step point
+        this.runMode == RunMode.Step
+        && this.program.code_sections[this.code_section][this.pc].isStatementStartpoint
+        && hasExecutedAtLeastOnce
       ) {
         this.runMode = RunMode.Paused;
         return;
-      } else if (
-        this.runMode == RunMode.InstructionStep &&
-        hasExecutedAtLeastOnce
-      ) {
+      } else if (this.runMode == RunMode.InstructionStep && hasExecutedAtLeastOnce) {
         this.runMode = RunMode.Paused;
         return;
       }
@@ -254,8 +236,6 @@ export class SmolVM {
       const instr = this.program.code_sections[this.code_section][this.pc++];
 
       this.debug(OpCode[instr.opcode]);
-      //this.debug(this.stack.length.toString());
-      //this.debug(this.stack.map<string>((el) => el.toString()).join(', '));
 
       try {
         switch (instr.opcode) {
@@ -300,8 +280,7 @@ export class SmolVM {
 
             // Next pop args off the stack. Op1 is number of args.
 
-            const paramValues: SmolVariableType[] =
-              new Array<SmolVariableType>();
+            const paramValues: SmolVariableType[] = new Array<SmolVariableType>();
 
             for (let i = 0; i < (instr.operand1 as number); i++) {
               paramValues.push(this.stack.pop() as SmolVariableType);
@@ -315,10 +294,7 @@ export class SmolVM {
               if (paramValues.length > i) {
                 env.define(callData.param_variable_names[i], paramValues[i]);
               } else {
-                env.define(
-                  callData.param_variable_names[i],
-                  new SmolUndefined()
-                );
+                env.define(callData.param_variable_names[i], new SmolUndefined());
               }
             }
 
@@ -350,15 +326,9 @@ export class SmolVM {
             const left = this.stack.pop() as SmolVariableType;
 
             if (left instanceof SmolNumber && right instanceof SmolNumber) {
-              this.stack.push(
-                new SmolNumber(left.getValue() + right.getValue())
-              );
+              this.stack.push(new SmolNumber(left.getValue() + right.getValue()));
             } else {
-              this.stack.push(
-                new SmolString(
-                  String(left.getValue()) + String(right.getValue())
-                )
-              );
+              this.stack.push(new SmolString(String(left.getValue()) + String(right.getValue())));
             }
 
             break;
@@ -404,9 +374,7 @@ export class SmolVM {
             const right = this.stack.pop() as SmolVariableType;
             const left = this.stack.pop() as SmolVariableType;
 
-            this.stack.push(
-              new SmolNumber(left.getValue() ** right.getValue())
-            );
+            this.stack.push(new SmolNumber(left.getValue() ** right.getValue()));
 
             break;
           }
@@ -503,9 +471,7 @@ export class SmolVM {
             const savedCallState = this.stack.pop();
 
             if (!(savedCallState instanceof SmolCallSiteSaveState)) {
-              throw new Error(
-                'Tried to return but found something unexecpted on the stack'
-              );
+              throw new Error('Tried to return but found something unexecpted on the stack');
             }
 
             this.environment = savedCallState.previous_env;
@@ -513,9 +479,7 @@ export class SmolVM {
             this.code_section = savedCallState.code_section;
 
             // Return value needs to go back on the stack
-            this.stack.push(
-              return_value == undefined ? new SmolUndefined() : return_value
-            );
+            this.stack.push(return_value == undefined ? new SmolUndefined() : return_value);
 
             if (savedCallState.call_is_extern) {
               // Not sure what to do about return value here
@@ -532,10 +496,7 @@ export class SmolVM {
             break;
           }
           case OpCode.DECLARE:
-            this.environment.define(
-              instr.operand1 as string,
-              new SmolUndefined()
-            );
+            this.environment.define(instr.operand1 as string, new SmolUndefined());
             break;
 
           case OpCode.STORE: {
@@ -597,22 +558,17 @@ export class SmolVM {
 
             if (instr.operand2 != null && (instr.operand2 as boolean)) {
               const objRef = this.stack.pop();
-              const peek_instr =
-                this.program.code_sections[this.code_section][this.pc];
+              const peek_instr = this.program.code_sections[this.code_section][this.pc];
 
               if (objRef instanceof SmolObject) {
                 env_in_context = objRef.object_env;
 
-                if (
-                  peek_instr.opcode == OpCode.CALL &&
-                  (peek_instr.operand2 as boolean)
-                ) {
+                if (peek_instr.opcode == OpCode.CALL && (peek_instr.operand2 as boolean)) {
                   this.stack.push(objRef);
                 }
               } else {
                 if (objRef instanceof ISmolNativeCallable) {
-                  const isFuncCall =
-                    peek_instr.opcode == OpCode.CALL && peek_instr.operand2;
+                  const isFuncCall = peek_instr.opcode == OpCode.CALL && peek_instr.operand2;
 
                   if (isFuncCall) {
                     // We need to get some arguments
@@ -645,11 +601,7 @@ export class SmolVM {
                     const functionArgs: SmolVariableType[] = [];
 
                     if (name != '@Object.constructor') {
-                      for (
-                        let i = 0;
-                        i < (peek_instr.operand1 as number);
-                        i++
-                      ) {
+                      for (let i = 0; i < (peek_instr.operand1 as number); i++) {
                         functionArgs.push(this.stack.pop() as SmolVariableType);
                       }
 
@@ -673,9 +625,7 @@ export class SmolVM {
 
                     if (name == '@Object.constructor') {
                       // Hack alert!!!
-                      (r as SmolObject).object_env = new Environment(
-                        this.globalEnv
-                      );
+                      (r as SmolObject).object_env = new Environment(this.globalEnv);
                     }
 
                     this.stack.push(r);
@@ -700,19 +650,14 @@ export class SmolVM {
               this.stack.push(fetchedValue);
               this.debug(`              [Loaded ${fetchedValue.getValue()}]`);
             } else {
-              const fn = this.program.function_table.find(
-                (f) => f.global_function_name == name
-              );
+              const fn = this.program.function_table.find((f) => f.global_function_name == name);
 
               if (fn != undefined) {
                 this.stack.push(fn);
               } else if (this.externalMethods[name] != undefined) {
-                const peek_instr =
-                  this.program.code_sections[this.code_section][this.pc];
+                const peek_instr = this.program.code_sections[this.code_section][this.pc];
 
-                this.stack.push(
-                  this.callExternalMethod(name, peek_instr.operand1 as number)
-                );
+                this.stack.push(this.callExternalMethod(name, peek_instr.operand1 as number));
 
                 this.stack.push(new SmolNativeFunctionResult());
               } else {
@@ -764,9 +709,7 @@ export class SmolVM {
 
           case OpCode.LEAVE_SCOPE: {
             if (this.environment.enclosing == null) {
-              throw new Error(
-                'Tried to leave scope but there is no enclosing scope'
-              );
+              throw new Error('Tried to leave scope but there is no enclosing scope');
             }
 
             this.environment = this.environment.enclosing;
@@ -785,11 +728,7 @@ export class SmolVM {
 
           case OpCode.POP_AND_DISCARD:
             // operand1 is optional bool, default true means fail if nothing to pop
-            if (
-              this.stack.length > 0 ||
-              instr.operand1 == null ||
-              (instr.operand1 as boolean)
-            ) {
+            if (this.stack.length > 0 || instr.operand1 == null || (instr.operand1 as boolean)) {
               this.stack.pop();
             }
             break;
@@ -869,13 +808,9 @@ export class SmolVM {
             const obj_environment = new Environment(this.globalEnv);
 
             this.program.function_table
-              .filter((el) =>
-                el.global_function_name.startsWith(`@${class_name}.`)
-              )
+              .filter((el) => el.global_function_name.startsWith(`@${class_name}.`))
               .forEach((classFunc) => {
-                const funcName = classFunc.global_function_name.substring(
-                  class_name.length + 2
-                );
+                const funcName = classFunc.global_function_name.substring(class_name.length + 2);
 
                 obj_environment.define(
                   funcName,
@@ -890,17 +825,13 @@ export class SmolVM {
 
             this.stack.push(new SmolObject(obj_environment, class_name));
 
-            obj_environment.define(
-              'this',
-              this.stack.peek() as SmolVariableType
-            );
+            obj_environment.define('this', this.stack.peek() as SmolVariableType);
 
             break;
           }
 
           case OpCode.DUPLICATE_VALUE: {
-            const skip =
-              instr.operand1 != undefined ? (instr.operand1 as number) : 0;
+            const skip = instr.operand1 != undefined ? (instr.operand1 as number) : 0;
 
             const itemToDuplicate = this.stack[this.stack.length - 1 - skip];
 

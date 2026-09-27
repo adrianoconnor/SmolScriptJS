@@ -31,9 +31,7 @@ import { TernaryExpression } from './Expressions/TernaryExpression';
 import { ExpressionVisitor } from './Expressions/ExpressionVisitor';
 import { StatementVisitor } from './Statements/StatementVisitor';
 
-export class AstDebugPrinter
-  implements StatementVisitor<string>, ExpressionVisitor<string>
-{
+export class AstDebugPrinter implements StatementVisitor<string>, ExpressionVisitor<string> {
   _indent = 0;
 
   private indent(): string {

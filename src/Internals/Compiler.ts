@@ -55,14 +55,10 @@ class WhileLoop {
 }
 
 export class Compiler
-  implements
-    StatementVisitor<ByteCodeInstruction[]>,
-    ExpressionVisitor<ByteCodeInstruction[]>
+  implements StatementVisitor<ByteCodeInstruction[]>, ExpressionVisitor<ByteCodeInstruction[]>
 {
   private _function_table: SmolFunction[] = [];
-  private _function_bodies: ByteCodeInstruction[][] = new Array<
-    ByteCodeInstruction[]
-  >();
+  private _function_bodies: ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
 
   private _nextLabel = 1;
 
@@ -188,10 +184,7 @@ export class Compiler
       body.appendChunk(fn.functionBody.accept(this));
 
       if (body.length == 0 || body.peek().opcode != OpCode.RETURN) {
-        body.appendInstruction(
-          OpCode.CONST,
-          this.ensureConst(new SmolUndefined())
-        );
+        body.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
         body.appendInstruction(OpCode.RETURN);
       }
 
@@ -207,10 +200,7 @@ export class Compiler
   visitContinueStatement(stmt: ContinueStatement): ByteCodeInstruction[] {
     const chunk = this.createChunk();
 
-    chunk.appendInstruction(
-      OpCode.LOOP_EXIT,
-      this._loopStack.peek().startOfLoop
-    );
+    chunk.appendInstruction(OpCode.LOOP_EXIT, this._loopStack.peek().startOfLoop);
     chunk[0].isStatementStartpoint = true;
     chunk.mapTokens(stmt.tokenIndex, stmt.tokenIndex);
 
@@ -257,10 +247,7 @@ export class Compiler
     body.appendChunk(stmt.functionBody.accept(this));
 
     if (body.length == 0 || body.peek().opcode != OpCode.RETURN) {
-      body.appendInstruction(
-        OpCode.CONST,
-        this.ensureConst(new SmolUndefined())
-      );
+      body.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
       body.appendInstruction(OpCode.RETURN);
     }
 
@@ -330,17 +317,11 @@ export class Compiler
     if (stmt.expression != undefined) {
       chunk.appendChunk(stmt.expression.accept(this));
     } else {
-      chunk.appendInstruction(
-        OpCode.CONST,
-        this.ensureConst(new SmolUndefined())
-      );
+      chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
     }
 
     chunk.appendInstruction(OpCode.RETURN);
-    chunk.mapTokens(
-      stmt.tokenIndex,
-      stmt.exprLastTokenIndex ?? stmt.tokenIndex
-    );
+    chunk.mapTokens(stmt.tokenIndex, stmt.exprLastTokenIndex ?? stmt.tokenIndex);
     chunk[0].isStatementStartpoint = true;
 
     return chunk;
@@ -384,14 +365,8 @@ export class Compiler
 
         // Top of stack will be exception so store it in variable name
 
-        chunk.appendInstruction(
-          OpCode.DECLARE,
-          stmt.exceptionVariableName.lexeme
-        );
-        chunk.appendInstruction(
-          OpCode.STORE,
-          stmt.exceptionVariableName.lexeme
-        );
+        chunk.appendInstruction(OpCode.DECLARE, stmt.exceptionVariableName.lexeme);
+        chunk.appendInstruction(OpCode.STORE, stmt.exceptionVariableName.lexeme);
       } else {
         // Top of stack is exception, but no variable defined to hold it so get rid of it
         chunk.appendInstruction(OpCode.POP_AND_DISCARD);
@@ -618,10 +593,7 @@ export class Compiler
     body.appendChunk(expr.functionBody.accept(this));
 
     if (body.length == 0 || body.peek().opcode != OpCode.RETURN) {
-      body.appendInstruction(
-        OpCode.CONST,
-        this.ensureConst(new SmolUndefined())
-      );
+      body.appendInstruction(OpCode.CONST, this.ensureConst(new SmolUndefined()));
       body.appendInstruction(OpCode.RETURN);
     }
 
@@ -716,10 +688,7 @@ export class Compiler
         // instruction popped the false result from the stack, so we need to put it back. I think a
         // specific test instruction would make this nicer, but for now we can live with a few extra steps...
 
-        chunk.appendInstruction(
-          OpCode.CONST,
-          this.ensureConst(new SmolBool(false))
-        );
+        chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolBool(false)));
 
         chunk.appendInstruction(OpCode.LABEL, testCompleteLabel);
 
@@ -736,10 +705,7 @@ export class Compiler
 
         chunk.appendInstruction(OpCode.LABEL, shortcutLabel);
 
-        chunk.appendInstruction(
-          OpCode.CONST,
-          this.ensureConst(new SmolBool(true))
-        );
+        chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolBool(true)));
 
         chunk.appendInstruction(OpCode.LABEL, testCompleteLabel);
 
@@ -749,9 +715,7 @@ export class Compiler
     return chunk;
   }
 
-  visitNewInstanceExpression(
-    expr: NewInstanceExpression
-  ): ByteCodeInstruction[] {
+  visitNewInstanceExpression(expr: NewInstanceExpression): ByteCodeInstruction[] {
     const chunk = this.createChunk();
 
     const className = expr.className.lexeme;
@@ -774,11 +738,7 @@ export class Compiler
 
     // Stack now has class instance value
 
-    chunk.appendInstruction(
-      OpCode.FETCH,
-      `@${expr.className.lexeme}.constructor`,
-      true
-    );
+    chunk.appendInstruction(OpCode.FETCH, `@${expr.className.lexeme}.constructor`, true);
 
     if (className == 'Object') {
       expr.ctorArgs.reverse().forEach((arg) => {
@@ -792,9 +752,7 @@ export class Compiler
     return chunk;
   }
 
-  visitObjectInitializerExpression(
-    expr: ObjectInitializerExpression
-  ): ByteCodeInstruction[] {
+  visitObjectInitializerExpression(expr: ObjectInitializerExpression): ByteCodeInstruction[] {
     const chunk = this.createChunk();
 
     chunk.appendInstruction(OpCode.DUPLICATE_VALUE, 2);
@@ -850,18 +808,12 @@ export class Compiler
         chunk.appendInstruction(OpCode.JMPTRUE, isTrueLabel);
 
         // If we're here it was false, so now it's true
-        chunk.appendInstruction(
-          OpCode.CONST,
-          this.ensureConst(new SmolBool(true))
-        );
+        chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolBool(true)));
         chunk.appendInstruction(OpCode.JMP, endLabel);
         chunk.appendInstruction(OpCode.LABEL, isTrueLabel);
 
         // If we're here it was true, so now it's false
-        chunk.appendInstruction(
-          OpCode.CONST,
-          this.ensureConst(new SmolBool(false))
-        );
+        chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolBool(false)));
         chunk.appendInstruction(OpCode.LABEL, endLabel);
 
         break;
@@ -872,10 +824,7 @@ export class Compiler
         // we can create a constant for the negative number and load that instead of the more
         // generalised unary operator behaviour, which negates whatever expression might come
         // after it in normal cirumstances.
-        if (
-          expr.right instanceof LiteralExpression &&
-          expr.right.value instanceof SmolNumber
-        ) {
+        if (expr.right instanceof LiteralExpression && expr.right.value instanceof SmolNumber) {
           chunk.appendInstruction(
             OpCode.CONST,
             this.ensureConst(new SmolNumber(0 - expr.right.value._value))
@@ -883,10 +832,7 @@ export class Compiler
           break;
         }
 
-        chunk.appendInstruction(
-          OpCode.CONST,
-          this.ensureConst(new SmolNumber(0))
-        );
+        chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(0)));
         chunk.appendChunk(expr.right.accept(this));
         chunk.appendInstruction(OpCode.SUB);
 
@@ -904,39 +850,27 @@ export class Compiler
     if (expr.prepostfixOp != undefined) {
       if (expr.prepostfixOp == TokenType.POSTFIX_INCREMENT) {
         chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
-        chunk.appendInstruction(
-          OpCode.CONST,
-          this.ensureConst(new SmolNumber(1))
-        );
+        chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
         chunk.appendInstruction(OpCode.ADD);
         chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
       }
 
       if (expr.prepostfixOp == TokenType.POSTFIX_DECREMENT) {
         chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
-        chunk.appendInstruction(
-          OpCode.CONST,
-          this.ensureConst(new SmolNumber(1))
-        );
+        chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
         chunk.appendInstruction(OpCode.SUB);
         chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
       }
 
       if (expr.prepostfixOp == TokenType.PREFIX_INCREMENT) {
-        chunk.appendInstruction(
-          OpCode.CONST,
-          this.ensureConst(new SmolNumber(1))
-        );
+        chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
         chunk.appendInstruction(OpCode.ADD);
         chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
         chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);
       }
 
       if (expr.prepostfixOp == TokenType.PREFIX_DECREMENT) {
-        chunk.appendInstruction(
-          OpCode.CONST,
-          this.ensureConst(new SmolNumber(1))
-        );
+        chunk.appendInstruction(OpCode.CONST, this.ensureConst(new SmolNumber(1)));
         chunk.appendInstruction(OpCode.SUB);
         chunk.appendInstruction(OpCode.STORE, expr.name.lexeme);
         chunk.appendInstruction(OpCode.FETCH, expr.name.lexeme);

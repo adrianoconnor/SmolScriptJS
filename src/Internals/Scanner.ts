@@ -114,11 +114,9 @@ export class Scanner {
       case '-':
         if (this.matchNext('-')) {
           if (
-            this._tokens.length > 0 &&
-            this._tokens[this._tokens.length - 1].type ==
-              TokenType.IDENTIFIER &&
-            this._tokens[this._tokens.length - 1].followed_by_line_break ==
-              false
+            this._tokens.length > 0
+            && this._tokens[this._tokens.length - 1].type == TokenType.IDENTIFIER
+            && this._tokens[this._tokens.length - 1].followed_by_line_break == false
           ) {
             this.addToken(TokenType.POSTFIX_DECREMENT);
           } else {
@@ -133,11 +131,9 @@ export class Scanner {
       case '+':
         if (this.matchNext('+')) {
           if (
-            this._tokens.length > 0 &&
-            this._tokens[this._tokens.length - 1].type ==
-              TokenType.IDENTIFIER &&
-            this._tokens[this._tokens.length - 1].followed_by_line_break ==
-              false
+            this._tokens.length > 0
+            && this._tokens[this._tokens.length - 1].type == TokenType.IDENTIFIER
+            && this._tokens[this._tokens.length - 1].followed_by_line_break == false
           ) {
             this.addToken(TokenType.POSTFIX_INCREMENT);
           } else {
@@ -202,9 +198,7 @@ export class Scanner {
           while (this.peek() != '*' || this.peek(1) != '/') {
             if (this.endOfFile()) {
               //_errors.Add(new ScannerError(_line, $"Expected end of comment block"));
-              throw new Error(
-                `Expected end of a comment block but reached the end of the file`
-              );
+              throw new Error(`Expected end of a comment block but reached the end of the file`);
             } else {
               c = this.nextChar();
 
@@ -335,10 +329,7 @@ export class Scanner {
       while (this.charIsDigit(this.peek())) this.nextChar();
     }
 
-    const numberAsString = this._source.substring(
-      this._startOfToken,
-      this._currentPos
-    );
+    const numberAsString = this._source.substring(this._startOfToken, this._currentPos);
 
     this.addTokenWithLiteral(TokenType.NUMBER, numberAsString);
   }
@@ -356,9 +347,7 @@ export class Scanner {
         this._currentLine++;
         this._currentLineStartIndex = this._currentPos;
 
-        throw new CompilerError(
-          `Unexpected line break in string on line ${this._currentLine - 1}`
-        );
+        throw new CompilerError(`Unexpected line break in string on line ${this._currentLine - 1}`);
       }
 
       if (this.peek() == '\\') {
@@ -403,16 +392,12 @@ export class Scanner {
           let inEmbeddedString = false;
           let embeddedStringChar = null; // Was char
 
-          while (
-            (this.peek() != '}' || inEmbeddedString) &&
-            !this.endOfFile()
-          ) {
+          while ((this.peek() != '}' || inEmbeddedString) && !this.endOfFile()) {
             // Bug here, ${"}"} will currently not do so well
 
             if (
-              (embeddedStringChar == null &&
-                (this.peek() == "'" || this.peek() == '"')) ||
-              (embeddedStringChar != null && this.peek() == embeddedStringChar)
+              (embeddedStringChar == null && (this.peek() == "'" || this.peek() == '"'))
+              || (embeddedStringChar != null && this.peek() == embeddedStringChar)
             ) // Also `
             {
               embeddedStringChar = this.peek();
@@ -476,19 +461,10 @@ export class Scanner {
   private processIdentifier(): void {
     while (this.charIsAlphaNumeric(this.peek())) this.nextChar();
 
-    const identifierAsString = this._source.substring(
-      this._startOfToken,
-      this._currentPos
-    );
+    const identifierAsString = this._source.substring(this._startOfToken, this._currentPos);
 
-    if (
-      identifierAsString != 'constructor' &&
-      this._keywords[identifierAsString] != undefined
-    ) {
-      this.addTokenWithLiteral(
-        this._keywords[identifierAsString],
-        identifierAsString
-      );
+    if (identifierAsString != 'constructor' && this._keywords[identifierAsString] != undefined) {
+      this.addTokenWithLiteral(this._keywords[identifierAsString], identifierAsString);
     } else {
       this.addTokenWithLiteral(TokenType.IDENTIFIER, identifierAsString);
     }
@@ -498,10 +474,7 @@ export class Scanner {
     this.addTokenWithLiteral(tokenType);
   }
 
-  private addTokenWithLiteral(
-    tokenType: TokenType,
-    literal: string | undefined = undefined
-  ): void {
+  private addTokenWithLiteral(tokenType: TokenType, literal: string | undefined = undefined): void {
     const lexeme = this._source.substring(this._startOfToken, this._currentPos);
 
     this._tokens.push(

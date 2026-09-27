@@ -12,10 +12,7 @@ export abstract class SmolVariableType extends SmolStackType {
     return `(${this.constructor.name}) ${this.getValue()}`;
   }
 
-  static staticCall(
-    funcName: string,
-    parameters: SmolVariableType[]
-  ): SmolVariableType {
+  static staticCall(funcName: string, parameters: SmolVariableType[]): SmolVariableType {
     throw new Error('Static call not implemented for this type');
   }
 }

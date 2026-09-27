@@ -38,10 +38,8 @@ function loadTests(rootFolder: string) {
 }
 
 const runStepRegex = /^- run$/i;
-const expectGlobalNumberRegex =
-  /^- expect global (.*?) to be number (-?\d+(\.\d*)?)/i;
-const expectGlobalStringRegex =
-  /^- expect global (.*?) to be string(?: (.*))?$/i;
+const expectGlobalNumberRegex = /^- expect global (.*?) to be number (-?\d+(\.\d*)?)/i;
+const expectGlobalStringRegex = /^- expect global (.*?) to be string(?: (.*))?$/i;
 const expectGlobalBoolRegex = /^- expect global (.*?) to be boolean (.*)/i;
 const expectGlobalUndefinedRegex = /^- expect global (.*?) to be undefined/i;
 

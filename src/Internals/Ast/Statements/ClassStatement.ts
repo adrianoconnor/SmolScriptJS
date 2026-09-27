@@ -12,11 +12,7 @@ export class ClassStatement extends Statement {
   superclassName?: Token;
   functions: FunctionStatement[];
 
-  constructor(
-    className: Token,
-    superclassName: Token | undefined,
-    functions: FunctionStatement[]
-  ) {
+  constructor(className: Token, superclassName: Token | undefined, functions: FunctionStatement[]) {
     super();
     this.className = className;
     this.superclassName = superclassName;

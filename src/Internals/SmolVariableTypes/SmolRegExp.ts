@@ -29,10 +29,7 @@ export class SmolRegExp extends ISmolNativeCallable {
     throw new Error(`Can't get property ${name} on SmolRegExp`);
   }
 
-  nativeCall(
-    funcName: string,
-    parameters: SmolVariableType[]
-  ): SmolVariableType {
+  nativeCall(funcName: string, parameters: SmolVariableType[]): SmolVariableType {
     if (funcName == 'test') {
       const s1 = parameters[0] as SmolString;
 
@@ -42,10 +39,7 @@ export class SmolRegExp extends ISmolNativeCallable {
     throw new Error();
   }
 
-  static staticCall(
-    funcName: string,
-    parameters: SmolVariableType[]
-  ): SmolVariableType {
+  static staticCall(funcName: string, parameters: SmolVariableType[]): SmolVariableType {
     switch (funcName) {
       case 'constructor': {
         const s1 = parameters[0] as SmolString;
@@ -53,9 +47,7 @@ export class SmolRegExp extends ISmolNativeCallable {
         return new SmolRegExp(s1.getValue());
       }
       default:
-        throw new Error(
-          `Object class cannot handle static function ${funcName}`
-        );
+        throw new Error(`Object class cannot handle static function ${funcName}`);
     }
   }
 }

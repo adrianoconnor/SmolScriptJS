@@ -4,10 +4,8 @@ import { SmolVM } from '../../src/SmolVM';
 function getPendingInstr(vm: SmolVM): string {
   let pending_instr = vm.program.code_sections[vm.code_section][vm.pc];
 
-  let pending_instr_first_token =
-    vm.program.tokens[pending_instr.token_map_start_index as number];
-  let pending_instr_last_token =
-    vm.program.tokens[pending_instr.token_map_end_index as number];
+  let pending_instr_first_token = vm.program.tokens[pending_instr.token_map_start_index as number];
+  let pending_instr_last_token = vm.program.tokens[pending_instr.token_map_end_index as number];
 
   return vm.program.source!.substring(
     pending_instr_first_token.start_pos,

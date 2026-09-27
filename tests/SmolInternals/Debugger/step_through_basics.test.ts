@@ -5,10 +5,8 @@ import { TokenType } from '../../../src/Internals/TokenType';
 function getPendingInstr(vm: SmolVM): string {
   let pending_instr = vm.program.code_sections[vm.code_section][vm.pc];
 
-  let pending_instr_first_token =
-    vm.program.tokens[pending_instr.token_map_start_index as number];
-  let pending_instr_last_token =
-    vm.program.tokens[pending_instr.token_map_end_index as number];
+  let pending_instr_first_token = vm.program.tokens[pending_instr.token_map_start_index as number];
+  let pending_instr_last_token = vm.program.tokens[pending_instr.token_map_end_index as number];
 
   return vm.program.source!.substring(
     pending_instr_first_token.start_pos,
@@ -180,8 +178,7 @@ describe('Smol Debug Basics', () => {
 
     var pending_instr_first_token =
       vm.program.tokens[pending_instr.token_map_start_index as number];
-    var pending_instr_last_token =
-      vm.program.tokens[pending_instr.token_map_end_index as number];
+    var pending_instr_last_token = vm.program.tokens[pending_instr.token_map_end_index as number];
 
     expect(pending_instr_first_token.line).toBe(3);
     expect(pending_instr_first_token.type).toBe(TokenType.VAR);
@@ -197,10 +194,7 @@ describe('Smol Debug Basics', () => {
     expect(pending_instr_last_token.end_pos).toBe(28);
 
     expect(
-      source.substring(
-        pending_instr_first_token.start_pos,
-        pending_instr_last_token.end_pos
-      )
+      source.substring(pending_instr_first_token.start_pos, pending_instr_last_token.end_pos)
     ).toBe('var y = 2');
 
     expect(vm.getGlobalVar('y')).toBeUndefined;

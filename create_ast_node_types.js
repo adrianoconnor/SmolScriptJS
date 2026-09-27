@@ -276,10 +276,7 @@ ${ctorAssigns}
     }
 }`;
 
-  fs.writeFileSync(
-    `./src/Internals/Ast/Statements/${st.name}Statement.ts`,
-    classDefn
-  );
+  fs.writeFileSync(`./src/Internals/Ast/Statements/${st.name}Statement.ts`, classDefn);
 });
 
 expression_types.forEach(function (ex) {
@@ -328,8 +325,5 @@ ${ctorAssigns}
     }
 }`;
 
-  fs.writeFileSync(
-    `./src/Internals/Ast/Expressions/${ex.name}Expression.ts`,
-    classDefn
-  );
+  fs.writeFileSync(`./src/Internals/Ast/Expressions/${ex.name}Expression.ts`, classDefn);
 });

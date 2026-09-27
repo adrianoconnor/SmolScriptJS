@@ -32,10 +32,7 @@ export class SmolString extends ISmolNativeCallable {
     throw new Error(`Can't get property ${name} on SmolString`);
   }
 
-  nativeCall(
-    funcName: string,
-    parameters: SmolVariableType[]
-  ): SmolVariableType {
+  nativeCall(funcName: string, parameters: SmolVariableType[]): SmolVariableType {
     if (funcName === 'search') {
       const regex = parameters[0] as SmolRegExp;
 
@@ -60,10 +57,7 @@ export class SmolString extends ISmolNativeCallable {
     throw new Error(`String does not have function '${funcName}'`);
   }
 
-  static staticCall(
-    funcName: string,
-    parameters: SmolVariableType[]
-  ): SmolVariableType {
+  static staticCall(funcName: string, parameters: SmolVariableType[]): SmolVariableType {
     switch (funcName) {
       case 'constructor': {
         if (parameters.length == 1) {
@@ -74,9 +68,7 @@ export class SmolString extends ISmolNativeCallable {
       }
 
       default:
-        throw new Error(
-          `Object class cannot handle static function ${funcName}`
-        );
+        throw new Error(`Object class cannot handle static function ${funcName}`);
     }
   }
 }

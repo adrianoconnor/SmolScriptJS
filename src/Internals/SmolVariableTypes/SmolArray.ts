@@ -42,10 +42,7 @@ export class SmolArray extends ISmolNativeCallable {
     }
   }
 
-  nativeCall(
-    funcName: string,
-    parameters: SmolVariableType[]
-  ): SmolVariableType {
+  nativeCall(funcName: string, parameters: SmolVariableType[]): SmolVariableType {
     switch (funcName) {
       case 'pop': {
         const val = this.array.pop();
@@ -62,10 +59,7 @@ export class SmolArray extends ISmolNativeCallable {
     }
   }
 
-  static staticCall(
-    funcName: string,
-    parameters: SmolVariableType[]
-  ): SmolVariableType {
+  static staticCall(funcName: string, parameters: SmolVariableType[]): SmolVariableType {
     switch (funcName) {
       case 'constructor': {
         const obj = new SmolArray();
@@ -77,9 +71,7 @@ export class SmolArray extends ISmolNativeCallable {
         return obj;
       }
       default:
-        throw new Error(
-          `"Array class cannot handle static function ${funcName}`
-        );
+        throw new Error(`"Array class cannot handle static function ${funcName}`);
     }
   }
 }

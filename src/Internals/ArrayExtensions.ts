@@ -35,9 +35,7 @@ if (!Array.prototype.appendChunk) {
     } else if (chunkOrInstruction instanceof ByteCodeInstruction) {
       this.push(chunkOrInstruction);
     } else {
-      throw new Error(
-        `Can't append unknown chunk of type ${typeof chunkOrInstruction}`
-      );
+      throw new Error(`Can't append unknown chunk of type ${typeof chunkOrInstruction}`);
     }
 
     return this;
