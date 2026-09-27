@@ -5,10 +5,8 @@
     "module": "commonjs",
     "sourceMap": true,
     "experimentalDecorators": true,
-    "strictPropertyInitialization": false,
     "isolatedModules": false,
-    "strict": false,
-    "noImplicitAny": false,
+    "strict": true,
     "typeRoots": ["../node_modules/@types"]
   },
   "exclude": ["../node_modules"],
