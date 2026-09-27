@@ -38,8 +38,7 @@ export class SmolVM {
 
   globalEnv = new Environment();
   environment: Environment = this.globalEnv;
-  // We're using any because we need to be able to call arbitrary functions on the type -- we might be able
-  // to wrap this up in an interface.
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   staticTypes: Record<string, any> = {};
 
@@ -66,7 +65,6 @@ export class SmolVM {
     return vm;
   }
 
-  // I have no idea how I could do this without any -- it really can return any type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getGlobalVar(varName: string): any {
     return this.globalEnv.tryGet(varName)?.getValue() ?? undefined;
@@ -204,7 +202,6 @@ export class SmolVM {
 
   _run(newRunMode: RunMode) {
     this.runMode = newRunMode;
-    let hasExecutedAtLeastOnce = false; // Used to ensure Step-through trips after at least one instruction is executed
     let consumedCycles = 0;
 
     while (
@@ -223,11 +220,11 @@ export class SmolVM {
         // Peek at the next instruction to see if it's a step point
         this.runMode == RunMode.Step
         && this.program.code_sections[this.code_section][this.pc].isStatementStartpoint
-        && hasExecutedAtLeastOnce
+        && consumedCycles > 0
       ) {
         this.runMode = RunMode.Paused;
         return;
-      } else if (this.runMode == RunMode.InstructionStep && hasExecutedAtLeastOnce) {
+      } else if (this.runMode == RunMode.InstructionStep && consumedCycles > 0) {
         this.runMode = RunMode.Paused;
         return;
       }
@@ -241,12 +238,10 @@ export class SmolVM {
         switch (instr.opcode) {
           case OpCode.NOP:
           case OpCode.START:
-            // Just skip over this instruction, no-op
+            // Just skip over this instruction, it's a no-op
             break;
 
           case OpCode.CONST:
-            // Load a value from the data section at specified index
-            // and place it on the stack
             this.stack.push(this.program.constants[instr.operand1 as number]);
             this.debug(
               `              [Loaded Const ${this.program.constants[instr.operand1 as number].toString()}]`
@@ -698,8 +693,7 @@ export class SmolVM {
             break;
 
           case OpCode.LABEL:
-            // Just skip over this instruction, it's only here
-            // to support branching
+            // Just skip over this instruction, it's a no-op and only here to support branching
             break;
 
           case OpCode.ENTER_SCOPE: {
@@ -716,15 +710,9 @@ export class SmolVM {
             break;
           }
 
-          case OpCode.DEBUGGER: {
-            if (hasExecutedAtLeastOnce) {
-              // Don't break if we're starting from a prevoiusly hit break point
+          case OpCode.DEBUGGER:
               this.runMode = RunMode.Paused;
               return;
-            }
-
-            break;
-          }
 
           case OpCode.POP_AND_DISCARD:
             // operand1 is optional bool, default true means fail if nothing to pop
@@ -765,7 +753,6 @@ export class SmolVM {
 
           case OpCode.LOOP_START:
             this.stack.push(new SmolLoopMarker(this.environment));
-
             break;
 
           case OpCode.LOOP_END:
@@ -839,6 +826,7 @@ export class SmolVM {
 
             break;
           }
+
           case OpCode.PRINT: {
             const valueToPrint = this.stack.pop() as SmolVariableType;
 
@@ -885,8 +873,6 @@ export class SmolVM {
 
       if (this.maxStackSize > -1 && this.stack.length > this.maxStackSize)
         throw new Error('Stack overflow');
-
-      hasExecutedAtLeastOnce = true;
 
       consumedCycles += 1;
       this.totalCycles += 1;
