@@ -1,17 +1,15 @@
-import { SmolVariableType } from "./SmolVariableType";
+import { SmolVariableType } from './SmolVariableType';
 
 export class SmolNull extends SmolVariableType {
-    
-    constructor() {
-        super();
-    }
+  constructor() {
+    super();
+  }
 
-    getValue():null {
-        return null;
-    }
+  getValue(): null {
+    return null;
+  }
 
-    toString():string
-    {
-        return `(SmolNull)`;
-    }
+  toString(): string {
+    return `(SmolNull)`;
+  }
 }

@@ -4,7 +4,6 @@ import { CompilerError } from '../../../src/SmolErrorTypes';
 
 describe('SmolInteral Parser', () => {
   test('Handle missing ;', () => {
-
     const source = `
     var x = false
     var z = 1
@@ -28,7 +27,7 @@ describe('SmolInteral Parser', () => {
     var yy
     yy = moof()`;
 
-    //Using this for dev tests :) 
+    //Using this for dev tests :)
     //const tokens = Scanner.tokenize(source);
     //const stmts = Parser.parse(tokens);
 
@@ -36,12 +35,11 @@ describe('SmolInteral Parser', () => {
 
     const vm = SmolVM.Init(source);
 
-    expect(vm.getGlobalVar("z")).toBe(3);  
-    expect(vm.getGlobalVar("yy")).toBe(2); 
+    expect(vm.getGlobalVar('z')).toBe(3);
+    expect(vm.getGlobalVar('yy')).toBe(2);
   });
 
   test('Handle missing ; -- prefix operator edge case', () => {
-
     const source = `
     var a = 10
     var b = --a
@@ -53,7 +51,7 @@ describe('SmolInteral Parser', () => {
     ++b
     `;
 
-    //Using this for dev tests :) 
+    //Using this for dev tests :)
     //const tokens = Scanner.tokenize(source);
     //const stmts = Parser.parse(tokens);
 
@@ -61,16 +59,15 @@ describe('SmolInteral Parser', () => {
 
     const vm = SmolVM.Init(source);
 
-    expect(vm.getGlobalVar("a")).toBe(7);  
-    expect(vm.getGlobalVar("b")).toBe(10);
+    expect(vm.getGlobalVar('a')).toBe(7);
+    expect(vm.getGlobalVar('b')).toBe(10);
   });
 
   test('Expect line break in string to fail', () => {
-
     const source = `var a = 'test
 123';`;
 
-    //Using this for dev tests :) 
+    //Using this for dev tests :)
     //const tokens = Scanner.tokenize(source);
     //const stmts = Parser.parse(tokens);
 
@@ -79,19 +76,16 @@ describe('SmolInteral Parser', () => {
     const t = () => SmolVM.Init(source);
 
     expect(t).toThrow(CompilerError);
-    expect(t).toThrow("Unexpected line break in string on line 1");
-
+    expect(t).toThrow('Unexpected line break in string on line 1');
   });
 
   test('Expect unexpected character to fail', () => {
-
     const source = `var a = 1;
     a = ±5;`;
 
     const t = () => SmolVM.Init(source);
 
     expect(t).toThrow(CompilerError);
-    expect(t).toThrow("Unexpected character ± at position 9 on line 2");
-
-  });  
+    expect(t).toThrow('Unexpected character ± at position 9 on line 2');
+  });
 });

@@ -1,41 +1,36 @@
-import { ISmolNativeCallable } from "./ISmolNativeCallable";
-import { SmolString } from "./SmolString";
-import { SmolVariableType } from "./SmolVariableType";
+import { ISmolNativeCallable } from './ISmolNativeCallable';
+import { SmolString } from './SmolString';
+import { SmolVariableType } from './SmolVariableType';
 
 export class SmolNumber extends ISmolNativeCallable {
+  setProp(): void {
+    throw new Error('Method not implemented.');
+  }
 
-    setProp(): void {
-        throw new Error("Method not implemented.");
-    }
-    
+  getProp(): SmolVariableType {
+    throw new Error('Method not implemented.');
+  }
 
-    getProp(): SmolVariableType {
-        throw new Error("Method not implemented.");
-    }
-    
-    nativeCall(funcName: string): SmolVariableType {
-
-        if (funcName === "toString") {
-            return new SmolString(this._value.toString());
-        }
-        
-        throw new Error("Method not implemented.");
+  nativeCall(funcName: string): SmolVariableType {
+    if (funcName === 'toString') {
+      return new SmolString(this._value.toString());
     }
 
-    _value:number;
+    throw new Error('Method not implemented.');
+  }
 
-    constructor(value:number) {
-        super();
-        this._value = value;
-    }
+  _value: number;
 
-    getValue():number
-    {
-        return this._value;
-    }
+  constructor(value: number) {
+    super();
+    this._value = value;
+  }
 
-    toString():string
-    {
-        return `(SmolNumber) ${this._value}`;
-    }
+  getValue(): number {
+    return this._value;
+  }
+
+  toString(): string {
+    return `(SmolNumber) ${this._value}`;
+  }
 }

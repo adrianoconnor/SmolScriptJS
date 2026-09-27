@@ -1,90 +1,79 @@
-import { ByteCodeInstruction } from "./ByteCodeInstruction";
-import { OpCode } from "./OpCode";
-import { SmolFunction } from "./SmolVariableTypes/SmolFunction";
-import { SmolVariableType } from "./SmolVariableTypes/SmolVariableType";
-import { Token } from "./Token";
+import { ByteCodeInstruction } from './ByteCodeInstruction';
+import { OpCode } from './OpCode';
+import { SmolFunction } from './SmolVariableTypes/SmolFunction';
+import { SmolVariableType } from './SmolVariableTypes/SmolVariableType';
+import { Token } from './Token';
 
-export class SmolProgram
-{
-    constants:SmolVariableType[] = [];
-    code_sections:ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
-    function_table:SmolFunction[] = [];
-    tokens:Token[] = [];
-    source:string|undefined;
+export class SmolProgram {
+  constants: SmolVariableType[] = [];
+  code_sections: ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
+  function_table: SmolFunction[] = [];
+  tokens: Token[] = [];
+  source: string | undefined;
 
-    decompile(html = false) {
-        let p = '';
+  decompile(html = false) {
+    let p = '';
 
-        p += `.constants\n`;
-        this.constants.forEach((c,n) => {
-            if (html) {
-                p += `${n}: ${c.toString().replace('<', '&lt;')}\n`;
-            }
-            else {
-                p += `${n}: ${c.toString()}\n`;
-            }
-        });
+    p += `.constants\n`;
+    this.constants.forEach((c, n) => {
+      if (html) {
+        p += `${n}: ${c.toString().replace('<', '&lt;')}\n`;
+      } else {
+        p += `${n}: ${c.toString()}\n`;
+      }
+    });
 
-        p += `\n`;
+    p += `\n`;
 
-        this.code_sections.forEach((s,n) => {
+    this.code_sections.forEach((s, n) => {
+      p += `.code_section_${n}\n`;
+      s.forEach((i, idx) => {
+        if (html) {
+          p += `<div id="cs_${n}_${idx}">`;
+        }
 
-            p += `.code_section_${n}\n`;
-            s.forEach((i, idx) => {
+        if (i.isStatementStartpoint && i.opcode != OpCode.START) {
+          p += '* ';
+        } else {
+          p += '  ';
+        }
 
-                if (html) {
-                    p += `<div id="cs_${n}_${idx}">`;
-                }
+        const op1 = i.operand1 != undefined ? ` ${i.operand1.toString()}` : '';
+        const op2 = i.operand2 != undefined ? ` ${i.operand2.toString()}` : '';
 
-                if (i.isStatementStartpoint && i.opcode != OpCode.START) {
-                    p += '* ';
-                }
-                else {
-                    p += '  ';
-                }
+        if (i.opcode == OpCode.CONST && i.operand1 != undefined) {
+          if (html) {
+            p += `${OpCode[i.opcode]} [${i.operand1.toString()}] ${this.constants[i.operand1 as number].toString().replace('<', '&lt;')}`;
+          } else {
+            p += `${OpCode[i.opcode]} [${i.operand1.toString()}] ${this.constants[i.operand1 as number].toString()}`;
+          }
+        } else if (i.opcode == OpCode.START) {
+          p += `PROGRAM START`;
+        } else if (i.opcode == OpCode.EOF) {
+          p += `PROGRAM END`;
+        } else {
+          p += `${OpCode[i.opcode]}${op1}${op2}`;
+        }
 
-                const op1 = i.operand1 != undefined ? ` ${i.operand1.toString()}` : '';
-                const op2 = i.operand2 != undefined ? ` ${i.operand2.toString()}` : '';
+        //p += ` [${i.token_map_start_index}, ${i.token_map_end_index}]`
 
-                if (i.opcode == OpCode.CONST &&  i.operand1 != undefined) {
-                    
-                    if (html) {
-                        p += `${OpCode[i.opcode]} [${i.operand1.toString()}] ${this.constants[i.operand1 as number].toString().replace('<', '&lt;')}`;
-                    }
-                    else {
-                        p += `${OpCode[i.opcode]} [${i.operand1.toString()}] ${this.constants[i.operand1 as number].toString()}`;
-                    }                   
-                }
-                else if (i.opcode == OpCode.START) {
-                    p += `PROGRAM START`;
-                }
-                else if (i.opcode == OpCode.EOF) {
-                    p += `PROGRAM END`;
-                }
-                else {
-                    p += `${OpCode[i.opcode]}${op1}${op2}`;
-                }
+        if (html) {
+          p += `</div>`;
+        } else {
+          p += '\n';
+        }
+      });
 
-                //p += ` [${i.token_map_start_index}, ${i.token_map_end_index}]`
+      p += `\n`;
+    });
 
-                if (html) {
-                    p += `</div>`;
-                }
-                else {
-                    p += '\n';
-                }
-            });
-            
-            p += `\n`;
-        });
+    p += `.function_table:\n`;
 
-        p += `.function_table:\n`;
+    this.function_table.forEach((fn, n) => {
+      p += `${n}: name: ${fn.global_function_name}, code_section: ${fn.code_section}, arity: ${fn.arity}, parameter names: ${fn.param_variable_names.join(', ')}\n`;
+    });
+    p += ``;
 
-        this.function_table.forEach((fn,n) => {
-            p += `${n}: name: ${fn.global_function_name}, code_section: ${fn.code_section}, arity: ${fn.arity}, parameter names: ${fn.param_variable_names.join(', ')}\n`;
-        });
-        p += ``;
-
-        return p;
-    }
+    return p;
+  }
 }

@@ -3,7 +3,6 @@ import { Compiler } from '../../../src/Internals/Compiler';
 
 describe('SmolInteral BinaryExpression Compilation', () => {
   test('Simple Tests', () => {
-
     const source = `
     var x = false;
     var z = 1;

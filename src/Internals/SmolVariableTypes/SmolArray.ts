@@ -1,95 +1,85 @@
-import { SmolVariableType } from "./SmolVariableType";
-import { ISmolNativeCallable } from "./ISmolNativeCallable";
-import { SmolNumber } from "./SmolNumber";
-import { SmolUndefined } from "./SmolUndefined";
+import { SmolVariableType } from './SmolVariableType';
+import { ISmolNativeCallable } from './ISmolNativeCallable';
+import { SmolNumber } from './SmolNumber';
+import { SmolUndefined } from './SmolUndefined';
 
 export class SmolArray extends ISmolNativeCallable {
-    
-    array:SmolVariableType[] = [];
+  array: SmolVariableType[] = [];
 
-    constructor() {
-        super();
-    }
+  constructor() {
+    super();
+  }
 
-    getValue():SmolVariableType {
-        return this;
-    }
+  getValue(): SmolVariableType {
+    return this;
+  }
 
-    toString() {
-        return `(SmolArray, length = ${this.array.length})`;
-    }
+  toString() {
+    return `(SmolArray, length = ${this.array.length})`;
+  }
 
-    getProp(propName:string):SmolVariableType
-    {
-        switch (propName)
-        {
-            case "length":
-                return new SmolNumber(this.array.length);
+  getProp(propName: string): SmolVariableType {
+    switch (propName) {
+      case 'length':
+        return new SmolNumber(this.array.length);
 
-            default:
-
-                if (String(propName).match(/[0-9]+/))
-                {
-                    return this.array[parseInt(propName)] ?? new SmolUndefined();
-                }
-
-                throw new Error(`Array does not contain property ${propName}`);
+      default:
+        if (String(propName).match(/[0-9]+/)) {
+          return this.array[parseInt(propName)] ?? new SmolUndefined();
         }
+
+        throw new Error(`Array does not contain property ${propName}`);
     }
+  }
 
-    setProp(propName:string, value:SmolVariableType):void
-    {
-        if (String(propName).match(/[0-9]+/))
-        {
-            const index = parseInt(propName);
+  setProp(propName: string, value: SmolVariableType): void {
+    if (String(propName).match(/[0-9]+/)) {
+      const index = parseInt(propName);
 
-            this.array[index] = value;
-        }
-        else
-        {
-            throw new Error("Not a valid index");
-        }
+      this.array[index] = value;
+    } else {
+      throw new Error('Not a valid index');
     }
+  }
 
-    nativeCall(funcName:string, parameters:SmolVariableType[]): SmolVariableType
-    {
-        switch (funcName)
-        {
-            case 'pop':
-            {
-                const val = this.array.pop();
+  nativeCall(
+    funcName: string,
+    parameters: SmolVariableType[]
+  ): SmolVariableType {
+    switch (funcName) {
+      case 'pop': {
+        const val = this.array.pop();
 
-                return val != undefined ? val : new SmolUndefined();
-            }
+        return val != undefined ? val : new SmolUndefined();
+      }
 
-            case 'push':
-                this.array.push(parameters[0]);
-                return parameters[0];
+      case 'push':
+        this.array.push(parameters[0]);
+        return parameters[0];
 
-            default:
-                throw new Error(`Array cannot handle native function ${funcName}`);
-        }
+      default:
+        throw new Error(`Array cannot handle native function ${funcName}`);
     }
+  }
 
-    static staticCall(funcName:string, parameters:SmolVariableType[]): SmolVariableType
-    {
-        switch (funcName)
-        {
-            case 'constructor':
-            {
-                const obj = new SmolArray();
+  static staticCall(
+    funcName: string,
+    parameters: SmolVariableType[]
+  ): SmolVariableType {
+    switch (funcName) {
+      case 'constructor': {
+        const obj = new SmolArray();
 
-                parameters.forEach((p) => 
-                {
-                    obj.array.push(p);
-                });
+        parameters.forEach((p) => {
+          obj.array.push(p);
+        });
 
-                return obj;
-            }
-            default:
-                throw new Error(`"Array class cannot handle static function ${funcName}`);
-        }
+        return obj;
+      }
+      default:
+        throw new Error(
+          `"Array class cannot handle static function ${funcName}`
+        );
     }
-
-
+  }
 }

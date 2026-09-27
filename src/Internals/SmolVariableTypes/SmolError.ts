@@ -1,15 +1,14 @@
-import { SmolVariableType } from "./SmolVariableType";
+import { SmolVariableType } from './SmolVariableType';
 
 export class SmolError extends SmolVariableType {
-    
-    _message:string;
+  _message: string;
 
-    constructor(message:string) {
-        super();
-        this._message = message;
-    }
+  constructor(message: string) {
+    super();
+    this._message = message;
+  }
 
-    getValue():string {
-        return `ERROR: ${this._message}`;
-    }
+  getValue(): string {
+    return `ERROR: ${this._message}`;
+  }
 }

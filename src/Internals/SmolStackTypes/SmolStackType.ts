@@ -1,5 +1,1 @@
-export class SmolStackType {
-
-
-
-}
+export class SmolStackType {}

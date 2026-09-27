@@ -3,7 +3,6 @@ import { AstDebugPrinter } from '../../../src/Internals/Ast/AstDebugPrinter';
 
 describe('SmolInteral AstDebugPrint', () => {
   test('Check all types print as expected', () => {
-
     const source = `
     function f(x) { return x ** 2; }
     var a = (10 + f(5)) * 2;
@@ -44,11 +43,9 @@ describe('SmolInteral AstDebugPrint', () => {
 [/class]
 [declare var i initializer:(new c with 0 args in ctor)]
 `);
-
   });
 
   test('Check all types print as expected (no semicolons)', () => {
-  
     const source = `
     function f(x) { 
       return x ** 2
@@ -91,6 +88,5 @@ describe('SmolInteral AstDebugPrint', () => {
 [/class]
 [declare var i initializer:(new c with 0 args in ctor)]
 `);
-
   });
 });

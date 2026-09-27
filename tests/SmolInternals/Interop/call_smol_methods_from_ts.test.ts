@@ -4,7 +4,6 @@ import { RunMode } from '../../../src/Internals/RunMode';
 
 describe('Smol Interop Basics', () => {
   test('Call smol method no args', () => {
-
     const source = `
     var y = 2;
 
@@ -19,7 +18,6 @@ describe('Smol Interop Basics', () => {
   });
 
   test('Call smol method with some args', () => {
-
     const source = `
     var y = 2;
     
@@ -31,10 +29,9 @@ describe('Smol Interop Basics', () => {
     var r = vm.call('moo', 2, 'x');
 
     expect(r).toBe(4);
-  })
+  });
 
   test('Call smol method before vm has initialised', () => {
-
     const source = `
     var y = 2;
     
@@ -44,11 +41,10 @@ describe('Smol Interop Basics', () => {
 
     const vm = SmolVM.Compile(source);
 
-    expect(() => { 
-      
-      var r = vm.call('moo', 2, 'x'); 
-
-    }).toThrow('Init() should be used before calling a function, to ensure the vm state is prepared');
-  })
-  
+    expect(() => {
+      var r = vm.call('moo', 2, 'x');
+    }).toThrow(
+      'Init() should be used before calling a function, to ensure the vm state is prepared'
+    );
+  });
 });

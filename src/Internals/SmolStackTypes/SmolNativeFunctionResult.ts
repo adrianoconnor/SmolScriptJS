@@ -1,8 +1,7 @@
-import { SmolStackType } from "./SmolStackType";
+import { SmolStackType } from './SmolStackType';
 
 export class SmolNativeFunctionResult extends SmolStackType {
-    
-    toString() {
-        return `(SmolNativeFunctionResult)`;
-    }
+  toString() {
+    return `(SmolNativeFunctionResult)`;
+  }
 }

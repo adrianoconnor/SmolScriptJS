@@ -4,7 +4,7 @@
 
 # SmolScript
 
-SmolScript is a JS-like language that runs inside a tiny stack based VM, in JavaScript. It is designed to be relatively easy to implement in other languages (there is also a .net version, an almost-complete Python version and the beginnings of a Java version), but each implementation is going to be different because we rely on the host language's features to provide certain primitives and base functionality (for example, each version is totally dependent on the host language implementation of strings, numbers, regexes etc), so while we try to make it highly consistent and the language test suite is shared across languages, in .net there are going to be small differences to JavaScript and vice versa. This choice allows SmolScript itself be *very* small and limits our 'blast' radius for the things that might introduce vulnerabilities and other headaches.
+SmolScript is a JS-like language that runs inside a tiny stack based VM, in JavaScript. It is designed to be relatively easy to implement in other languages (there is also a .net version, an almost-complete Python version and the beginnings of a Java version), but each implementation is going to be different because we rely on the host language's features to provide certain primitives and base functionality (for example, each version is totally dependent on the host language implementation of strings, numbers, regexes etc), so while we try to make it highly consistent and the language test suite is shared across languages, in .net there are going to be small differences to JavaScript and vice versa. This choice allows SmolScript itself be _very_ small and limits our 'blast' radius for the things that might introduce vulnerabilities and other headaches.
 
 A demo website (that runs this Javascript version in the browser) is available at https://smolscript.org/interactive-demo. It is very basic, but it lets you view the compiled program along with the VM's internal state as you step through the debugger.
 
@@ -28,42 +28,42 @@ Even though we've based SmolScript on Javascript, it is not anywhere near featur
 
 What is built so far:
 
-* A working 'byte-code' compiler (including hand rolled scanner and parser) that supports most of the basic language features you'd expect in a tiny Javascript-like language
-* A stack-based Virtual Machine that supports break points and step through and a small degree of observability (with more to come)
-* An easy way to expose custom functions from js using simple closures to wrap the native code (no need for adding new types/interfaces) that automatically deal with type coercion
-* A test suite that I think almost covers the entire language -- we've built this in a way that the test files can be shared across all smol implementations (but I'm still moving stuff from the early .net development unit tests to the shared suite so that's not complete)
+- A working 'byte-code' compiler (including hand rolled scanner and parser) that supports most of the basic language features you'd expect in a tiny Javascript-like language
+- A stack-based Virtual Machine that supports break points and step through and a small degree of observability (with more to come)
+- An easy way to expose custom functions from js using simple closures to wrap the native code (no need for adding new types/interfaces) that automatically deal with type coercion
+- A test suite that I think almost covers the entire language -- we've built this in a way that the test files can be shared across all smol implementations (but I'm still moving stuff from the early .net development unit tests to the shared suite so that's not complete)
 
 The byte-code compiler does not produce byte-code at all, all of the instructions are actually objects in the host language, but it doesn't matter because it doesn't generate binaries, they're just an intermediate step.
 
 In terms of language features, we currently have:
 
-* Var only for variables (but in smol var works more like let)
-* Flow control
-* Basic Arrays
-* Basic Dictionarys (plain Objects, inheritence/prototype is not really there)
-* Classes (no inheritence)
-* First class functions
-* Basic Try/Catch
-* Regex
-* => syntax
-* JS style handling of optional semicolons
-* Ability to define native functions in JS and call them from SmolScript...
-* Ability to call SmolScript functions from JS (and return the result)
+- Var only for variables (but in smol var works more like let)
+- Flow control
+- Basic Arrays
+- Basic Dictionarys (plain Objects, inheritence/prototype is not really there)
+- Classes (no inheritence)
+- First class functions
+- Basic Try/Catch
+- Regex
+- => syntax
+- JS style handling of optional semicolons
+- Ability to define native functions in JS and call them from SmolScript...
+- Ability to call SmolScript functions from JS (and return the result)
 
 On our list of things that we think we want to add:
 
-* for ... in
-* JSON, Console, Date added to the standard library
-* Pass JS/JSON objects in as paramters and use reflection to access them dynamicly
-* Better try/catch
-* Exposing tokens/line numbers for compiled source (we've mostly done this, but in a way that I don't think professional compiler engineers would approve of)
-* Better compiler errors
+- for ... in
+- JSON, Console, Date added to the standard library
+- Pass JS/JSON objects in as paramters and use reflection to access them dynamicly
+- Better try/catch
+- Exposing tokens/line numbers for compiled source (we've mostly done this, but in a way that I don't think professional compiler engineers would approve of)
+- Better compiler errors
 
 What is not on our roadmap right now:
 
-* Modules
-* Async/await
-* file, network, database etc -- for that we expect you to use native custom functions exposed to your VM (this is how we make it secure!)
+- Modules
+- Async/await
+- file, network, database etc -- for that we expect you to use native custom functions exposed to your VM (this is how we make it secure!)
 
 ## I want to use it in my project!
 

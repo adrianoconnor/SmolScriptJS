@@ -1,18 +1,20 @@
-import { SmolVariableType } from "./SmolVariableType";
+import { SmolVariableType } from './SmolVariableType';
 
 export abstract class ISmolNativeCallable extends SmolVariableType {
-    
-    constructor() {
-        super();
-    }
+  constructor() {
+    super();
+  }
 
-    getValue():any {
-        return undefined;
-    }
+  getValue(): any {
+    return undefined;
+  }
 
-    abstract setProp(name:string, value:any): void;
+  abstract setProp(name: string, value: any): void;
 
-    abstract getProp(name:string): SmolVariableType;
+  abstract getProp(name: string): SmolVariableType;
 
-    abstract nativeCall(funcName:string, parameters:SmolVariableType[]) : SmolVariableType;
+  abstract nativeCall(
+    funcName: string,
+    parameters: SmolVariableType[]
+  ): SmolVariableType;
 }

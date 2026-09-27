@@ -1,14 +1,13 @@
-import { Statement } from "./Statement";
-import { StatementVisitor } from "./StatementVisitor";
+import { Statement } from './Statement';
+import { StatementVisitor } from './StatementVisitor';
 export class DebuggerStatement extends Statement {
+  getStatementType(): string {
+    return 'Debugger';
+  }
 
-    getStatementType() : string {
-        return "Debugger";
-    }
+  accept<R>(visitor: StatementVisitor<R>): R {
+    return visitor.visitDebuggerStatement(this);
+  }
 
-    accept<R>(visitor: StatementVisitor<R>): R {
-        return visitor.visitDebuggerStatement(this);
-    }
-
-    tokenIndex:number|undefined;
+  tokenIndex: number | undefined;
 }

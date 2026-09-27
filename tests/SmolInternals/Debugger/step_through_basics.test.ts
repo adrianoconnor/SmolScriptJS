@@ -2,19 +2,22 @@ import { describe, expect, test } from '@jest/globals';
 import { SmolVM } from '../../../src/SmolVM';
 import { TokenType } from '../../../src/Internals/TokenType';
 
-function getPendingInstr(vm:SmolVM) : string {
+function getPendingInstr(vm: SmolVM): string {
   let pending_instr = vm.program.code_sections[vm.code_section][vm.pc];
 
-  let pending_instr_first_token = vm.program.tokens[pending_instr.token_map_start_index as number];
-  let pending_instr_last_token = vm.program.tokens[pending_instr.token_map_end_index as number];
+  let pending_instr_first_token =
+    vm.program.tokens[pending_instr.token_map_start_index as number];
+  let pending_instr_last_token =
+    vm.program.tokens[pending_instr.token_map_end_index as number];
 
-  return vm.program.source!.substring(pending_instr_first_token.start_pos, pending_instr_last_token.end_pos);
+  return vm.program.source!.substring(
+    pending_instr_first_token.start_pos,
+    pending_instr_last_token.end_pos
+  );
 }
 
 describe('Smol Debug Basics', () => {
-
   test('debug step through of var assignment', () => {
-
     const source = `
     debugger;
     var y = 2;
@@ -28,7 +31,7 @@ describe('Smol Debug Basics', () => {
     const vm = SmolVM.Compile(source);
 
     vm.run();
-    // we hit the debugger here   
+    // we hit the debugger here
     expect(vm.getGlobalVar('y')).toBeUndefined;
     vm.step(); // var y = 2 executed
     expect(vm.getGlobalVar('y')).toBe(2);
@@ -46,10 +49,9 @@ describe('Smol Debug Basics', () => {
     vm.step();
     vm.step(); // var z = y / 2; executed
     expect(vm.getGlobalVar('z')).toBe(4);
-  })
+  });
 
   test('debug step through of var assignment with single instruction step mode', () => {
-
     const source = `
     debugger;
     var y = 2;
@@ -68,10 +70,9 @@ describe('Smol Debug Basics', () => {
     vm.step(true); // STORE y
     expect(vm.getGlobalVar('y')).toBe(2);
     // * PROGRAM END
-  })
+  });
 
   test('debug step through if statement', () => {
-
     const source = `
     var y = 2;
     var x = 0;
@@ -104,11 +105,9 @@ describe('Smol Debug Basics', () => {
     vm.step(); // }
     vm.step(); // x = 3
     expect(vm.getGlobalVar('x')).toBe(3);
-  })
-
+  });
 
   test('debug step through if statement no semicolons', () => {
-
     const source = `
     var y = 2
     var x = 0
@@ -144,10 +143,9 @@ describe('Smol Debug Basics', () => {
     expect(getPendingInstr(vm)).toBe('x = 3');
     vm.step();
     expect(vm.getGlobalVar('x')).toBe(3);
-  })
+  });
 
   test('debug step through of var assignment with source mapping', () => {
-
     const source = `
     debugger;
     var y = 2;
@@ -180,15 +178,17 @@ describe('Smol Debug Basics', () => {
 
     var pending_instr = vm.program.code_sections[vm.code_section][vm.pc];
 
-    var pending_instr_first_token = vm.program.tokens[pending_instr.token_map_start_index as number];
-    var pending_instr_last_token = vm.program.tokens[pending_instr.token_map_end_index as number];
+    var pending_instr_first_token =
+      vm.program.tokens[pending_instr.token_map_start_index as number];
+    var pending_instr_last_token =
+      vm.program.tokens[pending_instr.token_map_end_index as number];
 
     expect(pending_instr_first_token.line).toBe(3);
     expect(pending_instr_first_token.type).toBe(TokenType.VAR);
 
     expect(pending_instr_last_token.line).toBe(3);
     expect(pending_instr_last_token.type).toBe(TokenType.NUMBER);
-    expect(pending_instr_last_token.literal).toBe("2");
+    expect(pending_instr_last_token.literal).toBe('2');
 
     expect(pending_instr_first_token.col).toBe(4);
     expect(pending_instr_last_token.col).toBe(12);
@@ -196,32 +196,36 @@ describe('Smol Debug Basics', () => {
     expect(pending_instr_first_token.start_pos).toBe(19);
     expect(pending_instr_last_token.end_pos).toBe(28);
 
-    expect(source.substring(pending_instr_first_token.start_pos, pending_instr_last_token.end_pos)).toBe('var y = 2');
+    expect(
+      source.substring(
+        pending_instr_first_token.start_pos,
+        pending_instr_last_token.end_pos
+      )
+    ).toBe('var y = 2');
 
     expect(vm.getGlobalVar('y')).toBeUndefined;
     vm.step(); // var y = 2 executed
     expect(vm.getGlobalVar('y')).toBe(2);
     // expect current active code to be line 12, inside the function body! This is not yet implemented
-    vm.step() // moo(2) executed
+    vm.step(); // moo(2) executed
     vm.step();
     vm.step(); // y = y * z (in function) executed
     // expect current active code to be line 12, inside the function body! This is not yet implemented
     expect(vm.getGlobalVar('y')).toBe(4);
     vm.step();
 
-    vm.step() // moo(2) executed
+    vm.step(); // moo(2) executed
     vm.step(); // y = y * z (in function) executed
     vm.step();
     vm.step();
     expect(vm.getGlobalVar('y')).toBe(8);
     vm.step();
-    vm.step(); 
+    vm.step();
     vm.step(); // var z = y / 2; executed
     expect(vm.getGlobalVar('z')).toBe(4);
-  })
+  });
 
   test('debug step through of if statement without block', () => {
-
     const source = `
     var y = 2;
     var x = 0;

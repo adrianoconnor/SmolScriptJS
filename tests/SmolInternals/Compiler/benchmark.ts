@@ -3,7 +3,6 @@ import { Compiler } from '../../../src/Internals/Compiler';
 
 describe('Example benchmark', () => {
   test('Benchmark1', () => {
-
     const source = `
     function arith(n) {
     var x = 12345;

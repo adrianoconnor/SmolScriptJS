@@ -1,17 +1,15 @@
-import { SmolVariableType } from "./SmolVariableType";
+import { SmolVariableType } from './SmolVariableType';
 
 export class SmolUndefined extends SmolVariableType {
-    
-    constructor() {
-        super();
-    }
+  constructor() {
+    super();
+  }
 
-    getValue():undefined {
-        return undefined;
-    }
+  getValue(): undefined {
+    return undefined;
+  }
 
-    toString():string
-    {
-        return `(SmolUndefined)`;
-    }
+  toString(): string {
+    return `(SmolUndefined)`;
+  }
 }

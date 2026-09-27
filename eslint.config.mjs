@@ -14,10 +14,10 @@ export default defineConfig({
     eslintConfigPrettier,
   ],
   languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
+    parser: tsParser,
+    parserOptions: {
+      projectService: true,
+      tsconfigRootDir: import.meta.dirname,
+    },
   },
 });

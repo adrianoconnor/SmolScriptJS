@@ -1,16 +1,15 @@
-import { SmolStackType } from "./SmolStackType";
-import { Environment } from "../Environment";
+import { SmolStackType } from './SmolStackType';
+import { Environment } from '../Environment';
 
 export class SmolLoopMarker extends SmolStackType {
+  current_env: Environment;
 
-    current_env:Environment;
+  constructor(current_env: Environment) {
+    super();
+    this.current_env = current_env;
+  }
 
-    constructor(current_env:Environment) {
-        super();
-        this.current_env = current_env;
-    }
-
-    toString() {
-        return `(SmolLoopMarker)`;
-    }
+  toString() {
+    return `(SmolLoopMarker)`;
+  }
 }

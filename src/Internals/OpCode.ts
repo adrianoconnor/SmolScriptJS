@@ -1,62 +1,59 @@
 export enum OpCode {
+  NOP,
 
-    NOP,
+  LABEL,
+  CALL,
+  RETURN,
 
-    LABEL,
-    CALL,
-    RETURN,
+  ADD,
+  SUB,
+  DIV,
+  MUL,
+  POW,
+  REM,
 
-    ADD,
-    SUB,
-    DIV,
-    MUL,
-    POW,
-    REM,
+  EQL,
+  NEQ,
+  LT,
+  LTE,
+  GT,
+  GTE,
 
-    EQL,
-    NEQ,
-    LT,
-    LTE,
-    GT,
-    GTE,
+  BITWISE_AND,
+  BITWISE_OR,
 
-    BITWISE_AND,
-    BITWISE_OR,
+  JMPTRUE,
+  JMPFALSE,
+  JMP,
 
-    JMPTRUE,
-    JMPFALSE,
-    JMP,
+  DECLARE,
 
-    DECLARE,
+  CONST, // op1: Const index (number), op2: NA
+  FETCH,
 
-    CONST, // op1: Const index (number), op2: NA
-    FETCH,
+  STORE,
 
-    STORE,
+  ENTER_SCOPE,
+  LEAVE_SCOPE,
 
-    ENTER_SCOPE,
-    LEAVE_SCOPE,
+  TRY,
+  CATCH,
+  THROW,
 
-    TRY,
-    CATCH,
-    THROW,
+  NEW,
 
-    NEW,
+  POP_AND_DISCARD,
+  DUPLICATE_VALUE,
 
-    POP_AND_DISCARD,
-    DUPLICATE_VALUE,
+  LOOP_EXIT,
+  LOOP_START,
+  LOOP_END,
 
-    LOOP_EXIT,
-    LOOP_START,
-    LOOP_END,
+  CREATE_OBJECT,
 
-    CREATE_OBJECT,
+  PRINT, // op1: NA, op2: NA
+  DEBUGGER,
 
-
-    PRINT, // op1: NA, op2: NA
-    DEBUGGER,
-
-    START,
-    EOF
-
+  START,
+  EOF,
 }

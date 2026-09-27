@@ -38,8 +38,10 @@ function loadTests(rootFolder: string) {
 }
 
 const runStepRegex = /^- run$/i;
-const expectGlobalNumberRegex = /^- expect global (.*?) to be number (-?\d+(\.\d*)?)/i;
-const expectGlobalStringRegex = /^- expect global (.*?) to be string(?: (.*))?$/i;
+const expectGlobalNumberRegex =
+  /^- expect global (.*?) to be number (-?\d+(\.\d*)?)/i;
+const expectGlobalStringRegex =
+  /^- expect global (.*?) to be string(?: (.*))?$/i;
 const expectGlobalBoolRegex = /^- expect global (.*?) to be boolean (.*)/i;
 const expectGlobalUndefinedRegex = /^- expect global (.*?) to be undefined/i;
 
@@ -57,7 +59,6 @@ describe('Automated Test Suite', () => {
   });
 });
 
-
 function runTest(fileName: string, removeSemicolons = false) {
   const currentTest = tests[fileName];
   let source = currentTest.fileData;
@@ -71,7 +72,9 @@ function runTest(fileName: string, removeSemicolons = false) {
   vm.maxStackSize = 1000;
 
   let debugLog = '';
-  vm.onDebugPrint = (str) => { debugLog += `${str}\n`; };
+  vm.onDebugPrint = (str) => {
+    debugLog += `${str}\n`;
+  };
 
   for (const step of currentTest.steps) {
     if (runStepRegex.test(step)) {
@@ -88,7 +91,7 @@ function runTest(fileName: string, removeSemicolons = false) {
       expect(vm.getGlobalVar(varName)).toBe(Number(val));
     } else if (expectGlobalStringRegex.test(step)) {
       const [, varName, val = ''] = step.match(expectGlobalStringRegex) ?? [];
-      expect(String(vm.getGlobalVar(varName))).toBe(String(val));   
+      expect(String(vm.getGlobalVar(varName))).toBe(String(val));
     } else if (expectGlobalBoolRegex.test(step)) {
       const [, varName, val] = step.match(expectGlobalBoolRegex) ?? [];
       expect(vm.getGlobalVar(varName)).toBe(val.toLowerCase() === 'true');
