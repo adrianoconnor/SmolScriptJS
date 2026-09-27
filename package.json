@@ -10,7 +10,9 @@
     "test": "jest ./tests",
     "testsuite": "jest ./tests/run_test_suite.test.ts",
     "build": "tsc --build src && webpack",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [],
   "author": "Adrian O'Connor (adrian.oconnor@arctus.co.uk)",
@@ -27,8 +29,10 @@
     "@typescript-eslint/parser": "^8.70.1",
     "babel-jest": "^30.5.2",
     "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
     "expose-loader": "^5.0.1",
     "jest": "^30.5.2",
+    "prettier": "^3.9.9",
     "ts-jest": "^29.4.12",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.1",

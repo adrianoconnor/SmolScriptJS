@@ -1,10 +1,8 @@
 import js from '@eslint/js';
 import { defineConfig } from 'eslint/config';
+import eslintConfigPrettier from 'eslint-config-prettier';
 import tseslint from 'typescript-eslint';
-
-import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
-
 
 export default defineConfig({
   files: ['src/*.{js,ts}', 'tests/*.{js,ts}'],
@@ -13,6 +11,7 @@ export default defineConfig({
     tseslint.configs.recommendedTypeChecked,
     tseslint.configs.strict,
     tseslint.configs.stylistic,
+    eslintConfigPrettier,
   ],
   languageOptions: {
       parser: tsParser,
