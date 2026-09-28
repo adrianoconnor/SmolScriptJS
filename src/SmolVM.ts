@@ -1,7 +1,6 @@
 import { Compiler } from './Internals/Compiler';
 import { Environment } from './Internals/Environment';
 import { OpCode } from './Internals/OpCode';
-import { SmolProgram } from './Internals/SmolProgram';
 import { SmolStackType } from './Internals/SmolStackTypes/SmolStackType';
 import { SmolNativeFunctionResult } from './Internals/SmolStackTypes/SmolNativeFunctionResult';
 import { SmolFunction } from './Internals/SmolVariableTypes/SmolFunction';
@@ -20,6 +19,7 @@ import { RunMode } from './Internals/RunMode';
 import { SmolRegExp } from './Internals/SmolVariableTypes/SmolRegExp';
 import { SmolVariableCreator } from './Internals/SmolVariableTypes/SmolVariableCreator';
 import { SmolError } from './Internals/SmolVariableTypes/SmolError';
+import { SmolProgram } from './Internals/SmolProgram';
 
 class SmolThrownFromInstruction extends Error {
   // We use native exceptions to throw from both user code and internal operations.
@@ -27,7 +27,7 @@ class SmolThrownFromInstruction extends Error {
 }
 export class SmolVM {
   program: SmolProgram;
-  code_section = 0;
+  activeCodeSection = 0;
   pc = 0;
   runMode = RunMode.Paused;
   stack: SmolStackType[] = [];
@@ -76,7 +76,7 @@ export class SmolVM {
     // in the instructions for that section so we can jump
     // if we need to.
 
-    for (const codeSection of this.program.code_sections) {
+    for (const codeSection of this.program.codeSections) {
       // Not sure if this will hold up, might be too simplistic
 
       for (const [j, instr] of codeSection.entries()) {
@@ -144,12 +144,12 @@ export class SmolVM {
 
     this.runMode = RunMode.Paused;
 
-    const state = new SmolCallSiteSaveState(this.code_section, this.pc, this.environment, true);
+    const state = new SmolCallSiteSaveState(this.activeCodeSection, this.pc, this.environment, true);
 
     const env = new Environment(this.globalEnv);
     this.environment = env;
 
-    const fn = this.program.function_table.find((f) => f.global_function_name === functionName);
+    const fn = this.program.functions.find((f) => f.globalFunctionName === functionName);
 
     if (!fn) {
       throw new Error(`Could not find a function named '${functionName}'`);
@@ -157,15 +157,15 @@ export class SmolVM {
 
     for (let i = 0; i < fn.arity; i++) {
       if (args.length > i) {
-        env.define(fn.param_variable_names[i], SmolVariableCreator.create(args[i]));
+        env.define(fn.parameterNames[i], SmolVariableCreator.create(args[i]));
       } else {
-        env.define(fn.param_variable_names[i], new SmolUndefined());
+        env.define(fn.parameterNames[i], new SmolUndefined());
       }
     }
 
     this.stack.push(state);
     this.pc = 0;
-    this.code_section = fn.code_section;
+    this.activeCodeSection = fn.codeSection;
 
     this.run();
 
@@ -211,15 +211,15 @@ export class SmolVM {
     ) {
       if (
         this.runMode == RunMode.Step
-        && this.code_section == 0
-        && this.program.code_sections[0].length < this.pc - 1
+        && this.activeCodeSection == 0
+        && this.program.codeSections[0].length < this.pc - 1
       ) {
         this.runMode = RunMode.Done;
         return;
       } else if (
         // Peek at the next instruction to see if it's a step point
         this.runMode == RunMode.Step
-        && this.program.code_sections[this.code_section][this.pc].isStatementStartpoint
+        && this.program.codeSections[this.activeCodeSection][this.pc].isStatementStartpoint
         && consumedCycles > 0
       ) {
         this.runMode = RunMode.Paused;
@@ -230,7 +230,7 @@ export class SmolVM {
       }
 
       // Fetch the next instruciton and advance the program counter
-      const instr = this.program.code_sections[this.code_section][this.pc++];
+      const instr = this.program.codeSections[this.activeCodeSection][this.pc++];
 
       this.debug(OpCode[instr.opcode]);
 
@@ -270,7 +270,7 @@ export class SmolVM {
               // (from the next value on the stack) and use that
               // objects environment instead.
 
-              env = (this.stack.pop() as SmolObject).object_env;
+              env = (this.stack.pop() as SmolObject).objectEnv;
             }
 
             // Next pop args off the stack. Op1 is number of args.
@@ -287,16 +287,16 @@ export class SmolVM {
 
             for (let i = 0; i < callData.arity; i++) {
               if (paramValues.length > i) {
-                env.define(callData.param_variable_names[i], paramValues[i]);
+                env.define(callData.parameterNames[i], paramValues[i]);
               } else {
-                env.define(callData.param_variable_names[i], new SmolUndefined());
+                env.define(callData.parameterNames[i], new SmolUndefined());
               }
             }
 
             // Store our current program/vm state so we can restor
 
             const state = new SmolCallSiteSaveState(
-              this.code_section,
+              this.activeCodeSection,
               this.pc,
               this.environment,
               false // call is extern
@@ -311,7 +311,7 @@ export class SmolVM {
             // Finally set our PC to the start of the function we're about to execute
 
             this.pc = 0;
-            this.code_section = callData.code_section;
+            this.activeCodeSection = callData.codeSection;
 
             break;
           }
@@ -469,14 +469,14 @@ export class SmolVM {
               throw new Error('Tried to return but found something unexecpted on the stack');
             }
 
-            this.environment = savedCallState.previous_env;
+            this.environment = savedCallState.previousEnv;
             this.pc = savedCallState.pc;
-            this.code_section = savedCallState.code_section;
+            this.activeCodeSection = savedCallState.codeSection;
 
             // Return value needs to go back on the stack
             this.stack.push(return_value == undefined ? new SmolUndefined() : return_value);
 
-            if (savedCallState.call_is_extern) {
+            if (savedCallState.callIsExtern) {
               // Not sure what to do about return value here
 
               this.runMode = RunMode.Paused;
@@ -521,7 +521,7 @@ export class SmolVM {
               isPropertySetter = true;
 
               if (objRef instanceof SmolObject) {
-                env_in_context = objRef.object_env;
+                env_in_context = objRef.objectEnv;
               } else if (objRef instanceof ISmolNativeCallable) {
                 objRef.setProp(name, value);
                 break;
@@ -553,10 +553,10 @@ export class SmolVM {
 
             if (instr.operand2 != null && (instr.operand2 as boolean)) {
               const objRef = this.stack.pop();
-              const peek_instr = this.program.code_sections[this.code_section][this.pc];
+              const peek_instr = this.program.codeSections[this.activeCodeSection][this.pc];
 
               if (objRef instanceof SmolObject) {
-                env_in_context = objRef.object_env;
+                env_in_context = objRef.objectEnv;
 
                 if (peek_instr.opcode == OpCode.CALL && (peek_instr.operand2 as boolean)) {
                   this.stack.push(objRef);
@@ -620,7 +620,7 @@ export class SmolVM {
 
                     if (name == '@Object.constructor') {
                       // Hack alert!!!
-                      (r as SmolObject).object_env = new Environment(this.globalEnv);
+                      (r as SmolObject).objectEnv = new Environment(this.globalEnv);
                     }
 
                     this.stack.push(r);
@@ -645,12 +645,12 @@ export class SmolVM {
               this.stack.push(fetchedValue);
               this.debug(`              [Loaded ${fetchedValue.getValue()}]`);
             } else {
-              const fn = this.program.function_table.find((f) => f.global_function_name == name);
+              const fn = this.program.functions.find((f) => f.globalFunctionName == name);
 
               if (fn != undefined) {
                 this.stack.push(fn);
               } else if (this.externalMethods[name] != undefined) {
-                const peek_instr = this.program.code_sections[this.code_section][this.pc];
+                const peek_instr = this.program.codeSections[this.activeCodeSection][this.pc];
 
                 this.stack.push(this.callExternalMethod(name, peek_instr.operand1 as number));
 
@@ -711,8 +711,8 @@ export class SmolVM {
           }
 
           case OpCode.DEBUGGER:
-              this.runMode = RunMode.Paused;
-              return;
+            this.runMode = RunMode.Paused;
+            return;
 
           case OpCode.POP_AND_DISCARD:
             // operand1 is optional bool, default true means fail if nothing to pop
@@ -734,7 +734,7 @@ export class SmolVM {
 
             this.stack.push(
               new SmolTryRegionSaveState(
-                this.code_section,
+                this.activeCodeSection,
                 this.pc,
                 this.environment,
                 this.jmplocs[instr.operand1 as number]
@@ -764,7 +764,7 @@ export class SmolVM {
               const next = this.stack.pop();
 
               if (next instanceof SmolLoopMarker) {
-                this.environment = next.current_env;
+                this.environment = next.currentEnv;
 
                 this.stack.push(next); // Needs to still be on the stack
 
@@ -794,18 +794,18 @@ export class SmolVM {
 
             const obj_environment = new Environment(this.globalEnv);
 
-            this.program.function_table
-              .filter((el) => el.global_function_name.startsWith(`@${class_name}.`))
+            this.program.functions
+              .filter((el) => el.globalFunctionName.startsWith(`@${class_name}.`))
               .forEach((classFunc) => {
-                const funcName = classFunc.global_function_name.substring(class_name.length + 2);
+                const funcName = classFunc.globalFunctionName.substring(class_name.length + 2);
 
                 obj_environment.define(
                   funcName,
                   new SmolFunction(
-                    classFunc.global_function_name,
-                    classFunc.code_section,
+                    classFunc.globalFunctionName,
+                    classFunc.codeSection,
                     classFunc.arity,
-                    classFunc.param_variable_names
+                    classFunc.parameterNames
                   )
                 );
               });
@@ -855,9 +855,9 @@ export class SmolVM {
 
             const tryState = nextStackItem;
 
-            this.code_section = tryState.code_section;
-            this.pc = tryState.jump_exception;
-            this.environment = tryState.this_env;
+            this.activeCodeSection = tryState.codeSection;
+            this.pc = tryState.jumpException;
+            this.environment = tryState.thisEnv;
 
             this.stack.push(throwObject);
 

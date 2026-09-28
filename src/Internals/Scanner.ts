@@ -116,7 +116,7 @@ export class Scanner {
           if (
             this._tokens.length > 0
             && this._tokens[this._tokens.length - 1].type == TokenType.IDENTIFIER
-            && this._tokens[this._tokens.length - 1].followed_by_line_break == false
+            && this._tokens[this._tokens.length - 1].isFollowedByLineBreak == false
           ) {
             this.addToken(TokenType.POSTFIX_DECREMENT);
           } else {
@@ -133,7 +133,7 @@ export class Scanner {
           if (
             this._tokens.length > 0
             && this._tokens[this._tokens.length - 1].type == TokenType.IDENTIFIER
-            && this._tokens[this._tokens.length - 1].followed_by_line_break == false
+            && this._tokens[this._tokens.length - 1].isFollowedByLineBreak == false
           ) {
             this.addToken(TokenType.POSTFIX_INCREMENT);
           } else {
@@ -252,7 +252,7 @@ export class Scanner {
         this._currentLineStartIndex = this._currentPos;
 
         if (this._tokens.length > 0) {
-          this._tokens[this._tokens.length - 1].followed_by_line_break = true;
+          this._tokens[this._tokens.length - 1].isFollowedByLineBreak = true;
         }
 
         break;

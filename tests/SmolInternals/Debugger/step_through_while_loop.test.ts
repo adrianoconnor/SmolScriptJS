@@ -2,15 +2,12 @@ import { describe, expect, test } from '@jest/globals';
 import { SmolVM } from '../../../src/SmolVM';
 
 function getPendingInstr(vm: SmolVM): string {
-  let pending_instr = vm.program.code_sections[vm.code_section][vm.pc];
+  let pending_instr = vm.program.codeSections[vm.activeCodeSection][vm.pc];
 
-  let pending_instr_first_token = vm.program.tokens[pending_instr.token_map_start_index as number];
-  let pending_instr_last_token = vm.program.tokens[pending_instr.token_map_end_index as number];
+  let startToken = vm.program.tokens[pending_instr.tokenMapStartIndex as number];
+  let endToken = vm.program.tokens[pending_instr.tokenMapEndIndex as number];
 
-  return vm.program.source!.substring(
-    pending_instr_first_token.start_pos,
-    pending_instr_last_token.end_pos
-  );
+  return vm.program.source!.substring(startToken.startPos, endToken.endPos);
 }
 
 describe('Smol Debug Step-through While Loop', () => {

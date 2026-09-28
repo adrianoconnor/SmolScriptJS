@@ -57,8 +57,8 @@ class WhileLoop {
 export class Compiler
   implements StatementVisitor<ByteCodeInstruction[]>, ExpressionVisitor<ByteCodeInstruction[]>
 {
-  private _function_table: SmolFunction[] = [];
-  private _function_bodies: ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
+  private _functionTable: SmolFunction[] = [];
+  private _functionBodies: ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
 
   private _nextLabel = 1;
 
@@ -112,9 +112,9 @@ export class Compiler
 
     const program = new SmolProgram();
     program.constants = this._constants;
-    program.code_sections.push(mainChunk);
-    this._function_bodies.forEach((b) => program.code_sections.push(b));
-    program.function_table = this._function_table;
+    program.codeSections.push(mainChunk);
+    this._functionBodies.forEach((b) => program.codeSections.push(b));
+    program.functions = this._functionTable;
     program.tokens = t;
     program.source = source;
 
@@ -131,8 +131,8 @@ export class Compiler
 
     const enterScope = new ByteCodeInstruction(OpCode.ENTER_SCOPE);
 
-    enterScope.token_map_start_index = stmt.blockStartTokenIndex;
-    enterScope.token_map_end_index = stmt.blockStartTokenIndex;
+    enterScope.tokenMapStartIndex = stmt.blockStartTokenIndex;
+    enterScope.tokenMapEndIndex = stmt.blockStartTokenIndex;
 
     enterScope.isStatementStartpoint = !stmt.insertedByParser; // Only break on this statement if it's directly linked to actual user code
 
@@ -144,8 +144,8 @@ export class Compiler
     });
 
     const leaveScope = new ByteCodeInstruction(OpCode.LEAVE_SCOPE);
-    leaveScope.token_map_start_index = stmt.blockEndTokenIndex;
-    leaveScope.token_map_end_index = stmt.blockEndTokenIndex;
+    leaveScope.tokenMapStartIndex = stmt.blockEndTokenIndex;
+    leaveScope.tokenMapEndIndex = stmt.blockEndTokenIndex;
     if (stmt.insertedByParser == false) {
       leaveScope.isStatementStartpoint = true;
     }
@@ -167,10 +167,10 @@ export class Compiler
 
   visitClassStatement(stmt: ClassStatement): ByteCodeInstruction[] {
     stmt.functions.forEach((fn) => {
-      const function_index = this._function_bodies.length + 1;
+      const function_index = this._functionBodies.length + 1;
       const function_name = `@${stmt.className.lexeme}.${fn.name.lexeme}`;
 
-      this._function_table.push(
+      this._functionTable.push(
         new SmolFunction(
           function_name,
           function_index,
@@ -188,7 +188,7 @@ export class Compiler
         body.appendInstruction(OpCode.RETURN);
       }
 
-      this._function_bodies.push(body);
+      this._functionBodies.push(body);
     });
 
     // We are declaring a function, we don't add anything to the byte stream at the current loc.
@@ -230,10 +230,10 @@ export class Compiler
   }
 
   visitFunctionStatement(stmt: FunctionStatement): ByteCodeInstruction[] {
-    const function_index = this._function_bodies.length + 1;
+    const function_index = this._functionBodies.length + 1;
     const function_name = stmt.name.lexeme;
 
-    this._function_table.push(
+    this._functionTable.push(
       new SmolFunction(
         function_name,
         function_index,
@@ -251,7 +251,7 @@ export class Compiler
       body.appendInstruction(OpCode.RETURN);
     }
 
-    this._function_bodies.push(body);
+    this._functionBodies.push(body);
 
     // We are declaring a function, we don't add anything to the byte stream at the current loc.
     // When we allow functions as expressions and assignments we'll need to do something
@@ -271,16 +271,10 @@ export class Compiler
 
     const thenChunk = stmt.thenStatement.accept(this);
 
-    // if (thenChunk instanceof Array) {
     thenChunk.mapTokens(stmt.thenFirstTokenIndex, stmt.thenLastTokenIndex);
     if (stmt.thenStatement.getStatementType() != 'Block') {
       thenChunk[0].isStatementStartpoint = true;
     }
-    // }
-    // else {
-    //     (thenChunk as ByteCodeInstruction).token_map_start_index = stmt.thenFirstTokenIndex;
-    //     (thenChunk as ByteCodeInstruction).token_map_end_index = stmt.thenLastTokenIndex;
-    // }
 
     chunk.appendChunk(thenChunk);
 
@@ -576,10 +570,10 @@ export class Compiler
   }
 
   visitFunctionExpression(expr: FunctionExpression): ByteCodeInstruction[] {
-    const function_index = this._function_bodies.length + 1;
+    const function_index = this._functionBodies.length + 1;
     const function_name = `$_anon_${function_index}`;
 
-    this._function_table.push(
+    this._functionTable.push(
       new SmolFunction(
         function_name,
         function_index,
@@ -597,7 +591,7 @@ export class Compiler
       body.appendInstruction(OpCode.RETURN);
     }
 
-    this._function_bodies.push(body);
+    this._functionBodies.push(body);
 
     return [new ByteCodeInstruction(OpCode.FETCH, function_name)];
   }

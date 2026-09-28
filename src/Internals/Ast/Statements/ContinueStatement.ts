@@ -9,5 +9,5 @@ export class ContinueStatement extends Statement {
     return visitor.visitContinueStatement(this);
   }
 
-  tokenIndex: number | undefined;
+  tokenIndex?: number;
 }

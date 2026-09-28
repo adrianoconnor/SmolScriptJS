@@ -3,15 +3,15 @@ import { TokenType } from './TokenType';
 export class Token {
   public type: TokenType;
   public lexeme: string;
-  public literal: string | undefined;
+  public literal?: string;
 
   public line: number;
   public col: number;
 
-  public start_pos: number;
-  public end_pos: number;
+  public startPos: number;
+  public endPos: number;
 
-  public followed_by_line_break: boolean;
+  public isFollowedByLineBreak: boolean;
 
   constructor(
     type: TokenType,
@@ -19,17 +19,17 @@ export class Token {
     literal: string | undefined,
     line: number,
     col: number,
-    start_pos: number,
-    end_pos: number
+    startPos: number,
+    endPos: number
   ) {
     this.type = type;
     this.lexeme = lexeme;
     this.literal = literal;
     this.line = line;
     this.col = col;
-    this.start_pos = start_pos;
-    this.end_pos = end_pos;
-    this.followed_by_line_break = false;
+    this.startPos = startPos;
+    this.endPos = endPos;
+    this.isFollowedByLineBreak = false;
   }
 
   toString(): string {

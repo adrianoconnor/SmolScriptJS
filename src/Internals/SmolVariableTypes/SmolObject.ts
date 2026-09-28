@@ -2,13 +2,13 @@ import { Environment } from '../Environment';
 import { SmolVariableType } from './SmolVariableType';
 
 export class SmolObject extends SmolVariableType {
-  object_env: Environment;
-  class_name: string;
+  objectEnv: Environment;
+  className: string;
 
-  constructor(object_env: Environment, class_name: string) {
+  constructor(objectEnv: Environment, className: string) {
     super();
-    this.object_env = object_env;
-    this.class_name = class_name;
+    this.objectEnv = objectEnv;
+    this.className = className;
   }
 
   getValue() {
@@ -16,8 +16,8 @@ export class SmolObject extends SmolVariableType {
   }
 
   toString() {
-    if (this.class_name != '') {
-      return `(SmolInstance, class_name = ${this.class_name})`;
+    if (this.className != '') {
+      return `(SmolInstance, class_name = ${this.className})`;
     } else {
       return `(SmolObject)`;
     }

@@ -6,10 +6,10 @@ import { Token } from './Token';
 
 export class SmolProgram {
   constants: SmolVariableType[] = [];
-  code_sections: ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
-  function_table: SmolFunction[] = [];
+  codeSections: ByteCodeInstruction[][] = new Array<ByteCodeInstruction[]>();
+  functions: SmolFunction[] = [];
   tokens: Token[] = [];
-  source: string | undefined;
+  source?: string;
 
   decompile(html = false) {
     let p = '';
@@ -25,7 +25,7 @@ export class SmolProgram {
 
     p += `\n`;
 
-    this.code_sections.forEach((s, n) => {
+    this.codeSections.forEach((s, n) => {
       p += `.code_section_${n}\n`;
       s.forEach((i, idx) => {
         if (html) {
@@ -55,8 +55,6 @@ export class SmolProgram {
           p += `${OpCode[i.opcode]}${op1}${op2}`;
         }
 
-        //p += ` [${i.token_map_start_index}, ${i.token_map_end_index}]`
-
         if (html) {
           p += `</div>`;
         } else {
@@ -69,8 +67,8 @@ export class SmolProgram {
 
     p += `.function_table:\n`;
 
-    this.function_table.forEach((fn, n) => {
-      p += `${n}: name: ${fn.global_function_name}, code_section: ${fn.code_section}, arity: ${fn.arity}, parameter names: ${fn.param_variable_names.join(', ')}\n`;
+    this.functions.forEach((fn, n) => {
+      p += `${n}: name: ${fn.globalFunctionName}, code_section: ${fn.codeSection}, arity: ${fn.arity}, parameter names: ${fn.parameterNames.join(', ')}\n`;
     });
     p += ``;
 

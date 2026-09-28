@@ -2,22 +2,17 @@ import { SmolStackType } from './SmolStackType';
 import { Environment } from '../Environment';
 
 export class SmolCallSiteSaveState extends SmolStackType {
-  code_section: number;
+  codeSection: number;
   pc: number;
-  previous_env: Environment;
-  call_is_extern: boolean;
+  previousEnv: Environment;
+  callIsExtern: boolean;
 
-  constructor(
-    code_section: number,
-    pc: number,
-    previous_env: Environment,
-    call_is_extern: boolean
-  ) {
+  constructor(codeSection: number, pc: number, previousEnv: Environment, callIsExtern: boolean) {
     super();
-    this.code_section = code_section;
+    this.codeSection = codeSection;
     this.pc = pc;
-    this.previous_env = previous_env;
-    this.call_is_extern = call_is_extern;
+    this.previousEnv = previousEnv;
+    this.callIsExtern = callIsExtern;
   }
 
   toString() {

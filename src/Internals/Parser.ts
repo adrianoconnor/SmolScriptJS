@@ -107,7 +107,7 @@ export class Parser {
     // If we expected a ; but got a newline, we just wave it through
     if (
       tokenType == TokenType.SEMICOLON
-      && this._tokens[this._currentTokenIndex - 1].followed_by_line_break
+      && this._tokens[this._currentTokenIndex - 1].isFollowedByLineBreak
     ) {
       // We need to return a token, so we'll make a fake semicolon
       return new Token(TokenType.SEMICOLON, '', '', -1, -1, -1, -1);
@@ -150,7 +150,7 @@ export class Parser {
       initializerExpr = this.expression();
     }
 
-    const skip = this.consume(TokenType.SEMICOLON, 'Expected ;').start_pos == -1 ? 1 : 2;
+    const skip = this.consume(TokenType.SEMICOLON, 'Expected ;').startPos == -1 ? 1 : 2;
     const lastTokenIndex = this._currentTokenIndex - skip;
 
     const stmt = new VarStatement(name, initializerExpr);
@@ -247,7 +247,7 @@ export class Parser {
     if (
       this.peek().type == TokenType.SEMICOLON
       || this.peek().type == TokenType.RIGHT_BRACE
-      || this.previous().followed_by_line_break
+      || this.previous().isFollowedByLineBreak
     ) {
       this.consume(TokenType.SEMICOLON, 'Expected ;');
 
@@ -487,7 +487,7 @@ export class Parser {
 
     const expr: Expression = this.expression();
 
-    const skip = this.consume(TokenType.SEMICOLON, 'Expected ;').start_pos == -1 ? 1 : 2;
+    const skip = this.consume(TokenType.SEMICOLON, 'Expected ;').startPos == -1 ? 1 : 2;
     const lastTokenIndex = this._currentTokenIndex - skip;
 
     const stmt = new ExpressionStatement(expr);
@@ -571,8 +571,8 @@ export class Parser {
         undefined,
         originalToken.line,
         originalToken.col,
-        originalToken.start_pos,
-        originalToken.end_pos
+        originalToken.startPos,
+        originalToken.endPos
       ),
       value
     );
@@ -829,8 +829,8 @@ export class Parser {
         undefined,
         originalToken.line,
         originalToken.col,
-        originalToken.start_pos,
-        originalToken.end_pos
+        originalToken.startPos,
+        originalToken.endPos
       );
 
       const args = new Array<Expression>();
@@ -854,8 +854,8 @@ export class Parser {
         undefined,
         originalToken.line,
         originalToken.col,
-        originalToken.start_pos,
-        originalToken.end_pos
+        originalToken.startPos,
+        originalToken.endPos
       );
 
       const args = new Array<Expression>();
@@ -942,7 +942,7 @@ export class Parser {
 
     if (!openBracketConsumed) {
       if (
-        !this._tokens[this._currentTokenIndex].followed_by_line_break
+        !this._tokens[this._currentTokenIndex].isFollowedByLineBreak
         && this._tokens[this._currentTokenIndex + 1].type == TokenType.FAT_ARROW
       ) {
         return true;
@@ -959,7 +959,7 @@ export class Parser {
 
     while (true) {
       if (
-        this._tokens[index].followed_by_line_break
+        this._tokens[index].isFollowedByLineBreak
         && this._tokens[index].type != TokenType.FAT_ARROW
       ) // => has to be on same line as (...), but newline can come after =>
       {

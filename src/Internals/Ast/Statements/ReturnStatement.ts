@@ -9,7 +9,7 @@ export class ReturnStatement extends Statement {
 
   expression?: Expression;
 
-  constructor(expression: Expression | undefined) {
+  constructor(expression?: Expression) {
     super();
     this.expression = expression;
   }
@@ -18,7 +18,7 @@ export class ReturnStatement extends Statement {
     return visitor.visitReturnStatement(this);
   }
 
-  tokenIndex: number | undefined;
-  exprFirstTokenIndex: number | undefined;
-  exprLastTokenIndex: number | undefined;
+  tokenIndex?: number;
+  exprFirstTokenIndex?: number;
+  exprLastTokenIndex?: number;
 }

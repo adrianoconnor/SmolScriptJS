@@ -11,11 +11,7 @@ export class IfStatement extends Statement {
   thenStatement: Statement;
   elseStatement?: Statement;
 
-  constructor(
-    expression: Expression,
-    thenStatement: Statement,
-    elseStatement: Statement | undefined
-  ) {
+  constructor(expression: Expression, thenStatement: Statement, elseStatement?: Statement) {
     super();
     this.expression = expression;
     this.thenStatement = thenStatement;
@@ -28,10 +24,10 @@ export class IfStatement extends Statement {
 
   // For source mapping
 
-  exprFirstTokenIndex: number | undefined;
-  exprLastTokenIndex: number | undefined;
-  thenFirstTokenIndex: number | undefined;
-  thenLastTokenIndex: number | undefined;
-  elseFirstTokenIndex: number | undefined;
-  elseLastTokenIndex: number | undefined;
+  exprFirstTokenIndex?: number;
+  exprLastTokenIndex?: number;
+  thenFirstTokenIndex?: number;
+  thenLastTokenIndex?: number;
+  elseFirstTokenIndex?: number;
+  elseLastTokenIndex?: number;
 }

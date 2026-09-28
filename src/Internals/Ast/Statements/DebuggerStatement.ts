@@ -9,5 +9,5 @@ export class DebuggerStatement extends Statement {
     return visitor.visitDebuggerStatement(this);
   }
 
-  tokenIndex: number | undefined;
+  tokenIndex?: number;
 }

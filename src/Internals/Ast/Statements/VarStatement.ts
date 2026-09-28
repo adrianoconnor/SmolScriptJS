@@ -10,10 +10,10 @@ export class VarStatement extends Statement {
 
   name: Token;
   initializerExpression?: Expression;
-  firstTokenIndex: number | undefined;
-  lastTokenIndex: number | undefined;
+  firstTokenIndex?: number;
+  lastTokenIndex?: number;
 
-  constructor(name: Token, initializerExpression: Expression | undefined) {
+  constructor(name: Token, initializerExpression?: Expression) {
     super();
     this.name = name;
     this.initializerExpression = initializerExpression;

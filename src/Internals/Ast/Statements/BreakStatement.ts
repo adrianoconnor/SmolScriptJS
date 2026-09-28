@@ -10,5 +10,5 @@ export class BreakStatement extends Statement {
     return visitor.visitBreakStatement(this);
   }
 
-  tokenIndex: number | undefined;
+  tokenIndex?: number;
 }

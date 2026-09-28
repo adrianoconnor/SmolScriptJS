@@ -15,9 +15,9 @@ export class TryStatement extends Statement {
 
   constructor(
     tryBody: BlockStatement,
-    exceptionVariableName: Token | undefined,
-    catchBody: BlockStatement | undefined,
-    finallyBody: BlockStatement | undefined
+    exceptionVariableName?: Token,
+    catchBody?: BlockStatement,
+    finallyBody?: BlockStatement
   ) {
     super();
     this.tryBody = tryBody;

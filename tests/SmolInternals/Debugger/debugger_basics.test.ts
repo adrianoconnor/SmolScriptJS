@@ -1,18 +1,15 @@
 import { describe, expect, test } from '@jest/globals';
 import { SmolVM } from '../../../src/SmolVM';
-import { RunMode } from '../../../src/Internals/RunMode';
-import { TokenType } from '../../../src/Internals/TokenType';
-import { OpCode } from '../../../src/Internals/OpCode';
 
 function getPendingInstr(vm: SmolVM): string {
-  let pending_instr = vm.program.code_sections[vm.code_section][vm.pc];
+  let pendingInstr = vm.program.codeSections[vm.activeCodeSection][vm.pc];
 
-  let pending_instr_first_token = vm.program.tokens[pending_instr.token_map_start_index as number];
-  let pending_instr_last_token = vm.program.tokens[pending_instr.token_map_end_index as number];
+  let pendingInstrFirstToken = vm.program.tokens[pendingInstr.tokenMapStartIndex as number];
+  let pendingInstrLastToken = vm.program.tokens[pendingInstr.tokenMapEndIndex as number];
 
   return vm.program.source!.substring(
-    pending_instr_first_token.start_pos,
-    pending_instr_last_token.end_pos
+    pendingInstrFirstToken.startPos,
+    pendingInstrLastToken.endPos
   );
 }
 

@@ -20,8 +20,8 @@ export class WhileStatement extends Statement {
     return visitor.visitWhileStatement(this);
   }
 
-  exprFirstTokenIndex: number | undefined;
-  exprLastTokenIndex: number | undefined;
-  stmtFirstTokenIndex: number | undefined;
-  stmtLastTokenIndex: number | undefined;
+  exprFirstTokenIndex?: number;
+  exprLastTokenIndex?: number;
+  stmtFirstTokenIndex?: number;
+  stmtLastTokenIndex?: number;
 }

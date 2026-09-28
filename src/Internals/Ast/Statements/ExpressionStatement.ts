@@ -3,8 +3,8 @@ import { StatementVisitor } from './StatementVisitor';
 import { Expression } from '../Expressions/Expression';
 
 export class ExpressionStatement extends Statement {
-  firstTokenIndex: number | undefined;
-  lastTokenIndex: number | undefined;
+  firstTokenIndex?: number;
+  lastTokenIndex?: number;
 
   getStatementType(): string {
     return 'Expression';

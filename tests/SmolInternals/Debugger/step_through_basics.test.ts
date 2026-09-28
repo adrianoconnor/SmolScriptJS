@@ -3,14 +3,14 @@ import { SmolVM } from '../../../src/SmolVM';
 import { TokenType } from '../../../src/Internals/TokenType';
 
 function getPendingInstr(vm: SmolVM): string {
-  let pending_instr = vm.program.code_sections[vm.code_section][vm.pc];
+  let pending_instr = vm.program.codeSections[vm.activeCodeSection][vm.pc];
 
-  let pending_instr_first_token = vm.program.tokens[pending_instr.token_map_start_index as number];
-  let pending_instr_last_token = vm.program.tokens[pending_instr.token_map_end_index as number];
+  let pending_instr_first_token = vm.program.tokens[pending_instr.tokenMapStartIndex as number];
+  let pending_instr_last_token = vm.program.tokens[pending_instr.tokenMapEndIndex as number];
 
   return vm.program.source!.substring(
-    pending_instr_first_token.start_pos,
-    pending_instr_last_token.end_pos
+    pending_instr_first_token.startPos,
+    pending_instr_last_token.endPos
   );
 }
 
@@ -174,11 +174,10 @@ describe('Smol Debug Basics', () => {
     // expect(vm.state).toBe('paused');
     // expect(vm.highlightedSection).toBe('var y = 2');
 
-    var pending_instr = vm.program.code_sections[vm.code_section][vm.pc];
+    var pending_instr = vm.program.codeSections[vm.activeCodeSection][vm.pc];
 
-    var pending_instr_first_token =
-      vm.program.tokens[pending_instr.token_map_start_index as number];
-    var pending_instr_last_token = vm.program.tokens[pending_instr.token_map_end_index as number];
+    var pending_instr_first_token = vm.program.tokens[pending_instr.tokenMapStartIndex as number];
+    var pending_instr_last_token = vm.program.tokens[pending_instr.tokenMapEndIndex as number];
 
     expect(pending_instr_first_token.line).toBe(3);
     expect(pending_instr_first_token.type).toBe(TokenType.VAR);
@@ -190,11 +189,11 @@ describe('Smol Debug Basics', () => {
     expect(pending_instr_first_token.col).toBe(4);
     expect(pending_instr_last_token.col).toBe(12);
 
-    expect(pending_instr_first_token.start_pos).toBe(19);
-    expect(pending_instr_last_token.end_pos).toBe(28);
+    expect(pending_instr_first_token.startPos).toBe(19);
+    expect(pending_instr_last_token.endPos).toBe(28);
 
     expect(
-      source.substring(pending_instr_first_token.start_pos, pending_instr_last_token.end_pos)
+      source.substring(pending_instr_first_token.startPos, pending_instr_last_token.endPos)
     ).toBe('var y = 2');
 
     expect(vm.getGlobalVar('y')).toBeUndefined;

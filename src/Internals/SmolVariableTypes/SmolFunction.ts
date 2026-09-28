@@ -1,10 +1,10 @@
 import { SmolVariableType } from './SmolVariableType';
 
 export class SmolFunction extends SmolVariableType {
-  global_function_name: string;
-  code_section: number;
+  globalFunctionName: string;
+  codeSection: number;
   arity: number;
-  param_variable_names: string[] = new Array<string>();
+  parameterNames: string[] = new Array<string>();
 
   constructor(
     global_function_name: string,
@@ -13,10 +13,10 @@ export class SmolFunction extends SmolVariableType {
     param_variable_names: string[]
   ) {
     super();
-    this.global_function_name = global_function_name;
-    this.code_section = code_section;
+    this.globalFunctionName = global_function_name;
+    this.codeSection = code_section;
     this.arity = arity;
-    this.param_variable_names = param_variable_names;
+    this.parameterNames = param_variable_names;
   }
 
   getValue() {
@@ -24,6 +24,6 @@ export class SmolFunction extends SmolVariableType {
   }
 
   toString(): string {
-    return `(SmolFunction) ${this.global_function_name}`;
+    return `(SmolFunction) ${this.globalFunctionName}`;
   }
 }

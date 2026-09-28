@@ -17,8 +17,8 @@ declare global {
     ): ByteCodeInstruction[];
     peek(): T;
     mapTokens(
-      first_token_index: number | undefined,
-      last_token_index: number | undefined
+      firstTokenIndex: number | undefined,
+      lastTokenIndex: number | undefined
     ): ByteCodeInstruction[];
   }
 }
@@ -50,7 +50,7 @@ if (!Array.prototype.appendInstruction) {
     operand2?: unknown
   ): ByteCodeInstruction[] {
     const instr = new ByteCodeInstruction(opcode, operand1, operand2);
-    instr.token_map_end_index = undefined;
+    instr.tokenMapEndIndex = undefined;
     this.push(instr);
     return this;
   };
@@ -66,21 +66,21 @@ if (!Array.prototype.peek) {
 if (!Array.prototype.mapTokens) {
   Array.prototype.mapTokens = function <ByteCodeInstruction>(
     this: ByteCodeInstruction[],
-    first_token_index: number | undefined,
-    last_token_index: number | undefined
+    firstTokenIndex: number | undefined,
+    lastTokenIndex: number | undefined
   ): ByteCodeInstruction[] {
     for (const element of this) {
       const mappedElement = element as ByteCodeInstruction & {
-        token_map_start_index?: number;
-        token_map_end_index?: number;
+        tokenMapStartIndex?: number;
+        tokenMapEndIndex?: number;
       };
 
-      if (mappedElement.token_map_start_index == undefined) {
-        mappedElement.token_map_start_index = first_token_index;
+      if (mappedElement.tokenMapStartIndex == undefined) {
+        mappedElement.tokenMapStartIndex = firstTokenIndex;
       }
 
-      if (mappedElement.token_map_end_index == undefined) {
-        mappedElement.token_map_end_index = last_token_index;
+      if (mappedElement.tokenMapEndIndex == undefined) {
+        mappedElement.tokenMapEndIndex = lastTokenIndex;
       }
     }
 
